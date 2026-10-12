@@ -12,10 +12,14 @@ model:
   functional_group_config_path: configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json
   patch_module:
     type: progressive_grid
-    # Patch keys per query.  All 5 special tokens from every frame are retained
-    # in addition to this budget; patch keys obey one-key-per-2x2-grid.
-    patch_key_budget: 256
-    exploitation_ratio: 0.75
+    # Fraction of 2x2 patch grids retained per patch query.  1.0 means one
+    # key from every grid, i.e. approximately 25% patch-key retention for any
+    # number of input frames.  This is the initial Uniform-25% sanity check.
+    grid_keep_ratio: 1.0
+    # Keep this baseline purely uniform.  Once it is validated, changing this
+    # to 0.75 enables the gradual 0 -> 25 -> 50 -> 75% schedule below.
+    exploitation_ratio: 0.0
+    exploitation_step: 0.25
     evidence_decay: 0.60
     score_chunk_size: 1024
 

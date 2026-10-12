@@ -69,8 +69,9 @@ def patch_model(model, model_cfg):
             raise ValueError("functional group profile must cover every VGGT global layer")
 
         state = ProgressiveGridState(
-            patch_key_budget=model_cfg.patch_module.patch_key_budget,
+            grid_keep_ratio=model_cfg.patch_module.get("grid_keep_ratio", 1.0),
             exploitation_ratio=model_cfg.patch_module.get("exploitation_ratio", 0.75),
+            exploitation_step=model_cfg.patch_module.get("exploitation_step", 0.25),
             evidence_decay=model_cfg.patch_module.get("evidence_decay", 0.60),
             score_chunk_size=model_cfg.patch_module.get("score_chunk_size", 1024),
         )
@@ -89,7 +90,8 @@ def patch_model(model, model_cfg):
         )
         print(
             "=> Using progressive-grid sparse attention "
-            f"(patch_keys={state.patch_key_budget}, no layer-span cutoff)"
+            f"(grid_keep_ratio={state.grid_keep_ratio:.3f}, "
+            f"exploitation=0->{state.exploitation_ratio:.2f}, no layer-span cutoff)"
         )
 
     # Headwise dynamic sparse attention

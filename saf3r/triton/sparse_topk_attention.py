@@ -142,7 +142,13 @@ def fused_sparse_topk_attention(q, k, v, kv_indices, scale=None):
     q = q.contiguous()
     k = k.contiguous()
     v = v.contiguous()
-    kv_indices = kv_indices.contiguous()
+    # A uniform sparse pattern is shared by every query.  It is represented as
+    # a stride-zero expanded view so a 25%-retention baseline does not allocate
+    # a dense [num_queries, topk] index matrix.  Triton receives the explicit
+    # row stride below and can safely read that view; only materialise layouts
+    # whose key dimension is not contiguous.
+    if kv_indices.stride(1) != 1:
+        kv_indices = kv_indices.contiguous()
 
     grid = (N, )
     _sparse_attn_fwd_kernel[grid](
@@ -219,28 +225,30 @@ def _sparse_flash_attn_fwd_kernel(
         mask_kd = mask_k[:, None] & mask_d[None, :]
         k_chunk = tl.load(k_ptrs, mask=mask_kd, other=0.0).to(tl.float16)
 
-        # q [1, BLOCK_D] @ k_chunk.T [BLOCK_D, BLOCK_K] -> qk [1, BLOCK_K]
-        qk = tl.dot(q, tl.trans(k_chunk)) * sm_scale
-        qk = tl.where(mask_k[None, :], qk, float("-inf"))
+        # This kernel processes one query per program.  Triton's Tensor Core
+        # dot requires both matrix dimensions to be at least 16, so the former
+        # [1, D] @ [D, K] expression cannot compile.  The elementwise reduction
+        # is valid for a single query and preserves the online-softmax logic.
+        qk = tl.sum(q * k_chunk, axis=1) * sm_scale
+        qk = tl.where(mask_k, qk, float("-inf"))
 
         # --- Online softmax computation ---
-        m_ij = tl.max(qk, axis=1)
+        m_ij = tl.max(qk, axis=0)
         m_i_new = tl.maximum(m_i, m_ij)
         alpha = tl.exp(m_i - m_i_new)
-        p = tl.exp(qk - m_i_new[:, None])
+        p = tl.exp(qk - m_i_new)
         
         # Load V block: [BLOCK_K, BLOCK_D] -> cast to float16
         v_ptrs = V_ptr + idx[:, None] * stride_vn + offs_d[None, :] * stride_vd
         v_chunk = tl.load(v_ptrs, mask=mask_kd, other=0.0).to(tl.float16)
 
-        # Trigger the Tensor Cores again: Attention @ V
-        # p_f16 [1, BLOCK_K] @ v_chunk [BLOCK_K, BLOCK_D] -> v_out [1, BLOCK_D]
-        p_f16 = p.to(tl.float16) 
-        v_out = tl.dot(p_f16, v_chunk)
+        # As above, a single-query matrix product cannot use tl.dot.  Reduce
+        # the probability-weighted values directly instead.
+        v_out = tl.sum(p[:, None] * v_chunk, axis=0)
 
         # Update state
-        l_i = l_i * alpha + tl.sum(p, axis=1)
-        acc = acc * alpha[:, None] + v_out
+        l_i = l_i * alpha + tl.sum(p, axis=0)
+        acc = acc * alpha[:, None] + v_out[None, :]
         m_i = m_i_new
 
     # 4. Final normalization and write-back

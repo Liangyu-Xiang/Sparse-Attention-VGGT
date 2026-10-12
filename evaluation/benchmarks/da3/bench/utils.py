@@ -21,13 +21,14 @@ Contains:
 - Geometry utilities (quaternion conversion, etc.)
 """
 
+import os
 from typing import Dict as TDict, Optional, Tuple, Union
 
 import numpy as np
 import open3d as o3d
 import torch
 from addict import Dict
-from scipy.spatial import KDTree
+from scipy.spatial import cKDTree
 
 from ..geometry import mat_to_quat
 
@@ -69,9 +70,27 @@ def quat2rotmat(qvec: list) -> np.ndarray:
 # =============================================================================
 
 
+def _kdtree_workers() -> int:
+    """Read the bounded worker count used for parallel nearest-neighbour queries.
+
+    ``cKDTree.query`` produces the same nearest-neighbour distances regardless
+    of its worker count.  Keeping this as an environment setting lets one
+    evaluation process use all available CPU cores while a multi-GPU launch
+    partitions those cores between its workers.
+    """
+    value = os.environ.get("SAF3R_KDTREE_WORKERS", "1")
+    try:
+        workers = int(value)
+    except ValueError as exc:
+        raise ValueError("SAF3R_KDTREE_WORKERS must be a non-zero integer") from exc
+    if workers == 0 or workers < -1:
+        raise ValueError("SAF3R_KDTREE_WORKERS must be positive or -1")
+    return workers
+
+
 def nn_correspondance(verts1: np.ndarray, verts2: np.ndarray) -> np.ndarray:
     """
-    Compute nearest neighbor distances from verts2 to verts1 using KDTree.
+    Compute nearest neighbor distances from verts2 to verts1 using cKDTree.
 
     Args:
         verts1: Reference point cloud [N, 3]
@@ -83,8 +102,8 @@ def nn_correspondance(verts1: np.ndarray, verts2: np.ndarray) -> np.ndarray:
     if len(verts1) == 0 or len(verts2) == 0:
         return np.array([])
 
-    kdtree = KDTree(verts1)
-    distances, _ = kdtree.query(verts2)
+    kdtree = cKDTree(verts1)
+    distances, _ = kdtree.query(verts2, workers=_kdtree_workers())
     return distances.reshape(-1)
 
 

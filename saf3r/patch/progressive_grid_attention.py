@@ -23,7 +23,10 @@ import torch
 from torch import Tensor, nn
 import torch.nn.functional as F
 
-from ..triton.sparse_topk_attention import fused_sparse_topk_attention
+from ..triton.sparse_topk_attention import (
+    fused_sparse_topk_attention,
+    fused_sparse_topk_attention_2,
+)
 
 
 @dataclass
@@ -42,35 +45,62 @@ class ProgressiveGridState:
     weight as a reliable importance target.  Old evidence is exponentially
     decayed when new observations are merged, so the state evolves from the
     initial uniform coverage toward repeatedly supported key grids.
+
+    ``grid_keep_ratio`` is relative to the available 2x2 grids, rather than
+    an absolute global-key count.  A value of one selects exactly one patch
+    key from every 2x2 grid (about 25% patch-key retention), independently of
+    the number of frames in the scene.
     """
 
     def __init__(
         self,
-        patch_key_budget: int,
+        grid_keep_ratio: float = 1.0,
         exploitation_ratio: float = 0.75,
+        exploitation_step: float = 0.25,
         evidence_decay: float = 0.60,
         score_chunk_size: int = 1024,
     ) -> None:
-        if patch_key_budget < 1:
-            raise ValueError("patch_key_budget must be positive")
+        if not 0.0 < grid_keep_ratio <= 1.0:
+            raise ValueError("grid_keep_ratio must be in (0, 1]")
         if not 0.0 <= exploitation_ratio <= 1.0:
             raise ValueError("exploitation_ratio must be in [0, 1]")
+        if not 0.0 < exploitation_step <= 1.0:
+            raise ValueError("exploitation_step must be in (0, 1]")
         if not 0.0 <= evidence_decay <= 1.0:
             raise ValueError("evidence_decay must be in [0, 1]")
 
-        self.patch_key_budget = patch_key_budget
+        self.grid_keep_ratio = grid_keep_ratio
         self.exploitation_ratio = exploitation_ratio
+        self.exploitation_step = exploitation_step
         self.evidence_decay = evidence_decay
         self.score_chunk_size = score_chunk_size
         self._memory: Dict[str, _GroupMemory] = {}
         self._pending: Dict[str, _GroupMemory] = {}
+        self._depth: Dict[str, int] = {}
         self._geometry: Tuple[int, int, int] | None = None
 
     def reset(self, patch_height: int, patch_width: int, num_images: int | None = None) -> None:
         """Start a new scene.  ``num_images`` is checked lazily by ``select``."""
         self._memory.clear()
         self._pending.clear()
+        self._depth.clear()
         self._geometry = (patch_height, patch_width, -1 if num_images is None else num_images)
+
+    def exploitation_ratio_for(self, group_id: str) -> float:
+        """Return this group's gradual exploitation quota for its next layer.
+
+        The first group layer has depth zero and is purely uniform.  With the
+        default settings, following layers use 25%, 50%, and then 75% history
+        respectively, rather than jumping straight to 75% after one sparse
+        observation.
+        """
+        depth = self._depth.get(group_id, 0)
+        return min(self.exploitation_ratio, depth * self.exploitation_step)
+
+    @property
+    def needs_evidence(self) -> bool:
+        """Whether this configuration can ever alter a uniform key pattern."""
+        return self.grid_keep_ratio < 1.0 and self.exploitation_ratio > 0.0
 
     @staticmethod
     def _grid_ids(token_idx: Tensor, patch_height: int, patch_width: int) -> Tensor:
@@ -107,7 +137,10 @@ class ProgressiveGridState:
         corner = head_rank % 4
         row = torch.clamp(2 * grid_row + corner // 2, max=patch_height - 1)
         col = torch.clamp(2 * grid_col + corner % 2, max=patch_width - 1)
-        return frame * patches_per_image + row * patch_width + col
+        # Triton consumes int32 key indices.  Producing that dtype here keeps
+        # the shared uniform lattice compact and avoids a full-size conversion
+        # immediately before the attention kernel.
+        return (frame * patches_per_image + row * patch_width + col).to(torch.int32)
 
     def _uniform_tokens(
         self,
@@ -115,6 +148,7 @@ class ProgressiveGridState:
         patch_height: int,
         patch_width: int,
         head_rank: int,
+        num_group_heads: int,
         device: torch.device,
     ) -> Tensor:
         """Uniformly probe the entire flattened key-token space for every query."""
@@ -124,21 +158,35 @@ class ProgressiveGridState:
         num_images = num_patch_tokens // patches_per_image
         grids_per_image = ((patch_height + 1) // 2) * ((patch_width + 1) // 2)
         num_grids = num_images * grids_per_image
-        budget = min(self.patch_key_budget, num_grids)
+        budget = min(num_grids, max(1, math.ceil(self.grid_keep_ratio * num_grids)))
+        if not 0 <= head_rank < num_group_heads:
+            raise ValueError("head_rank must identify one head in its same-layer group")
 
         # The base positions are exactly uniform over all frames and all patch
         # grids.  All queries of one head start from this same global lattice,
-        # as required by the uniform initialisation; only same-layer heads are
-        # staggered.  Query-specific concentration appears only after actual
-        # sparse edges have been observed and written to history.
+        # as required by the uniform initialisation.  Same-layer functional
+        # heads are staggered in *grid space* first: for a sufficiently sparse
+        # lattice, their first passes cover different grids before they need to
+        # use different corners of the same grid.  Query-specific
+        # concentration appears only after actual sparse edges have been
+        # observed and written to history.
         base = torch.div(
             torch.arange(budget, device=device, dtype=torch.long) * num_grids,
             budget,
             rounding_mode="floor",
         )
-        head_phase = (head_rank // 4) * max(1, num_grids // 7)
-        grid_idx = ((base + head_phase) % num_grids).unsqueeze(0).expand(num_patch_tokens, -1)
-        return self._grid_tokens(grid_idx, patch_height, patch_width, head_rank)
+        # Prefer a different residue of the uniform grid lattice for each
+        # same-layer head.  Once all residues are occupied, the corner choice
+        # in ``_grid_tokens`` provides the secondary diversity mechanism.
+        lattice_stride = max(1, math.ceil(num_grids / budget))
+        head_phase = head_rank % lattice_stride
+        grid_idx = (base + head_phase) % num_grids
+        # All patch queries use the same first-layer lattice for this head.
+        # Keep it as a stride-zero view: materialising [num_queries, budget]
+        # would make the 25%-retention sanity check needlessly consume tens of
+        # gigabytes before the attention kernel runs.
+        token_idx = self._grid_tokens(grid_idx, patch_height, patch_width, head_rank)
+        return token_idx.unsqueeze(0).expand(num_patch_tokens, -1)
 
     @staticmethod
     def _deduplicate_and_take(
@@ -182,17 +230,18 @@ class ProgressiveGridState:
         patch_width: int,
         head_rank: int,
         device: torch.device,
+        num_group_heads: int = 1,
     ) -> Tensor:
         """Select token keys for one head without mutating the shared state."""
         uniform = self._uniform_tokens(
-            num_patch_tokens, patch_height, patch_width, head_rank, device
+            num_patch_tokens, patch_height, patch_width, head_rank, num_group_heads, device
         )
         memory = self._memory.get(group_id)
         if memory is None or memory.token_idx.shape != uniform.shape:
             return uniform
 
         budget = uniform.shape[1]
-        exploit_count = min(budget, int(round(budget * self.exploitation_ratio)))
+        exploit_count = min(budget, int(round(budget * self.exploitation_ratio_for(group_id))))
         if exploit_count == 0:
             return uniform
 
@@ -282,6 +331,7 @@ class ProgressiveGridState:
         pending = self._pending.pop(group_id, None)
         if pending is not None:
             self._memory[group_id] = pending
+            self._depth[group_id] = self._depth.get(group_id, 0) + 1
 
     def update(
         self,
@@ -304,9 +354,14 @@ def _sparse_patch_attention(
     key_indices: Tensor,
     chunk_size: int,
 ) -> Tensor:
-    """Sparse per-query attention over an arbitrary global K/V token subset."""
+    """Sparse per-query attention over the patch-only K/V token subset."""
     if q_patch.device.type == "cuda":
-        return fused_sparse_topk_attention(q_patch, k_all, v_all, key_indices.to(torch.int32))
+        kernel = (
+            fused_sparse_topk_attention
+            if key_indices.shape[1] <= 2048
+            else fused_sparse_topk_attention_2
+        )
+        return kernel(q_patch, k_all, v_all, key_indices.to(torch.int32))
 
     # CPU reference used by unit tests.  It is intentionally chunked for the
     # same memory behaviour as the CUDA path.
@@ -332,7 +387,13 @@ def progressive_grid_attention(
     num_special_tokens: int,
     chunk_size: int,
 ) -> Tensor:
-    """Apply sparse attention while always retaining all special key tokens."""
+    """Apply patch-only sparse attention and dense special-token attention.
+
+    Keeping all special tokens in every patch-query softmax would dramatically
+    inflate their probability mass when patch keys are sparse.  Patch queries
+    therefore attend only to selected patch keys, matching SAF3R's existing
+    DINO Top-K treatment; special-token queries retain dense access.
+    """
     if q.shape[0] != 1 or q.shape[1] != 1:
         raise ValueError("progressive sparse attention currently supports [B=1, H=1]")
     num_tokens = q.shape[2]
@@ -352,13 +413,11 @@ def progressive_grid_attention(
     k_flat = k.squeeze(0).squeeze(0)
     v_flat = v.squeeze(0).squeeze(0)
     q_patch = q_flat[image_idx]
-
-    # The special tokens are present in every patch query's K/V set.  They are
-    # not assigned to spatial grids and therefore never compete with patch keys.
-    selected_global = image_idx[patch_token_indices.long()]
-    special_per_query = special_idx.unsqueeze(0).expand(selected_global.shape[0], -1)
-    selected_global = torch.cat((special_per_query, selected_global), dim=1).contiguous()
-    out_patch = _sparse_patch_attention(q_patch, k_flat, v_flat, selected_global, chunk_size)
+    k_patch = k_flat[image_idx]
+    v_patch = v_flat[image_idx]
+    out_patch = _sparse_patch_attention(
+        q_patch, k_patch, v_patch, patch_token_indices, chunk_size
+    )
 
     # Special-token queries are few (5 per image), so retaining dense access is
     # inexpensive and avoids dropping camera/register communication.
@@ -434,11 +493,12 @@ class ProgressiveGridAttentionWrapper(nn.Module):
 
         for group in self.layer_groups:
             head_ids: Iterable[int] = group["head_ids"]
+            num_group_heads = len(group["head_ids"])
             self.state.begin_group(group["id"])
             for rank, head_idx in enumerate(head_ids):
                 selected = self.state.select(
                     group["id"], num_patch_tokens, self.patch_height, self.patch_width,
-                    rank, q.device,
+                    rank, q.device, num_group_heads,
                 )
                 q_head = q[:, head_idx:head_idx + 1]
                 k_head = k[:, head_idx:head_idx + 1]
@@ -449,15 +509,20 @@ class ProgressiveGridAttentionWrapper(nn.Module):
                     self.state.score_chunk_size,
                 )
 
-                scores = self.state.compatibility_scores(
-                    q_head.squeeze(0).squeeze(0)[image_indices],
-                    k_head.squeeze(0).squeeze(0)[image_indices],
-                    selected,
-                    self.state.score_chunk_size,
-                )
-                self.state.accumulate(
-                    group["id"], selected, scores, self.patch_height, self.patch_width
-                )
+                # At one key per 2x2 grid every grid is already selected, so
+                # history cannot improve the mask.  Skipping it also keeps the
+                # Uniform-25% baseline from materialising a dense-sized QK
+                # evidence tensor merely to discard it.
+                if self.state.needs_evidence:
+                    scores = self.state.compatibility_scores(
+                        q_head.squeeze(0).squeeze(0)[image_indices],
+                        k_head.squeeze(0).squeeze(0)[image_indices],
+                        selected,
+                        self.state.score_chunk_size,
+                    )
+                    self.state.accumulate(
+                        group["id"], selected, scores, self.patch_height, self.patch_width
+                    )
 
             # All heads in this same-layer functional group read a common
             # snapshot and update the group only after all have executed.
