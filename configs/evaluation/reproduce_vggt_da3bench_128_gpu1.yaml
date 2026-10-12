@@ -1,0 +1,19 @@
+defaults:
+  - eval_vggt
+  - _self_
+
+# Paper protocol: full dense VGGT, uniformly sampled to at most 128 views.
+selected_datasets: [7scenes, eth3d]
+
+datasets:
+  7scenes:
+    scenes: [office, pumpkin]
+    sample_mode: uniform
+    max_frames: 128
+    eval_tasks: [pose, recon_unposed]
+
+  eth3d:
+    scenes: [pipes, relief, delivery_area, facade]
+    sample_mode: uniform
+    max_frames: 128
+    eval_tasks: [pose, recon_unposed]

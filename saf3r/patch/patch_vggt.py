@@ -10,8 +10,9 @@ import torch.nn.functional as F
 
 from ..models.official_vggt.models.aggregator import slice_expand_and_flatten
 from ..models.official_vggt.layers.attention import Attention as VGGTAttention
+from .progressive_grid_attention import ProgressiveGridAttentionWrapper, ProgressiveGridState
 from .wrapper import BaseHeadwiseSparseAttentionWrapper, BaseSparseAttentionProfiler
-from .utils import replace_modules, compute_qk_topk_indices_batched
+from .utils import replace_modules
 
 
 NUM_SPECIAL_TOKENS = 5
@@ -21,9 +22,78 @@ NUM_ATTENTION_HEADS = 16
 PATCH_SIZE = 14
 
 
+# SAF3R profiles provide a practical functional grouping for existing VGGT
+# heads.  The progressive selector changes *how* those heads choose tokens,
+# while retaining this semantic grouping for cross-layer state sharing.
+FUNCTIONAL_GROUP_BY_MODE = {
+    "all_to_first": "position",
+    "broadcast_first": "position",
+    "global_to_frame": "position",
+    "q_probe_topk": "vertical",
+    "dino_topk": "correspondence",
+    "stride": "scanning",
+}
+
+
+def functional_groups_from_profile(profile):
+    """Convert a SAF3R head profile into same-layer functional head groups."""
+    groups_by_layer = {}
+    for layer_idx, profiled_groups in profile.items():
+        grouped = {}
+        for source_group in profiled_groups:
+            group_id = source_group.get(
+                "functional_group",
+                FUNCTIONAL_GROUP_BY_MODE.get(source_group.get("mode"), "scanning"),
+            )
+            grouped.setdefault(group_id, []).extend(source_group["head_ids"])
+
+        layer_groups = [
+            {"id": group_id, "head_ids": sorted(set(head_ids))}
+            for group_id, head_ids in grouped.items()
+        ]
+        groups_by_layer[int(layer_idx)] = layer_groups
+    return groups_by_layer
+
+
 def patch_model(model, model_cfg):
+    patch_type = model_cfg.patch_module.type
+
+    if patch_type == "progressive_grid":
+        # The original SAF3R profile is used only as a functional head map;
+        # its old per-head kernels are not executed in this mode.
+        with open(model_cfg.functional_group_config_path, "r") as f:
+            profile = json.load(f)
+        groups_by_layer = functional_groups_from_profile(profile)
+        expected_layers = set(range(NUM_GLOBAL_BLOCKS))
+        if set(groups_by_layer) != expected_layers:
+            raise ValueError("functional group profile must cover every VGGT global layer")
+
+        state = ProgressiveGridState(
+            patch_key_budget=model_cfg.patch_module.patch_key_budget,
+            exploitation_ratio=model_cfg.patch_module.get("exploitation_ratio", 0.75),
+            evidence_decay=model_cfg.patch_module.get("evidence_decay", 0.60),
+            score_chunk_size=model_cfg.patch_module.get("score_chunk_size", 1024),
+        )
+        replace_modules(
+            model,
+            replace_dict={
+                f"aggregator.global_blocks.{layer_idx}.attn": Dict(
+                    module=ProgressiveGridAttentionWrapper,
+                    layer_idx=layer_idx,
+                    layer_groups=groups_by_layer[layer_idx],
+                    state=state,
+                    num_special_tokens=NUM_SPECIAL_TOKENS,
+                )
+                for layer_idx in range(NUM_GLOBAL_BLOCKS)
+            },
+        )
+        print(
+            "=> Using progressive-grid sparse attention "
+            f"(patch_keys={state.patch_key_budget}, no layer-span cutoff)"
+        )
+
     # Headwise dynamic sparse attention
-    if model_cfg.patch_module.type == "headsparse":
+    elif patch_type == "headsparse":
         # load the detailed sparse config of each layer
         with open(model_cfg.sparse_config_path, "r") as f:
             config = json.load(f)
@@ -71,7 +141,7 @@ def patch_model(model, model_cfg):
 
 
     # Offline profile
-    elif model_cfg.patch_module.type == "headprofile":
+    elif patch_type == "headprofile":
         # load a file specifying which heads to profile
         # NOTE: this is different from the sparse config file used for headwise sparse attention,
         # which specifies the sparse pattern for each head. This file only specifies which heads to profile,
@@ -127,12 +197,28 @@ def update_args_per_forward(model, img_h, img_w):
     patch_height = img_h // PATCH_SIZE
     patch_width = img_w // PATCH_SIZE
 
+    # All progressive wrappers share one state object.  Reset it once per
+    # scene, then leave it intact across every one of the 24 global layers.
+    reset_states = set()
+
     # loop overall all patched modules
     for i in range(NUM_GLOBAL_BLOCKS):
         block = model.aggregator.global_blocks[i]
-        if isinstance(
-            block.attn, (HeadwiseSparseAttentionWrapper, SparseAttentionProfiler)
-        ):
+        if isinstance(block.attn, ProgressiveGridAttentionWrapper):
+            block.attn.set_geometry(patch_height, patch_width)
+            state_id = id(block.attn.state)
+            if state_id not in reset_states:
+                block.attn.state.reset(patch_height, patch_width)
+                reset_states.add(state_id)
+        else:
+            # Do not import old sparse modules for progressive inference: the
+            # historical Triton Top-K profiler is optional and version-specific.
+            try:
+                from .wrapper import BaseHeadwiseSparseAttentionWrapper, BaseSparseAttentionProfiler
+            except (AttributeError, ImportError):
+                continue
+            if not isinstance(block.attn, (BaseHeadwiseSparseAttentionWrapper, SparseAttentionProfiler)):
+                continue
             block.attn.patch_height = patch_height
             block.attn.patch_width = patch_width
             if hasattr(block.attn, "first_dino_flag"):
@@ -144,6 +230,8 @@ def customized_forward(
     include_first_frame=False, first_frame_stride=1,
 ):
     def forward(self, images: torch.Tensor):
+        from .wrapper import BaseHeadwiseSparseAttentionWrapper, BaseSparseAttentionProfiler
+        from .utils import compute_qk_topk_indices_batched
         B, S, C_in, H, W = images.shape
         assert B == 1, "Currently only support batch size of 1 for simplicity"
 
@@ -246,6 +334,7 @@ def customized_forward(
 
 def customized_forward_lazy_topk():
     def forward(self, images: torch.Tensor):
+        from .wrapper import HeadwiseSparseAttentionWrapper
         B, S, C_in, H, W = images.shape
         assert B == 1, "Currently only support batch size of 1 for simplicity"
 
@@ -342,6 +431,7 @@ def customized_forward_lazy_topk():
 
 
 def save_profile_results(model, save_path, metric):
+    from .wrapper import SparseAttentionProfiler
     print("Profiling results:")
 
     # get and accumulate profile results

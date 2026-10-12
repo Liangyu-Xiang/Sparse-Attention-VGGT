@@ -132,7 +132,9 @@ def fused_sparse_topk_attention(q, k, v, kv_indices, scale=None):
     if scale is None:
         scale = 1.0 / (D ** 0.5)
 
-    out = torch.empty_like(v)
+    # K/V may contain extra always-retained tokens (for example VGGT camera
+    # and register tokens), so output length is defined by Q rather than V.
+    out = torch.empty((N, v.shape[1]), device=q.device, dtype=v.dtype)
 
     # find the largest BLOCK_K that is a power of 2 and <= TopK for better performance
     BLOCK_K = triton.next_power_of_2(TopK)
@@ -255,7 +257,9 @@ def fused_sparse_topk_attention_2(q, k, v, kv_indices, scale=None):
     if scale is None:
         scale = 1.0 / (D ** 0.5)
 
-    out = torch.empty_like(v)
+    # See ``fused_sparse_topk_attention``: Q and KV need not have equal
+    # sequence lengths for arbitrary sparse per-query index sets.
+    out = torch.empty((N, v.shape[1]), device=q.device, dtype=v.dtype)
     
     BLOCK_D = triton.next_power_of_2(D)
 

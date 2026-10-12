@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .sparse_attention import sparse_attention, get_separate_indices
-from ..triton.fused_qk_topk import compute_qk_topk_indices_fused
 
 
 class BaseHeadwiseSparseAttentionWrapper(nn.Module):
@@ -46,6 +45,10 @@ class BaseHeadwiseSparseAttentionWrapper(nn.Module):
             cfg["mode"] == "dino_topk" and
             self.lazy_dino_topk and cfg.get("is_first_dino", False) and not self.first_dino_flag
         ):
+            # This optional legacy selector uses a Triton implementation whose
+            # API varies across Triton releases.  Keep it out of the import
+            # path for dense and progressive-grid inference.
+            from ..triton.fused_qk_topk import compute_qk_topk_indices_fused
             print(f"Computing QK TopK indices (K={self.dino_topk} each frame) for subsequent DINO TopK heads ...")
             self.first_dino_flag = True  # avoid recomputing for subsequent DINO TopK heads at the same block
 

@@ -10,7 +10,6 @@ from .data_utils import load_images
 from .geometry_utils import estimate_intrinsics_from_pointmaps
 from ..models.official_pi3.utils.geometry import se3_inverse
 from ..models.official_vggt.utils.pose_enc import pose_encoding_to_extri_intri
-from ..patch import patch_model, update_args_per_forward
 
 
 # Model init
@@ -69,6 +68,10 @@ def build_model(model_cfg, device):
 
     # Patch the model if needed (e.g., for headwise sparsity attention or head profiling)
     if model_cfg.get("patch_module", None) is not None:
+        # Import the optional sparse-attention implementation only for patched
+        # models.  Dense VGGT evaluation should not depend on Triton internals
+        # used exclusively by SAF3R kernels.
+        from ..patch import patch_model
         print("=> Patching model ...")
         model = patch_model(model, model_cfg.name.lower(), model_cfg)
 
@@ -89,6 +92,7 @@ def infer_model(model, model_cfg, scene_data):
         case _ if model_cfg.get("patch_module", None) is not None:
             tmp_img = load_images(model, name, scene_data.image_files[:1])
             img_height, img_width = tmp_img.shape[-2], tmp_img.shape[-1]
+            from ..patch import update_args_per_forward
             update_args_per_forward(model, name, img_height, img_width)
 
     # Forward model and obtain predictions in a unified format

@@ -1,0 +1,20 @@
+defaults:
+  - eval_progressive_grid_vggt
+  - _self_
+
+# Full 7Scenes/ETH3D evaluation shard.  The three shards are disjoint and
+# together cover the datasets used by the dense-VGGT reproduction.
+selected_datasets: [7scenes, eth3d]
+
+datasets:
+  7scenes:
+    scenes: [chess, fire, heads]
+    sample_mode: uniform
+    max_frames: 128
+    eval_tasks: [pose, recon_unposed]
+
+  eth3d:
+    scenes: [courtyard, electro, kicker]
+    sample_mode: uniform
+    max_frames: 128
+    eval_tasks: [pose, recon_unposed]

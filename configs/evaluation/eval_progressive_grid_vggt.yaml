@@ -1,0 +1,33 @@
+defaults:
+  - default_datasets.yaml
+  - _self_
+
+# Progressive token-level sparse VGGT.  The existing SAF3R profile supplies
+# functional groups only; its original head-specific sparse kernels are not
+# used in this experiment.
+model:
+  name: VGGT
+  dpt_only: True
+  ckpt_path: checkpoints/vggt/model_tracker_fixed_e20.pt
+  functional_group_config_path: configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json
+  patch_module:
+    type: progressive_grid
+    # Patch keys per query.  All 5 special tokens from every frame are retained
+    # in addition to this budget; patch keys obey one-key-per-2x2-grid.
+    patch_key_budget: 256
+    exploitation_ratio: 0.75
+    evidence_decay: 0.60
+    score_chunk_size: 1024
+
+selected_datasets: [7scenes, eth3d]
+
+datasets:
+  7scenes:
+    max_frames: 128
+    sample_mode: uniform
+    eval_tasks: [pose, recon_unposed]
+
+  eth3d:
+    max_frames: 128
+    sample_mode: uniform
+    eval_tasks: [pose, recon_unposed]
