@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -36,7 +37,7 @@ from saf3r.utils.data_utils import load_and_process_images_vggt
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--layer", type=int, required=True, help="Global layer to profile (0..2).")
+    parser.add_argument("--layer", type=int, required=True, help="Global layer to profile (zero based).")
     parser.add_argument("--scene", default="chess")
     parser.add_argument("--sequence", default="seq-01")
     parser.add_argument("--first-frame", type=int, default=0)
@@ -52,8 +53,13 @@ def parse_args() -> argparse.Namespace:
         "--prune-stages",
         type=float,
         nargs="*",
-        default=[0.75, 0.50, 0.375],
-        help="Intermediate patch-key retention fractions before the final target.",
+        default=None,
+        help="Explicit intermediate retained fractions before the final target.",
+    )
+    parser.add_argument(
+        "--prune-step",
+        type=float,
+        help="Remove this fraction of the *currently retained* patch keys each iteration.",
     )
     parser.add_argument("--query-chunk-size", type=int, default=256)
     parser.add_argument(
@@ -69,26 +75,51 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
-    if not 0 <= args.layer <= 2:
-        parser.error("This first-stage profiler accepts only --layer 0, 1, or 2.")
+    if args.layer < 0:
+        parser.error("--layer must be non-negative.")
     if args.num_frames < 2 or args.frame_gap < 1:
         parser.error("--num-frames must be at least two and --frame-gap positive.")
     if not 0 < args.retention < 1:
         parser.error("--retention must lie in (0, 1).")
     if args.query_chunk_size < 1:
         parser.error("--query-chunk-size must be positive.")
-    if any(not args.retention < stage < 1 for stage in args.prune_stages):
-        parser.error("Every --prune-stages value must lie strictly between retention and 1.")
-    if args.prune_stages != sorted(args.prune_stages, reverse=True):
-        parser.error("--prune-stages must be strictly descending.")
+    if args.prune_stages is not None and args.prune_step is not None:
+        parser.error("Use either --prune-stages or --prune-step, not both.")
+    if args.prune_stages is None and args.prune_step is None:
+        args.prune_stages = [0.75, 0.50, 0.375]
+    if args.prune_stages is not None:
+        if any(not args.retention < stage < 1 for stage in args.prune_stages):
+            parser.error("Every --prune-stages value must lie strictly between retention and 1.")
+        if args.prune_stages != sorted(args.prune_stages, reverse=True):
+            parser.error("--prune-stages must be strictly descending.")
+    if args.prune_step is not None and not 0 < args.prune_step < 1:
+        parser.error("--prune-step must lie in (0, 1).")
     return args
 
 
-def patch_counts(total_patch_keys: int, retention: float, stages: list[float]) -> list[int]:
+def patch_counts(
+    total_patch_keys: int,
+    retention: float,
+    stages: list[float] | None,
+    prune_step: float | None,
+) -> list[int]:
     """Return strictly decreasing retained-key counts, ending at target retention."""
-    counts = [int(round(total_patch_keys * stage)) for stage in stages]
-    counts.append(int(round(total_patch_keys * retention)))
-    counts = [min(total_patch_keys - 1, max(1, count)) for count in counts]
+    final_count = min(total_patch_keys - 1, max(1, int(round(total_patch_keys * retention))))
+    if prune_step is not None:
+        counts = []
+        current_count = total_patch_keys
+        while current_count > final_count:
+            # Floor ensures each non-final step deletes no more than the requested
+            # fraction of the current support; the final step may be smaller.
+            deleted = max(1, int(math.floor(current_count * prune_step)))
+            next_count = max(final_count, current_count - deleted)
+            counts.append(next_count)
+            current_count = next_count
+    else:
+        assert stages is not None
+        counts = [int(round(total_patch_keys * stage)) for stage in stages]
+        counts.append(final_count)
+        counts = [min(total_patch_keys - 1, max(1, count)) for count in counts]
     if any(left <= right for left, right in zip(counts, counts[1:])):
         raise ValueError(f"Pruning schedule must strictly decrease, received {counts}")
     return counts
@@ -210,7 +241,8 @@ class IterativePruningProfiler:
         patch_height: int,
         patch_width: int,
         retention: float,
-        prune_stages: list[float],
+        prune_stages: list[float] | None,
+        prune_step: float | None,
         chunk_size: int,
     ) -> None:
         self.layer = layer
@@ -219,10 +251,12 @@ class IterativePruningProfiler:
         self.patch_width = patch_width
         self.retention = retention
         self.prune_stages = prune_stages
+        self.prune_step = prune_step
         self.chunk_size = chunk_size
         self.rows: list[dict[str, Any]] = []
         self.per_head_final: list[dict[str, Any]] = []
         self.key_usage_counts: list[np.ndarray] = []
+        self.target_counts: list[int] = []
 
     def __call__(
         self,
@@ -248,8 +282,11 @@ class IterativePruningProfiler:
         special, patch, _ = make_token_indices(
             self.frames, self.patch_height, self.patch_width, x.device
         )
-        final_count = patch_counts(patch.numel(), self.retention, self.prune_stages)[-1]
-        target_counts = patch_counts(patch.numel(), self.retention, self.prune_stages)
+        target_counts = patch_counts(
+            patch.numel(), self.retention, self.prune_stages, self.prune_step
+        )
+        final_count = target_counts[-1]
+        self.target_counts = target_counts
 
         for head in range(NUM_HEADS):
             query_patch = query[head, patch].float()
@@ -353,6 +390,10 @@ def main() -> None:
     images = load_and_process_images_vggt([str(path) for path in image_paths]).to(args.device)
     patch_height, patch_width = images.shape[-2] // 14, images.shape[-1] // 14
     model = build_model(args.checkpoint, args.device)
+    if args.layer >= len(model.aggregator.global_blocks):
+        raise ValueError(
+            f"--layer {args.layer} is out of range for {len(model.aggregator.global_blocks)} global blocks"
+        )
     profiler = IterativePruningProfiler(
         args.layer,
         args.num_frames,
@@ -360,6 +401,7 @@ def main() -> None:
         patch_width,
         args.retention,
         args.prune_stages,
+        args.prune_step,
         args.query_chunk_size,
     )
     hook = model.aggregator.global_blocks[args.layer].attn.register_forward_hook(profiler, with_kwargs=True)
@@ -396,7 +438,12 @@ def main() -> None:
         ),
         "deletion_cost": "a_j / (1 - a_j) * ||v_j - o||_2 under the current retained support",
         "special_keys_always_dense": int(args.num_frames * NUM_SPECIAL_TOKENS),
-        "prune_stage_retentions": args.prune_stages + [args.retention],
+        "prune_schedule": (
+            {"type": "remove_fraction_of_current", "fraction": args.prune_step}
+            if args.prune_step is not None
+            else {"type": "explicit_retained_fractions", "fractions": args.prune_stages}
+        ),
+        "prune_stage_retentions": [count / (patch_height * patch_width * args.num_frames) for count in profiler.target_counts],
         "per_head_final": profiler.per_head_final,
         "mean_final_nmse_to_dense": float(np.mean([row["final_nmse_to_dense"] for row in profiler.per_head_final])),
         "key_usage_counts_file": usage_path.name,
