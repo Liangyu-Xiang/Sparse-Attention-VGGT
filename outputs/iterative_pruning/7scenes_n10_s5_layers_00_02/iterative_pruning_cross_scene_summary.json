@@ -1,0 +1,405 @@
+{
+  "method": "batched_iterative_output_preserving_pruning",
+  "method_note": "Each stage recomputes the current attention/output and deletes a batch of keys by the exact single-key deletion cost. Results are greedy-local, not exhaustive-global.",
+  "calibration_sequences": [
+    {
+      "scene": "chess",
+      "sequence": "seq-01"
+    },
+    {
+      "scene": "fire",
+      "sequence": "seq-01"
+    },
+    {
+      "scene": "heads",
+      "sequence": "seq-01"
+    },
+    {
+      "scene": "office",
+      "sequence": "seq-01"
+    },
+    {
+      "scene": "pumpkin",
+      "sequence": "seq-01"
+    },
+    {
+      "scene": "redkitchen",
+      "sequence": "seq-01"
+    },
+    {
+      "scene": "stairs",
+      "sequence": "seq-02"
+    }
+  ],
+  "frame_indices": [
+    0,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    35,
+    40,
+    45
+  ],
+  "patch_grid": [
+    28,
+    37
+  ],
+  "prune_stage_retentions": [
+    0.75,
+    0.5,
+    0.375,
+    0.25675675675675674
+  ],
+  "layers": [
+    {
+      "layer": 0,
+      "cross_scene_mean_final_nmse_to_dense": 0.0658327408034895,
+      "per_head": [
+        {
+          "head": 0,
+          "cross_scene_mean_final_nmse_to_dense": 0.09191491413751399,
+          "cross_scene_median_final_nmse_to_dense": 0.06574446223831393
+        },
+        {
+          "head": 1,
+          "cross_scene_mean_final_nmse_to_dense": 0.059661247101777795,
+          "cross_scene_median_final_nmse_to_dense": 0.04722425431139343
+        },
+        {
+          "head": 2,
+          "cross_scene_mean_final_nmse_to_dense": 0.06695883209044047,
+          "cross_scene_median_final_nmse_to_dense": 0.06312797936819232
+        },
+        {
+          "head": 3,
+          "cross_scene_mean_final_nmse_to_dense": 0.0669472076032771,
+          "cross_scene_median_final_nmse_to_dense": 0.07273565648102759
+        },
+        {
+          "head": 4,
+          "cross_scene_mean_final_nmse_to_dense": 0.08147784697550899,
+          "cross_scene_median_final_nmse_to_dense": 0.06452102193669136
+        },
+        {
+          "head": 5,
+          "cross_scene_mean_final_nmse_to_dense": 0.09505009721035837,
+          "cross_scene_median_final_nmse_to_dense": 0.08996225347334894
+        },
+        {
+          "head": 6,
+          "cross_scene_mean_final_nmse_to_dense": 0.10002432012020505,
+          "cross_scene_median_final_nmse_to_dense": 0.08731405525317619
+        },
+        {
+          "head": 7,
+          "cross_scene_mean_final_nmse_to_dense": 0.045805936995821805,
+          "cross_scene_median_final_nmse_to_dense": 0.03635766235825603
+        },
+        {
+          "head": 8,
+          "cross_scene_mean_final_nmse_to_dense": 0.042060847614931784,
+          "cross_scene_median_final_nmse_to_dense": 0.04473406864870802
+        },
+        {
+          "head": 9,
+          "cross_scene_mean_final_nmse_to_dense": 0.06619836413911591,
+          "cross_scene_median_final_nmse_to_dense": 0.0571839185044619
+        },
+        {
+          "head": 10,
+          "cross_scene_mean_final_nmse_to_dense": 0.07968315849163163,
+          "cross_scene_median_final_nmse_to_dense": 0.051739587510842025
+        },
+        {
+          "head": 11,
+          "cross_scene_mean_final_nmse_to_dense": 0.09517089609775077,
+          "cross_scene_median_final_nmse_to_dense": 0.07990768026063191
+        },
+        {
+          "head": 12,
+          "cross_scene_mean_final_nmse_to_dense": 0.008419057585741132,
+          "cross_scene_median_final_nmse_to_dense": 0.007700703596636212
+        },
+        {
+          "head": 13,
+          "cross_scene_mean_final_nmse_to_dense": 0.04918343162630796,
+          "cross_scene_median_final_nmse_to_dense": 0.03156472148920793
+        },
+        {
+          "head": 14,
+          "cross_scene_mean_final_nmse_to_dense": 0.09014365506618607,
+          "cross_scene_median_final_nmse_to_dense": 0.08633865537792085
+        },
+        {
+          "head": 15,
+          "cross_scene_mean_final_nmse_to_dense": 0.01462403999926318,
+          "cross_scene_median_final_nmse_to_dense": 0.016192080363886717
+        }
+      ],
+      "mean_nmse_curve": [
+        {
+          "patch_keys_per_query": 10360,
+          "patch_key_retention": 1.0,
+          "cross_scene_mean_nmse_to_dense": 0.0
+        },
+        {
+          "patch_keys_per_query": 7770,
+          "patch_key_retention": 0.75,
+          "cross_scene_mean_nmse_to_dense": 0.002776259834196012
+        },
+        {
+          "patch_keys_per_query": 5180,
+          "patch_key_retention": 0.5,
+          "cross_scene_mean_nmse_to_dense": 0.018493102127237704
+        },
+        {
+          "patch_keys_per_query": 3885,
+          "patch_key_retention": 0.375,
+          "cross_scene_mean_nmse_to_dense": 0.031168316245304868
+        },
+        {
+          "patch_keys_per_query": 2660,
+          "patch_key_retention": 0.25675675675675674,
+          "cross_scene_mean_nmse_to_dense": 0.06583274080348948
+        }
+      ]
+    },
+    {
+      "layer": 1,
+      "cross_scene_mean_final_nmse_to_dense": 1.7587963763764916,
+      "per_head": [
+        {
+          "head": 0,
+          "cross_scene_mean_final_nmse_to_dense": 1.7879205568811127,
+          "cross_scene_median_final_nmse_to_dense": 1.7214421580656731
+        },
+        {
+          "head": 1,
+          "cross_scene_mean_final_nmse_to_dense": 1.4616551027557112,
+          "cross_scene_median_final_nmse_to_dense": 1.341286650239495
+        },
+        {
+          "head": 2,
+          "cross_scene_mean_final_nmse_to_dense": 0.4781955926793709,
+          "cross_scene_median_final_nmse_to_dense": 0.47608608539690006
+        },
+        {
+          "head": 3,
+          "cross_scene_mean_final_nmse_to_dense": 1.8280312398447962,
+          "cross_scene_median_final_nmse_to_dense": 1.8668233999176818
+        },
+        {
+          "head": 4,
+          "cross_scene_mean_final_nmse_to_dense": 3.91718604958389,
+          "cross_scene_median_final_nmse_to_dense": 3.862846632423631
+        },
+        {
+          "head": 5,
+          "cross_scene_mean_final_nmse_to_dense": 1.411488011940533,
+          "cross_scene_median_final_nmse_to_dense": 1.0441310732565061
+        },
+        {
+          "head": 6,
+          "cross_scene_mean_final_nmse_to_dense": 1.97652153697951,
+          "cross_scene_median_final_nmse_to_dense": 2.0205828120075684
+        },
+        {
+          "head": 7,
+          "cross_scene_mean_final_nmse_to_dense": 0.5349876540298764,
+          "cross_scene_median_final_nmse_to_dense": 0.5373877709129745
+        },
+        {
+          "head": 8,
+          "cross_scene_mean_final_nmse_to_dense": 4.090659218365285,
+          "cross_scene_median_final_nmse_to_dense": 3.956507455089147
+        },
+        {
+          "head": 9,
+          "cross_scene_mean_final_nmse_to_dense": 1.0910071607629608,
+          "cross_scene_median_final_nmse_to_dense": 1.0561170767852537
+        },
+        {
+          "head": 10,
+          "cross_scene_mean_final_nmse_to_dense": 0.469948065099219,
+          "cross_scene_median_final_nmse_to_dense": 0.48152502088303284
+        },
+        {
+          "head": 11,
+          "cross_scene_mean_final_nmse_to_dense": 0.7155002379613095,
+          "cross_scene_median_final_nmse_to_dense": 0.7187981001861489
+        },
+        {
+          "head": 12,
+          "cross_scene_mean_final_nmse_to_dense": 0.7466335778695588,
+          "cross_scene_median_final_nmse_to_dense": 0.7968090643535621
+        },
+        {
+          "head": 13,
+          "cross_scene_mean_final_nmse_to_dense": 1.1300974429745396,
+          "cross_scene_median_final_nmse_to_dense": 1.1871574338244166
+        },
+        {
+          "head": 14,
+          "cross_scene_mean_final_nmse_to_dense": 4.881095737618488,
+          "cross_scene_median_final_nmse_to_dense": 4.930903741907367
+        },
+        {
+          "head": 15,
+          "cross_scene_mean_final_nmse_to_dense": 1.6198148366777079,
+          "cross_scene_median_final_nmse_to_dense": 1.54015664889847
+        }
+      ],
+      "mean_nmse_curve": [
+        {
+          "patch_keys_per_query": 10360,
+          "patch_key_retention": 1.0,
+          "cross_scene_mean_nmse_to_dense": 0.0
+        },
+        {
+          "patch_keys_per_query": 7770,
+          "patch_key_retention": 0.75,
+          "cross_scene_mean_nmse_to_dense": 0.07496832737344093
+        },
+        {
+          "patch_keys_per_query": 5180,
+          "patch_key_retention": 0.5,
+          "cross_scene_mean_nmse_to_dense": 0.468666857611871
+        },
+        {
+          "patch_keys_per_query": 3885,
+          "patch_key_retention": 0.375,
+          "cross_scene_mean_nmse_to_dense": 0.6437166409993947
+        },
+        {
+          "patch_keys_per_query": 2660,
+          "patch_key_retention": 0.25675675675675674,
+          "cross_scene_mean_nmse_to_dense": 1.7587963763764918
+        }
+      ]
+    },
+    {
+      "layer": 2,
+      "cross_scene_mean_final_nmse_to_dense": 0.270256983959254,
+      "per_head": [
+        {
+          "head": 0,
+          "cross_scene_mean_final_nmse_to_dense": 0.09529047102419781,
+          "cross_scene_median_final_nmse_to_dense": 0.07722363019160598
+        },
+        {
+          "head": 1,
+          "cross_scene_mean_final_nmse_to_dense": 0.15282969226328902,
+          "cross_scene_median_final_nmse_to_dense": 0.13217573346671455
+        },
+        {
+          "head": 2,
+          "cross_scene_mean_final_nmse_to_dense": 0.15465877919033844,
+          "cross_scene_median_final_nmse_to_dense": 0.13617484406172367
+        },
+        {
+          "head": 3,
+          "cross_scene_mean_final_nmse_to_dense": 0.5473976725537497,
+          "cross_scene_median_final_nmse_to_dense": 0.5848520069102593
+        },
+        {
+          "head": 4,
+          "cross_scene_mean_final_nmse_to_dense": 0.11007513045845616,
+          "cross_scene_median_final_nmse_to_dense": 0.1072550491976458
+        },
+        {
+          "head": 5,
+          "cross_scene_mean_final_nmse_to_dense": 0.12840194909894762,
+          "cross_scene_median_final_nmse_to_dense": 0.12035251050685389
+        },
+        {
+          "head": 6,
+          "cross_scene_mean_final_nmse_to_dense": 0.3265533280480398,
+          "cross_scene_median_final_nmse_to_dense": 0.3144320093344215
+        },
+        {
+          "head": 7,
+          "cross_scene_mean_final_nmse_to_dense": 0.15926251781004885,
+          "cross_scene_median_final_nmse_to_dense": 0.14774819069726555
+        },
+        {
+          "head": 8,
+          "cross_scene_mean_final_nmse_to_dense": 0.3750641292918803,
+          "cross_scene_median_final_nmse_to_dense": 0.35188303064464144
+        },
+        {
+          "head": 9,
+          "cross_scene_mean_final_nmse_to_dense": 0.24015096605620737,
+          "cross_scene_median_final_nmse_to_dense": 0.20483932270706545
+        },
+        {
+          "head": 10,
+          "cross_scene_mean_final_nmse_to_dense": 0.09756011732003124,
+          "cross_scene_median_final_nmse_to_dense": 0.10122714865323819
+        },
+        {
+          "head": 11,
+          "cross_scene_mean_final_nmse_to_dense": 0.6572176643397212,
+          "cross_scene_median_final_nmse_to_dense": 0.5897936447779187
+        },
+        {
+          "head": 12,
+          "cross_scene_mean_final_nmse_to_dense": 0.4293866371479292,
+          "cross_scene_median_final_nmse_to_dense": 0.38811281302829664
+        },
+        {
+          "head": 13,
+          "cross_scene_mean_final_nmse_to_dense": 0.641073943728491,
+          "cross_scene_median_final_nmse_to_dense": 0.6626673087339114
+        },
+        {
+          "head": 14,
+          "cross_scene_mean_final_nmse_to_dense": 0.11141151871692177,
+          "cross_scene_median_final_nmse_to_dense": 0.11849992753118357
+        },
+        {
+          "head": 15,
+          "cross_scene_mean_final_nmse_to_dense": 0.0977772262998147,
+          "cross_scene_median_final_nmse_to_dense": 0.0963563385714283
+        }
+      ],
+      "mean_nmse_curve": [
+        {
+          "patch_keys_per_query": 10360,
+          "patch_key_retention": 1.0,
+          "cross_scene_mean_nmse_to_dense": 0.0
+        },
+        {
+          "patch_keys_per_query": 7770,
+          "patch_key_retention": 0.75,
+          "cross_scene_mean_nmse_to_dense": 0.016510422392776947
+        },
+        {
+          "patch_keys_per_query": 5180,
+          "patch_key_retention": 0.5,
+          "cross_scene_mean_nmse_to_dense": 0.08741595813223021
+        },
+        {
+          "patch_keys_per_query": 3885,
+          "patch_key_retention": 0.375,
+          "cross_scene_mean_nmse_to_dense": 0.14912786657075663
+        },
+        {
+          "patch_keys_per_query": 2660,
+          "patch_key_retention": 0.25675675675675674,
+          "cross_scene_mean_nmse_to_dense": 0.270256983959254
+        }
+      ]
+    }
+  ],
+  "static_2x2_reference": {
+    "source": "outputs/dense_sparse_patterns/7scenes_n10_s5_layers_00_02/selected_cross_scene_static_2x2_patterns.json",
+    "layer_mean_nmse": {
+      "0": 0.0015761929778583593,
+      "1": 0.03526890550049024,
+      "2": 0.10381276080384393
+    }
+  }
+}
