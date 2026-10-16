@@ -45,10 +45,6 @@ class BaseHeadwiseSparseAttentionWrapper(nn.Module):
             cfg["mode"] == "dino_topk" and
             self.lazy_dino_topk and cfg.get("is_first_dino", False) and not self.first_dino_flag
         ):
-            # This optional legacy selector uses a Triton implementation whose
-            # API varies across Triton releases.  Keep it out of the import
-            # path for dense and progressive-grid inference.
-            from ..triton.fused_qk_topk import compute_qk_topk_indices_fused
             print(f"Computing QK TopK indices (K={self.dino_topk} each frame) for subsequent DINO TopK heads ...")
             self.first_dino_flag = True  # avoid recomputing for subsequent DINO TopK heads at the same block
 
@@ -60,11 +56,34 @@ class BaseHeadwiseSparseAttentionWrapper(nn.Module):
             q_img = q.squeeze(1)[:, img_idx, :]  # (B, N_img, D)
             k_img = k.squeeze(1)[:, img_idx, :]  # (B, N_img, D)
 
-            # compute and update indices
-            self.est_topk_idx = compute_qk_topk_indices_fused(
-                q_img, k_img, self.dino_topk,
-                num_toks_per_img=(self.patch_width * self.patch_height),
-            ).squeeze()  # [SP, topk]
+            # Compute and update indices.  The fused selector is faster, but
+            # its vendored bitonic helper targets a newer Triton API than the
+            # PyTorch 2.3 environment used for these reproductions.  The
+            # blockwise PyTorch path has the same per-frame QK Top-K semantics
+            # and is used only as a compatibility fallback; the attention
+            # kernel itself remains the SAF3R Triton implementation.
+            try:
+                from ..triton.fused_qk_topk import compute_qk_topk_indices_fused
+            except (AttributeError, ImportError):
+                from .utils import compute_qk_topk_indices_batched
+
+                num_patch_tokens = self.patch_width * self.patch_height
+                num_images = q_img.shape[1] // num_patch_tokens
+                self.est_topk_idx = compute_qk_topk_indices_batched(
+                    q_img,
+                    k_img,
+                    topk=self.dino_topk,
+                    per_frame=True,
+                    num_toks_per_img=num_patch_tokens,
+                    q_blocksize=4096,
+                    max_topk=num_images * self.dino_topk,
+                ).squeeze(0)
+                print("=> Falling back to blockwise PyTorch per-frame QK Top-K selector")
+            else:
+                self.est_topk_idx = compute_qk_topk_indices_fused(
+                    q_img, k_img, self.dino_topk,
+                    num_toks_per_img=(self.patch_width * self.patch_height),
+                ).squeeze(0)  # [SP, topk]
 
         # compute sparse attention
         return sparse_attention(

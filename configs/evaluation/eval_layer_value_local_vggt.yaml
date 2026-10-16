@@ -1,0 +1,25 @@
+defaults:
+  - default_datasets.yaml
+  - _self_
+
+model:
+  name: VGGT
+  dpt_only: True
+  ckpt_path: checkpoints/vggt/model_tracker_fixed_e20.pt
+  patch_module:
+    type: layer_value_local
+    retention: 0.10
+    neighbors: 8
+    iterations: 2
+    sparse_start: 3
+    sparse_end: 9
+    seed_backend: host
+    max_seed_passes: 100
+
+selected_datasets: [7scenes]
+datasets:
+  7scenes:
+    scenes: [chess]
+    sample_mode: uniform
+    max_frames: 10
+    eval_tasks: [pose]

@@ -10,6 +10,10 @@ import torch.nn.functional as F
 
 from ..models.official_vggt.models.aggregator import slice_expand_and_flatten
 from ..models.official_vggt.layers.attention import Attention as VGGTAttention
+from .cross_layer_evolving_attention import (
+    CrossLayerEvolvingAttentionWrapper,
+    CrossLayerEvolvingState,
+)
 from .progressive_grid_attention import ProgressiveGridAttentionWrapper, ProgressiveGridState
 from .wrapper import BaseHeadwiseSparseAttentionWrapper, BaseSparseAttentionProfiler
 from .utils import replace_modules
@@ -58,7 +62,29 @@ def functional_groups_from_profile(profile):
 def patch_model(model, model_cfg):
     patch_type = model_cfg.patch_module.type
 
-    if patch_type == "progressive_grid":
+    if patch_type == "hierarchical_value":
+        from .hierarchical_value_attention import install_hierarchical_value_attention
+        cfg = model_cfg.patch_module
+        install_hierarchical_value_attention(model, **{
+            name: cfg[name] for name in ("retention", "fine_ratio", "coarse_size", "sparse_start",
+                "sparse_end", "iterations", "cluster_iterations", "query_chunk", "initialization") if name in cfg})
+
+    elif patch_type == "layer_value_local":
+        from .value_evolving_attention import install_layer_value_attention
+        cfg = model_cfg.patch_module
+        install_layer_value_attention(
+            model, retention=cfg.get("retention", .10), neighbors=cfg.get("neighbors", 8),
+            iterations=cfg.get("iterations", 2), sparse_start=cfg.get("sparse_start", 3),
+            sparse_end=cfg.get("sparse_end", 9), seed_backend=cfg.get("seed_backend", "host"),
+            max_seed_passes=cfg.get("max_seed_passes", 100), output_dir=cfg.get("output_dir"),
+            save_values=cfg.get("save_values", False),
+            local_backend=cfg.get("local_backend", "cpu"),
+            profile_cuda=cfg.get("profile_cuda", False),
+            representative_update=cfg.get("representative_update", "exact"),
+            sampled_candidates=cfg.get("sampled_candidates", 4),
+        )
+
+    elif patch_type == "progressive_grid":
         # The original SAF3R profile is used only as a functional head map;
         # its old per-head kernels are not executed in this mode.
         with open(model_cfg.functional_group_config_path, "r") as f:
@@ -92,6 +118,40 @@ def patch_model(model, model_cfg):
             "=> Using progressive-grid sparse attention "
             f"(grid_keep_ratio={state.grid_keep_ratio:.3f}, "
             f"exploitation=0->{state.exploitation_ratio:.2f}, no layer-span cutoff)"
+        )
+
+    elif patch_type == "cross_layer_evolving":
+        # The state is shared by every global layer.  It stores compact,
+        # CPU-resident recipes rather than previous [query, key] supports or
+        # attention weights, so sequence length does not create O(Nq*K) state.
+        patch_cfg = model_cfg.patch_module
+        state = CrossLayerEvolvingState(
+            mode=patch_cfg.get("mode", "cross"),
+            block_size=patch_cfg.get("block_size", 128),
+            top_m=patch_cfg.get("top_m", 8),
+            match_query_fraction=patch_cfg.get("match_query_fraction", 0.01),
+            query_chunk_size=patch_cfg.get("query_chunk_size", 128),
+            rank_penalty=patch_cfg.get("rank_penalty", 0.01),
+            dense_reference=patch_cfg.get("dense_reference", False),
+        )
+        retention = patch_cfg.get("retention", 0.25)
+        replace_modules(
+            model,
+            replace_dict={
+                f"aggregator.global_blocks.{layer_idx}.attn": Dict(
+                    module=CrossLayerEvolvingAttentionWrapper,
+                    layer_idx=layer_idx,
+                    state=state,
+                    num_special_tokens=NUM_SPECIAL_TOKENS,
+                    retention=retention,
+                )
+                for layer_idx in range(NUM_GLOBAL_BLOCKS)
+            },
+        )
+        print(
+            "=> Using compact cross-layer evolving sparse attention "
+            f"(mode={state.mode}, retention={retention:.3f}, Top-M={state.top_m}, "
+            f"match={state.match_query_fraction:.1%})"
         )
 
     # Headwise dynamic sparse attention
@@ -206,11 +266,14 @@ def update_args_per_forward(model, img_h, img_w):
     # loop overall all patched modules
     for i in range(NUM_GLOBAL_BLOCKS):
         block = model.aggregator.global_blocks[i]
-        if isinstance(block.attn, ProgressiveGridAttentionWrapper):
+        if isinstance(block.attn, (ProgressiveGridAttentionWrapper, CrossLayerEvolvingAttentionWrapper)):
             block.attn.set_geometry(patch_height, patch_width)
             state_id = id(block.attn.state)
             if state_id not in reset_states:
-                block.attn.state.reset(patch_height, patch_width)
+                if isinstance(block.attn, CrossLayerEvolvingAttentionWrapper):
+                    block.attn.state.reset(patch_height=patch_height, patch_width=patch_width)
+                else:
+                    block.attn.state.reset(patch_height, patch_width)
                 reset_states.add(state_id)
         else:
             # Do not import old sparse modules for progressive inference: the
@@ -336,7 +399,10 @@ def customized_forward(
 
 def customized_forward_lazy_topk():
     def forward(self, images: torch.Tensor):
-        from .wrapper import HeadwiseSparseAttentionWrapper
+        # ``HeadwiseSparseAttentionWrapper`` is VGGT-specific and is defined
+        # below in this module (the shared ``wrapper`` module only supplies
+        # its base class).  Resolving it from the module globals keeps the
+        # lazy-TopK path usable after the base wrappers were factored out.
         B, S, C_in, H, W = images.shape
         assert B == 1, "Currently only support batch size of 1 for simplicity"
 

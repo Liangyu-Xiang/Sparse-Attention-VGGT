@@ -1,0 +1,16 @@
+defaults:
+  - eval_layer_value_local_vggt
+  - _self_
+
+model:
+  patch_module:
+    local_backend: gpu
+    representative_update: centroid
+    retention: 0.035
+
+selected_datasets: [eth3d]
+datasets:
+  eth3d:
+    max_frames: 100
+    sample_mode: uniform
+    eval_tasks: [pose]
