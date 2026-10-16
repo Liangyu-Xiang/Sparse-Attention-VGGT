@@ -62,7 +62,20 @@ def functional_groups_from_profile(profile):
 def patch_model(model, model_cfg):
     patch_type = model_cfg.patch_module.type
 
-    if patch_type == "adaptive_block_value":
+    if patch_type == "layer_shared_av":
+        from .layer_shared_av import install_layer_shared_av
+        cfg = model_cfg.patch_module
+        install_layer_shared_av(model, **{name: cfg[name] for name in (
+            "retention", "fine_ratio", "coarse_size", "sampling", "dominance",
+            "logit_scale", "query_chunk", "cluster_iterations") if name in cfg})
+
+    elif patch_type == "hybrid_value_topk":
+        from .hybrid_value_topk import install_hybrid_value_topk
+        cfg = model_cfg.patch_module
+        install_hybrid_value_topk(model, **{name: cfg[name] for name in (
+            "retention", "query_chunk", "coarse_size") if name in cfg})
+
+    elif patch_type == "adaptive_block_value":
         from .adaptive_block_value import install_adaptive_block_value
         cfg = model_cfg.patch_module
         install_adaptive_block_value(model, **{name: cfg[name] for name in (

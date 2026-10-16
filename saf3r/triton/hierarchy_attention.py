@@ -5,10 +5,10 @@ import triton.language as tl
 
 
 @triton.jit
-def _forward(Q, K, V, I, S, O, L, N: tl.constexpr, D: tl.constexpr,
+def _forward(Q, K, V, I, S, O, L, Z, N: tl.constexpr, D: tl.constexpr,
              BUDGET: tl.constexpr, NS: tl.constexpr, ROWS: tl.constexpr,
              QS: tl.constexpr, QH: tl.constexpr, KH: tl.constexpr,
-             SCALE: tl.constexpr, BD: tl.constexpr, BK: tl.constexpr):
+             SCALE: tl.constexpr, BD: tl.constexpr, BK: tl.constexpr, EXPORT_LSE: tl.constexpr):
     row, head = tl.program_id(0), tl.program_id(1)
     ds = tl.arange(0, BD)
     qq = tl.load(Q + head*QH + row*QS + ds, ds < D, 0).to(tl.float32)
@@ -36,9 +36,11 @@ def _forward(Q, K, V, I, S, O, L, N: tl.constexpr, D: tl.constexpr,
         den = den*correction + tl.sum(weights, 0)
         m = new_m
     tl.store(O + (head*ROWS+row)*D + ds, acc/den, ds < D)
+    if EXPORT_LSE:
+        tl.store(Z + head*ROWS+row, m+tl.log(den))
 
 
-def indexed_attention_with_logits(q, k, v, indices, specials, scale):
+def indexed_attention_with_logits(q, k, v, indices, specials, scale, return_lse=False):
     """[H,Q,D], [H,N,D], shared [Q,K]; never computes dense QK.
 
     K/V are contiguous full-sequence tensors; Q can be a strided query slice.
@@ -47,8 +49,9 @@ def indexed_attention_with_logits(q, k, v, indices, specials, scale):
     h, rows, d = q.shape
     out = torch.empty_like(q, memory_format=torch.contiguous_format)
     logits = torch.empty((h, rows, indices.shape[1]), device=q.device, dtype=torch.float32)
-    _forward[(rows, h)](q, k, v, indices, specials, out, logits,
+    lse = torch.empty((h, rows), device=q.device, dtype=torch.float32)
+    _forward[(rows, h)](q, k, v, indices, specials, out, logits, lse,
         k.shape[1], d, indices.shape[1], len(specials), rows,
         q.stride(1), q.stride(0), k.stride(0), scale,
-        triton.next_power_of_2(d), 128, num_warps=4)
-    return out, logits
+        triton.next_power_of_2(d), 128, return_lse, num_warps=4)
+    return (out, logits, lse) if return_lse else (out, logits)

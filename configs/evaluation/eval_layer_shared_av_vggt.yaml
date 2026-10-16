@@ -1,0 +1,25 @@
+defaults:
+  - default_datasets.yaml
+  - _self_
+model:
+  name: VGGT
+  dpt_only: True
+  ckpt_path: checkpoints/vggt/model_tracker_fixed_e20.pt
+  patch_module:
+    type: layer_shared_av
+    retention: 0.10
+    fine_ratio: 0.15
+    coarse_size: 128
+    sampling: 0.0025
+    dominance: 0.95
+    # Explicit calibration extension, not the literal reference (which is 1).
+    logit_scale: 32.0
+    query_chunk: 1024
+    cluster_iterations: 2
+selected_datasets: [7scenes]
+datasets:
+  7scenes:
+    scenes: [chess, fire, heads, office, pumpkin, redkitchen, stairs]
+    sample_mode: uniform
+    max_frames: 128
+    eval_tasks: [pose]

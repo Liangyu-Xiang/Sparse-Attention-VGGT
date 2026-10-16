@@ -1,0 +1,19 @@
+defaults:
+  - default_datasets.yaml
+  - _self_
+model:
+  name: VGGT
+  dpt_only: True
+  ckpt_path: checkpoints/vggt/model_tracker_fixed_e20.pt
+  patch_module:
+    type: hybrid_value_topk
+    retention: 0.10
+    query_chunk: 64
+    coarse_size: 128
+selected_datasets: [7scenes]
+datasets:
+  7scenes:
+    scenes: [chess, fire, heads, office, pumpkin, redkitchen, stairs]
+    sample_mode: uniform
+    max_frames: 128
+    eval_tasks: [pose]

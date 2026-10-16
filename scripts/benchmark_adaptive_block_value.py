@@ -19,6 +19,8 @@ def source_manifest():
     sources=['saf3r/patch/adaptive_block_value.py','saf3r/triton/adaptive_block_attention.py',
         'saf3r/patch/coarse_sensing.py','saf3r/patch/hierarchical_value_attention.py',
         'saf3r/patch/value_clustering_gpu.py','saf3r/patch/patch_vggt.py','saf3r/patch/wrapper.py',
+        'saf3r/patch/hybrid_value_topk.py','saf3r/triton/indexed_weighted_value.py',
+        'configs/evaluation/eval_hybrid_value_topk_vggt.yaml',
         'scripts/benchmark_adaptive_block_value.py','configs/evaluation/eval_adaptive_block_value_vggt.yaml',
         'configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json']
     return {p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in sources}
@@ -59,7 +61,10 @@ def worker(args):
         diagnostics={}
         for name in args.variants:
             state=None
-            if name in {'fixed10','adaptive'}:
+            if name=='hybrid':
+                from saf3r.patch.hybrid_value_topk import install_hybrid_value_topk
+                state=install_hybrid_value_topk(model,retention=.10,query_chunk=args.topk_query_chunk)
+            elif name in {'fixed10','adaptive'}:
                 state=install_adaptive_block_value(model,audit_guard=name=='adaptive',
                     audit_nmse=args.audit_nmse,audit_p90=args.audit_p90,audit_queries=args.audit_queries,
                     query_block=args.query_block,key_block=args.key_block,
@@ -81,6 +86,10 @@ def worker(args):
                 status.update(state='inference',variant=name,iteration=iteration);save()
                 events.clear();torch.cuda.synchronize();torch.cuda.reset_peak_memory_stats()
                 started=time.perf_counter()
+                if name=='saf3r':
+                    # Lazy DINO Top-K must be recomputed inside EVERY timed
+                    # forward, not reused from warmup on the identical images.
+                    update_args_per_forward(model,*images.shape[-2:])
                 with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):
                     pred=model(images)
                 torch.cuda.synchronize()
@@ -89,7 +98,12 @@ def worker(args):
                 peak=torch.cuda.max_memory_allocated()/2**30
                 print(args.scene,name,iteration,'seconds',elapsed,'global',global_seconds,'GiB',peak,flush=True)
                 if iteration>=args.warmup:
-                    samples.append(dict(seconds=elapsed,global_seconds=global_seconds,peak_gib=peak))
+                    sample=dict(seconds=elapsed,global_seconds=global_seconds,peak_gib=peak)
+                    if name=='hybrid':
+                        sample.update(value_seconds=sum(events[i][0].elapsed_time(events[i][1]) for i in [*range(3,10),*range(17,24)])/1000,
+                            attention_topk_seconds=sum(events[i][0].elapsed_time(events[i][1]) for i in range(10,17))/1000,
+                            dense_prefix_seconds=sum(events[i][0].elapsed_time(events[i][1]) for i in range(3))/1000)
+                    samples.append(sample)
                 pose=pred['pose_enc'].float().cpu();del pred
                 if iteration>=args.warmup:
                     pose_fingerprints.append(hashlib.sha256(pose.numpy().tobytes()).hexdigest())
@@ -103,6 +117,15 @@ def worker(args):
             if not result['measured_pose_identical']:
                 raise ValueError(f'{name} predictions are not repeatable across measured forwards')
             result.update({'median_'+k:float(np.median([r[k] for r in samples])) for k in samples[0]})
+            if name=='hybrid':
+                result['layers']=state.records
+                result['mean_connection_density']=float(np.mean([r['actual_density'] for r in state.records]))
+                result['dense_fallback_head_fraction']=0.
+                result['scheme']='zero-based 0:2 Dense; 3:9 and 17:23 shared representative K/V; 10:16 full FP32 QK then per-head/query top patch Keys plus mandatory specials; 10% total budget, no expansion; GPU lightweight L2 initialization and all local updates INCLUDED'
+                assert len(state.records)==24
+                (directory/f'{name}_layers.json').write_text(json.dumps(state.records,indent=2)+'\n')
+                state.reset_hook_handle.remove();delattr(model,'hybrid_value_topk_state')
+                state=None
             if state is not None:
                 result['layers']=state.records
                 result['mean_connection_density']=float(np.mean([r['actual_density'] for r in state.records]))
@@ -141,8 +164,10 @@ def worker(args):
             audit_nmse=args.audit_nmse,audit_p90=args.audit_p90,base_retention=.10,
             independent_validation_queries=args.validation_queries,profile_stages=args.profile_stages,
             diagnostics_after_timing=args.diagnostics_after_timing,
+            topk_query_chunk=args.topk_query_chunk,
             candidates=[.10,.20,.35,.50,.75,1.],warmup=args.warmup,repeats=args.repeats,
-            note='ALL initialization, sensing, probe dense QK/output checks, head matching, selection, validation and fallback INCLUDED in timings. Block-quantized actual density reported; no fixed-10% claim for adaptive method.')
+            note=('ALL initialization and Value updates, full FP32 QK, exact patch TopK, mandatory-special union, renormalization and gathered AV INCLUDED. Hybrid uses real representative tokens, no Key blocks or online budget probes. Actual kept edges do NOT account for the additional full QK work on layers 10..16.' if 'hybrid' in args.variants else
+                  'ALL initialization, sensing, probe dense QK/output checks, head matching, selection, validation and fallback INCLUDED in timings. Block-quantized actual density reported; no fixed-10% claim for adaptive method.'))
         (directory/'result.json').write_text(json.dumps(dict(input=metadata,methods=methods),indent=2)+'\n')
         if diagnostics:
             (directory/'diagnostics_result.json').write_text(json.dumps(dict(methods=diagnostics),indent=2)+'\n')
@@ -188,6 +213,7 @@ def batch(args):
                     query_block=args.query_block,key_block=args.key_block,
                     independent_validation_queries=args.validation_queries,profile_stages=args.profile_stages)
                 expected['diagnostics_after_timing']=args.diagnostics_after_timing
+                expected['topk_query_chunk']=args.topk_query_chunk
                 if existing.get('source_sha256')!=source_manifest() or any(existing.get(k)!=v for k,v in expected.items()):
                     raise ValueError(f'Refusing stale/mismatched results at {directory}; choose a fresh output directory')
                 continue
@@ -196,6 +222,7 @@ def batch(args):
                 '--audit-nmse',str(args.audit_nmse),'--audit-p90',str(args.audit_p90),'--audit-queries',str(args.audit_queries),
                 '--query-block',str(args.query_block),'--key-block',str(args.key_block),'--variants',*args.variants]
             command+=['--validation-queries',str(args.validation_queries)]
+            command+=['--topk-query-chunk',str(args.topk_query_chunk)]
             if args.profile_stages:command+=['--profile-stages']
             if args.diagnostics_after_timing:command+=['--diagnostics-after-timing']
             log=(directory/'run.log').open('a')
@@ -223,7 +250,8 @@ if __name__=='__main__':
     p.add_argument('--validation-queries',type=int,default=0,help='Independent diagnostic probes; zero for formal timing')
     p.add_argument('--profile-stages',action='store_true',help='Diagnostic stage events; disable for formal timing')
     p.add_argument('--diagnostics-after-timing',action='store_true',help='Extra untimed forward for independent checks and stage profiling')
-    p.add_argument('--variants',nargs='+',choices=['dense','saf3r','fixed10','adaptive'],default=['dense','saf3r','fixed10','adaptive'])
+    p.add_argument('--variants',nargs='+',choices=['dense','saf3r','fixed10','adaptive','hybrid'],default=['dense','saf3r','fixed10','adaptive'])
+    p.add_argument('--topk-query-chunk',type=int,default=64)
     p.add_argument('--output-dir',type=Path,default=ROOT/'outputs/adaptive_block_value/7scenes_n128_audit02')
     args=p.parse_args()
     worker(args) if args.scene else batch(args)
