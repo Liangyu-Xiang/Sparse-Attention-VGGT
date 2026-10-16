@@ -1,0 +1,14 @@
+{
+  "feature_source": "unmodified dense VGGT prefix; matched QKV for all variants",
+  "small_diagnostic": {"scene": "chess", "frame_indices": [0, 20], "queries": "all", "save_tensors": true},
+  "cross_sequence_probe": {"dataset": "7scenes", "frames": 128, "query_samples_per_layer": 64},
+  "global_layers_zero_based": [0, 23],
+  "sensing_modes": ["legacy_mean_qk", "per_head"],
+  "population_bias_ablation": [true, false],
+  "coarse_sizes": [32, 64, 128],
+  "sensing_fine_ratio": 0.15,
+  "operator_fine_ratio": 0.20,
+  "operator_total_retentions_including_specials": [0.10, 0.15, 0.20],
+  "operator_controls": ["shared_value", "uniform", "dense_topk_oracle"],
+  "scope": "sensing and diagnostic/operator re-evaluation only; no new budget calibration or cumulative sparse forward"
+}

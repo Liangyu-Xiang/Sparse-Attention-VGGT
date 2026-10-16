@@ -62,7 +62,14 @@ def functional_groups_from_profile(profile):
 def patch_model(model, model_cfg):
     patch_type = model_cfg.patch_module.type
 
-    if patch_type == "hierarchical_value":
+    if patch_type == "adaptive_block_value":
+        from .adaptive_block_value import install_adaptive_block_value
+        cfg = model_cfg.patch_module
+        install_adaptive_block_value(model, **{name: cfg[name] for name in (
+            "retention", "budget_candidates", "audit_nmse", "audit_p90", "audit_queries",
+            "query_block", "key_block", "history_min_blocks", "fine_ratio", "coarse_size", "audit_guard") if name in cfg})
+
+    elif patch_type == "hierarchical_value":
         from .hierarchical_value_attention import install_hierarchical_value_attention
         cfg = model_cfg.patch_module
         install_hierarchical_value_attention(model, **{

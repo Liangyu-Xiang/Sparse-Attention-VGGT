@@ -9,7 +9,7 @@ import math
 import torch
 from torch import nn
 import torch.nn.functional as F
-from .value_clustering_gpu import centroid_nearest_gpu
+from .value_clustering_gpu import centroid_nearest_gpu, stable_cluster_mean
 from .value_evolving_attention import token_layout
 
 
@@ -54,7 +54,7 @@ def allocate_budget(probabilities, budget, capacities):
     return result
 
 
-def lightweight_clusters(x, k, iterations=3, block=2048):
+def lightweight_clusters(x, k, iterations=3, block=2048, deterministic=False):
     """Deterministic FP32 anchored Lloyd clustering, no N-by-N distances.
 
     Projection-stratified real tokens initialize centers. Anchors keep all K
@@ -76,12 +76,15 @@ def lightweight_clusters(x, k, iterations=3, block=2048):
             labels[start:start+block] = torch.cdist(x[start:start+block], centers).argmin(-1)
         labels[anchors] = torch.arange(k, device=x.device)
         count = sizes(labels, k)
-        centers.zero_().index_add_(0, labels, x)
-        centers /= count[:, None]
+        if deterministic:
+            centers = stable_cluster_mean(x,labels,k)
+        else:
+            centers.zero_().index_add_(0, labels, x)
+            centers /= count[:, None]
     return labels
 
 
-def sibling_update(x, labels, reps, fine_to_coarse, iterations=2, block=1024, diagnostics=None):
+def sibling_update(x, labels, reps, fine_to_coarse, iterations=2, block=1024, diagnostics=None, deterministic=False):
     """Synchronous assignment, source-coarse frozen for ALL local iterations."""
     if diagnostics is not None:
         diagnostics.mark('hierarchy_mapping')
@@ -107,15 +110,15 @@ def sibling_update(x, labels, reps, fine_to_coarse, iterations=2, block=1024, di
         labels = new_labels
         if diagnostics is not None:
             diagnostics.mark('representative_update')
-        reps = centroid_nearest_gpu(x, labels, reps)
+        reps = centroid_nearest_gpu(x, labels, reps, deterministic=deterministic)
     return labels, reps
 
 
-def initial_hierarchy(x, fine_ratio, coarse_size, cluster_iterations, local_iterations):
+def initial_hierarchy(x, fine_ratio, coarse_size, cluster_iterations, local_iterations, deterministic=False):
     """One lightweight global initialization, then local refinement."""
     nf = max(1, round(len(x)*fine_ratio))
     nc = min(nf, math.ceil(len(x)/coarse_size))
-    coarse = lightweight_clusters(x, nc, cluster_iterations)
+    coarse = lightweight_clusters(x, nc, cluster_iterations,deterministic=deterministic)
     count = sizes(coarse, nc)
     # Each coarse group gets at least one fine cluster; allocate the rest by
     # occupancy, respecting token capacity. The global fine count is exact.
@@ -128,17 +131,17 @@ def initial_hierarchy(x, fine_ratio, coarse_size, cluster_iterations, local_iter
     reps = torch.full((nf,), len(x), device=x.device, dtype=torch.long)
     reps.scatter_reduce_(0, z, torch.arange(len(x), device=x.device), reduce='amin')
     mapping = torch.repeat_interleave(torch.arange(nc, device=x.device), quota)
-    z, reps = sibling_update(x, z, reps, mapping, local_iterations)
+    z, reps = sibling_update(x, z, reps, mapping, local_iterations,deterministic=deterministic)
     return z, reps
 
 
-def uniform_hierarchy(x, fine_ratio):
+def uniform_hierarchy(x, fine_ratio, deterministic=False):
     """Contiguous equal-occupancy groups in frame-major patch-token order."""
     nf = max(1, round(len(x)*fine_ratio))
     labels = torch.arange(len(x), device=x.device)*nf//len(x)
     first = torch.full((nf,), len(x), device=x.device, dtype=torch.long)
     first.scatter_reduce_(0, labels, torch.arange(len(x), device=x.device), reduce='amin')
-    return labels, centroid_nearest_gpu(x, labels, first)
+    return labels, centroid_nearest_gpu(x, labels, first,deterministic=deterministic)
 
 
 def reliability(p):
@@ -282,7 +285,7 @@ def select_edges(p, budget, attention_budget, hierarchy, history=None, diagnosti
 class HierarchicalValueState:
     def __init__(self, retention=.10, fine_ratio=.15, coarse_size=128,
                  sparse_start=1, sparse_end=24, iterations=2, cluster_iterations=3,
-                 query_chunk=128, initialization='uniform', diagnostics=None):
+                 query_chunk=128, initialization='uniform', diagnostics=None, deterministic=False):
         if not 0 < retention <= fine_ratio <= 1 or coarse_size < 1:
             raise ValueError("Require 0 < retention <= fine_ratio <= 1")
         if not 1 <= sparse_start <= sparse_end <= 24:
@@ -293,6 +296,7 @@ class HierarchicalValueState:
             raise ValueError('Unknown hierarchy initialization')
         self.initialization = initialization
         self.diagnostics = diagnostics
+        self.deterministic = deterministic
         self.retention, self.fine_ratio, self.coarse_size = retention, fine_ratio, coarse_size
         self.sparse_start, self.sparse_end = sparse_start, sparse_end
         self.iterations, self.cluster_iterations, self.query_chunk = iterations, cluster_iterations, query_chunk
@@ -312,20 +316,20 @@ class HierarchicalValueState:
             if diagnostics is not None:
                 diagnostics.mark('value_initialization')
             if self.initialization == 'uniform':
-                labels, reps = uniform_hierarchy(values, self.fine_ratio)
+                labels, reps = uniform_hierarchy(values, self.fine_ratio,deterministic=self.deterministic)
             else:
                 labels, reps = initial_hierarchy(values, self.fine_ratio, self.coarse_size,
-                                                self.cluster_iterations, self.iterations)
+                                                self.cluster_iterations, self.iterations,deterministic=self.deterministic)
         else:
             if layer != self.previous_layer+1:
                 raise ValueError("Hierarchy must inherit the immediately previous layer")
             labels, reps, mapping, _ = self.hierarchy
             labels, reps = sibling_update(values, labels, reps, mapping, self.iterations,
-                                         diagnostics=diagnostics)
+                                         diagnostics=diagnostics,deterministic=self.deterministic)
         nc = min(len(reps), math.ceil(len(values)/self.coarse_size))
         if diagnostics is not None:
             diagnostics.mark('coarse_grouping')
-        mapping = lightweight_clusters(values[reps], nc, self.cluster_iterations)
+        mapping = lightweight_clusters(values[reps], nc, self.cluster_iterations,deterministic=self.deterministic)
         count = sizes(labels, len(reps))
         self.hierarchy = labels, reps, mapping, count
         self.previous_layer = layer

@@ -101,7 +101,15 @@ def _minimum_cost_members(costs, labels, previous_medoids):
     return torch.where(keep, previous_medoids, representatives)
 
 
-def centroid_nearest_gpu(values, labels, previous_medoids):
+def stable_cluster_mean(values, labels, k):
+    """Fixed token-order segmented means, no floating-point atomic updates."""
+    order = labels.argsort(stable=True)
+    counts = torch.zeros(k,device=labels.device,dtype=torch.long)
+    counts.index_add_(0,labels,torch.ones_like(labels))
+    return torch.segment_reduce(values[order],reduce='mean',lengths=counts).nan_to_num()
+
+
+def centroid_nearest_gpu(values, labels, previous_medoids, deterministic=False):
     """O(Nd): choose an actual member nearest to its cluster's centroid.
 
     Exact for the squared-Euclidean member-representative objective (up to
@@ -111,9 +119,12 @@ def centroid_nearest_gpu(values, labels, previous_medoids):
     # Fixed-size scatter avoids bincount's dynamic output-size discovery.
     counts = torch.zeros(k, device=values.device, dtype=values.dtype)
     counts.index_add_(0, labels, torch.ones(len(values), device=values.device, dtype=values.dtype))
-    sums = torch.zeros((k, values.shape[1]), device=values.device, dtype=values.dtype)
-    sums.index_add_(0, labels, values)
-    centers = sums/counts.clamp_min(1)[:, None]
+    if deterministic:
+        centers = stable_cluster_mean(values,labels,k)
+    else:
+        sums = torch.zeros((k, values.shape[1]), device=values.device, dtype=values.dtype)
+        sums.index_add_(0, labels, values)
+        centers = sums/counts.clamp_min(1)[:, None]
     costs = (values-centers[labels]).square().sum(-1)
     return _minimum_cost_members(costs, labels, previous_medoids)
 
