@@ -1,5 +1,9 @@
 # Middle-layer Attention isolation: spatial region history
 
+This document describes the historical309cd09policy. The subsequent
+[history-first corrections and controlled oracles](region_history_corrections.md)
+have a separate opt-in installer and results; archived masks below are unchanged.
+
 This opt-in experiment supersedes neither the saved old implementation nor its
 results. The earlier128-frame residual-history queue and its report waiter were
 terminated at the user's request; its incomplete files remain intact.

@@ -165,17 +165,23 @@ class RegionHistoryAttention(nn.Module):
             for start in range(0,n,s.query_chunk):
                 end=min(n,start+s.query_chunk)
                 with torch.autocast(x.device.type,enabled=False):
-                    p=coarse_probabilities(q[:,start:end].float(),pooled)
+                    if getattr(s,'coarse_size_bias',False):
+                        population=torch.bincount(mapping[labels],minlength=pooled.shape[1]).float()
+                        z=(q[:,start:end].float()@pooled.transpose(-1,-2))*o.scale
+                        p=(z+population.clamp_min(1).log()).softmax(-1).mean(0)
+                    else:p=coarse_probabilities(q[:,start:end].float(),pooled)
                     concentrations.append(concentration(p))
                     if sparse:
-                        patch_ids,record=select_regions(q[:,start:end].float(),kpatch,s.layout,p,mapping[labels],
+                        selector=getattr(s,'selector',select_regions)
+                        patch_ids,record=selector(q[:,start:end].float(),kpatch,s.layout,p,mapping[labels],
                             None if old is None else old[start:end],budget,s.variant)
                         keys=torch.cat((patches[patch_ids.clamp_min(0)].masked_fill(patch_ids<0,-1),
                             specials.expand(end-start,-1)),1)
                         logits=qk_logits(q[:,start:end].to(v.dtype),k.to(v.dtype).contiguous(),keys,o.scale)
                         attended[:,start:end]=logits_av(logits,v,keys)
                         mean=logits.softmax(-1).mean(0)[:,:patch_ids.shape[1]]
-                        stats.append(record);indices.append(keys.cpu())
+                        stats.append(record)
+                        if s.capture:indices.append(keys.cpu())
                     else:
                         # Dense L9 really executes Dense attention. Its already
                         # available true weights define a10%-budget seed mask.
@@ -190,10 +196,12 @@ class RegionHistoryAttention(nn.Module):
                 history_out=float((s.history>=0).sum(1).float().mean()))
             if sparse:
                 for name in stats[0]:rec[name]=float(torch.cat([r[name] for r in stats]).float().mean())
-                masks=torch.cat([F.pad(ids,(0,max(i.shape[1] for i in indices)-ids.shape[1]),value=-1) for ids in indices])
-                rec['density']=float((masks>=0).sum(1).float().mean())/n
-                if s.capture:s.captured[self.layer]=dict(indices=masks,
-                    q=q.cpu(),k=k.cpu(),v=v.cpu(),output=attended.cpu())
+                patch_counts=torch.cat([record['history_retained']+record['explored'] for record in stats])
+                rec['density']=float((patch_counts+len(specials)).float().mean())/n
+                if s.capture:
+                    masks=torch.cat([F.pad(ids,(0,max(i.shape[1] for i in indices)-ids.shape[1]),value=-1) for ids in indices])
+                    s.captured[self.layer]=dict(indices=masks,
+                        q=q.cpu(),k=k.cpu(),v=v.cpu(),output=attended.cpu())
             s.records.append(rec)
         return o.proj_drop(o.proj(attended.transpose(0,1).reshape(b,n,c)))
 
