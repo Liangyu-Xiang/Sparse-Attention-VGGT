@@ -1,5 +1,8 @@
 # 全层共享Value／演化Attention融合：实现与前置验收
 
+后续完整区域Attention变体已实现，入口`--mode region`；本文保留原`--mode fused`基线。
+最新变体的详细流程与对照结果见[Value区域整体选择](value_region_av.md)。
+
 ## 状态
 
 已实现独立融合入口、Tensor Core内核、正确性测试、性能分解和禁止越过失败门槛的实验流程。

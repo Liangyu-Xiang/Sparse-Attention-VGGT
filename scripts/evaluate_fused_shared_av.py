@@ -25,6 +25,7 @@ def run(args):
     from saf3r.utils.data_utils import load_images
     from saf3r.models.official_vggt.utils.pose_enc import pose_encoding_to_extri_intri
     from saf3r.patch.fused_shared_av import FusedSharedAVConfig,install_fused_shared_av,DEFAULT_ALPHA
+    from saf3r.patch.value_region_av import ValueRegionAVConfig,install_value_region_av
     from benchmarks.da3.bench.registries import MV_REGISTRY
     from benchmarks.da3.da3bench_utils import sample_frames
     from evaluate_da3bench import load_scene_data,evaluate
@@ -48,11 +49,12 @@ def run(args):
     # Ablations must not silently inherit the mixed alpha array from a schedule.
     if args.mode=='value':settings['attention_ratios']=(0.,)*24
     if args.mode=='attention':settings['attention_ratios']=(0.,)+(1.,)*23
-    config=FusedSharedAVConfig(**settings)
-    state=None if args.mode in ('dense','saf3r') else install_fused_shared_av(model,config)
+    config=(ValueRegionAVConfig if args.mode=='region' else FusedSharedAVConfig)(**settings)
+    state=None if args.mode in ('dense','saf3r') else (install_value_region_av if args.mode=='region' else install_fused_shared_av)(model,config)
     sources=['saf3r/patch/fused_shared_av.py','saf3r/triton/fused_shared_av.py',
         'saf3r/triton/shared_av_terminal.py','saf3r/triton/shared_av_routing.py',
         'saf3r/patch/value_clustering_gpu.py','scripts/evaluate_fused_shared_av.py']
+    if args.mode=='region':sources+=['saf3r/patch/value_region_av.py','saf3r/triton/value_region_selection.py']
     if args.mode=='saf3r':
         sources+=['saf3r/patch/patch_vggt.py','saf3r/patch/wrapper.py','saf3r/patch/utils.py',
             'saf3r/triton/fused_qk_topk.py','configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json']
@@ -107,6 +109,7 @@ def run(args):
         for layer,data in state.captured.items():
             common=data['common'].cpu();attention=data['attention'].cpu()
             for row in attention:
+                if args.mode=='region':row=row[row>=0]
                 ids=torch.cat((common,row.long()))
                 if ids.min()<0 or ids.max()>=state.n or len(ids.unique())!=len(ids):raise RuntimeError('Invalid support')
             labels=data['value_labels']
@@ -148,7 +151,7 @@ def run(args):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--mode',choices=['dense','fused','value','attention','saf3r'],default='fused')
+    p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--mode',choices=['dense','fused','value','attention','saf3r','region'],default='fused')
     p.add_argument('--dataset',choices=['7scenes','eth3d'],default='7scenes');p.add_argument('--scene',default='chess')
     p.add_argument('--frames',type=int,default=128);p.add_argument('--retention',type=float,default=.2)
     p.add_argument('--window-groups',type=int,default=128);p.add_argument('--warmup',type=int,default=1);p.add_argument('--repeats',type=int,default=3)

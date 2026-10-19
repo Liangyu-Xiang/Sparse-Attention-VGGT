@@ -2,6 +2,11 @@
 
 [Implementation, semantics and limitations](../../docs/experiments/fused_shared_av.md)
 
+The newer whole-Value-region selector is an independent `mode=region` variant:
+[current branch workflow](../../docs/experiments/value_region_av.md),
+[paired Chess128 comparison](../value_region_av/chess128_boundary_regions/report.md).
+This directory preserves the original `mode=fused` baseline.
+
 - `kernel_gate.json`: initial fixed-support kernel,2/50/128frames.
 - `kernel_gate_pipelined.json`: pipelined kernel,128frames,10/15/20%budgets.
 - `chess2_final_gate`: small-input all24-layer structural capture and timings.
