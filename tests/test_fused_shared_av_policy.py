@@ -12,6 +12,10 @@ def test_config_exact_schedule_and_validation():
     assert c.attention_ratios[1:10]==(.2,)*9 and c.attention_ratios[10:17]==(.8,)*7
     with pytest.raises(ValueError):FusedSharedAVConfig(attention_ratios=(.2,)*24)
     with pytest.raises(ValueError):FusedSharedAVConfig(retentions=(.21,)*24)
+    with pytest.raises(ValueError):FusedSharedAVConfig(retentions=(.049,)*24)
+    assert FusedSharedAVConfig(retentions=(.05,)*9+(.2,)*15).retentions[0]==.05
+    assert FusedSharedAVConfig(history_fraction=.8).history_fraction==.8
+    with pytest.raises(ValueError):FusedSharedAVConfig(history_fraction=1.01)
     with pytest.raises(ValueError):FusedSharedAVConfig(attention_ratios=(0.,))
 
 

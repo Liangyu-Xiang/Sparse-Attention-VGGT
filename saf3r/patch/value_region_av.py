@@ -18,23 +18,43 @@ from .value_evolving_attention import token_layout
 @dataclass(frozen=True)
 class ValueRegionAVConfig(FusedSharedAVConfig):
     region_child_width:int=8
+    query_shift_step:int=0
+    parent_only:bool=False
+    parent_topk:int=0
+    parent_descriptors:bool=False
+    adaptive_gate:str|None=None
 
     def __post_init__(self):
         super().__post_init__()
+        if self.adaptive_gate and (not self.parent_only or self.parent_descriptors):
+            raise ValueError('Internal gate currently requires whole-Parent expanded execution')
+        if self.query_shift_step not in (0,1):raise ValueError('Query shift step must be 0 or 1')
+        if self.query_shift_step and self.history_fraction>.5:
+            raise ValueError('Shifted groups merge two histories; history_fraction must be <=0.5')
+        if self.parent_topk<0 or ((self.parent_topk or self.parent_descriptors) and not self.parent_only):
+            raise ValueError('Partial Parent selection/descriptors require parent_only')
         if (not 1<=self.region_child_width<=16 or self.source_width%self.region_child_width
                 or self.source_width//self.region_child_width>16):
             raise ValueError('Child width must divide source width; both boundary fanouts must be <=16')
 
 
 class ValueRegionAVState:
-    def __init__(self,config):self.config=config;self.profiling=False
+    def __init__(self,config):
+        self.config=config;self.profiling=False
+        if config.adaptive_gate:
+            from .av_internal_gate import InternalAVGate
+            self.policy=InternalAVGate.read(config.adaptive_gate)
+        else:self.policy=None
 
     def reset(self,frames,height,width,device):
         c=self.config;self.frames,self.height,self.width=frames,height,width
         self.patches,self.specials=token_layout(frames,height*width,5,device)
         self.n=frames*(height*width+5)
         self.total,self.ka,self.kv=patch_budgets(self.n,len(self.specials),c)
-        self.value=FullCoverageValue(frames,height*width,max(self.kv),device,c.source_width,c.local_iterations)
+        base_count=max(self.kv)
+        if self.policy is not None:
+            base_count=max(base_count,max(p-round(self.policy.p['min_alpha']*p) for p in self.total[1:]))
+        self.value=FullCoverageValue(frames,height*width,base_count,device,c.source_width,c.local_iterations)
         self.parent_count=self.value.groups
         self.children_per_parent=c.source_width//c.region_child_width
         self.child_count=self.parent_count*self.children_per_parent
@@ -44,7 +64,10 @@ class ValueRegionAVState:
         self.parent_fine_count=torch.bincount(self.parent,minlength=self.parent_count).float()
         self.child_fine_count=torch.bincount(self.child,minlength=self.child_count).float()
         self.capacity=self.value.table.shape[1]
-        self.history=None;self.previous_layer=-1;self.records=[];self.captured={};self.profile_events=[]
+        if c.parent_descriptors:self.patch_parent=self.value.labels//c.source_width
+        self.history=None;self.history_offset=0;self.query_offset=0
+        self.policy_parent_keys=None;self.policy_info={}
+        self.previous_layer=-1;self.records=[];self.captured={};self.profile_events=[]
 
     def refresh_hierarchy(self,keys,value_ids):
         """Small local member-table sort, not per-Query global Token ranking."""
@@ -69,7 +92,13 @@ class ValueRegionAVState:
             out=torch.zeros((keys.shape[0],count,keys.shape[-1]),device=keys.device,dtype=torch.float32)
             out.index_add_(1,mapping,fine.float())
             return (out/counts.clamp_min(1)[None,:,None]).to(keys.dtype)
-        self.pooled_parent=pool(self.parent,self.parent_count,self.parent_fine_count)
+        if self.policy_parent_keys is not None:
+            self.pooled_parent=self.policy_parent_keys;self.policy_parent_keys=None
+        else:self.pooled_parent=pool(self.parent,self.parent_count,self.parent_fine_count)
+        if c.parent_descriptors:
+            self.parent_log_population=self.parent_sizes.clamp_min(1).float().log()
+            self.pooled_child=None;self.fine_keys=None
+            return
         self.pooled_child=pool(self.child,self.child_count,self.child_fine_count)
         self.fine_keys=F.pad(fine,(0,0,0,self.padded_fine-self.value.base_count))
         self.parent_log_population=self.parent_sizes.clamp_min(1).float().log()
@@ -79,16 +108,42 @@ class ValueRegionAVState:
         self.fine_log_population=sizes.float().log()
 
 
-def boundary_scores(q,keys,log_population,candidates,active,start_group,scale):
+def boundary_scores(q,keys,log_population,candidates,active,start_group,scale,query_offset=0):
     """Score ONLY one boundary's descendants per Query group, never all children."""
     if q.is_cuda:
         from saf3r.triton.value_region_selection import boundary_probabilities
-        return boundary_probabilities(q,keys,log_population,candidates,active,start_group,scale)
+        return boundary_probabilities(q,keys,log_population,candidates,active,start_group,scale,query_offset)
     probes=(torch.arange(len(candidates),device=q.device)[:,None]+start_group)*32+torch.tensor([4,12,20,28],device=q.device)
-    probes=probes.clamp_max(q.shape[1]-1)
+    probes=(probes.clamp_max(q.shape[1]-1)+query_offset)%q.shape[1]
     logits=torch.einsum('hgtd,hgcd->hgtc',q[:,probes].float(),keys[:,candidates].float())*scale
     logits+=log_population[candidates][None,:,None]
     return logits.softmax(-1).mean((0,2))*active[:,None]
+
+
+def aligned_history(state,start_group,groups):
+    """Union histories of ALL old groups overlapping each shifted Query group.
+
+    A one-Query shift overlaps at most two old groups, including cyclic/tail
+    groups. Shifted mode requires outgoing history <= next KA/2, hence this hard union fits next KA.
+    This can consume more than 50% of KA; do not silently drop history to hide it.
+    """
+    history=state.history
+    if history is None:return None
+    delta=(state.query_offset-state.history_offset)%state.n
+    if delta==0:return history[start_group:start_group+groups]
+    if delta!=1:raise ValueError('History remapping supports only a one-Query layer shift')
+    device=history.device;row=torch.arange(start_group,start_group+groups,device=device)
+    size=(state.n-row*32).clamp_max(32)
+    first=((row*32+delta)%state.n)//32
+    last=((row*32+size-1+delta)%state.n)//32
+    a=history[first];b=history[last]
+    # Bounded window lookup, not a Token-level attention Mask. Keep the first
+    # source's order and append only new indices from the second source.
+    seen=torch.zeros((groups,len(state.patches)+1),device=device,dtype=torch.uint8)
+    seen.scatter_(1,torch.where(a>=0,a.long(),len(state.patches)),1)
+    duplicate=seen.gather(1,b.long().clamp_min(0)).bool()
+    valid=(b>=0)&~duplicate&(first!=last)[:,None]
+    return torch.cat((a,b.masked_fill(~valid,-1)),1).contiguous()
 
 
 def ranked_prefix(scores,counts,target,include_boundary=False):
@@ -138,21 +193,33 @@ def select_value_regions(q,state,is_value,history,value_ids,ka,start_group,group
         available.scatter_add_(1,label,-valid.long())
     parent_available=available.reshape(groups,state.parent_count,c.source_width).sum(2)
     with stage(state,'region_parent'):
-        score=shared_scores(q,state.pooled_parent,scale,state.parent_log_population,start_group,groups)
-        po,pfull,pboundary,pactive,remaining=ranked_prefix(score,parent_available,missing)
+        score=shared_scores(q,state.pooled_parent,scale,state.parent_log_population,start_group,groups,query_offset=state.query_offset)
+        if c.parent_only:
+            from .parent_region_selection import parent_prefix
+            po,pfull,extra=parent_prefix(score,parent_available,missing,c.parent_topk)
+        else:
+            po,pfull,pboundary,pactive,remaining=ranked_prefix(score,parent_available,missing)
+    if c.parent_only:
+        starts=state.parent_starts[po.clamp_min(0)]
+        lengths=state.parent_sizes[po.clamp_min(0)]*pfull
+        with stage(state,'region_expand'):
+            attention,counts=expand_regions(clean,starts,lengths,state,is_value,ka)
+        return attention,counts,dict(incoming_history=kept.sum(),parent_regions=pfull.sum(),
+            child_regions=0,fine_regions=0,child_refined_groups=0,fine_refined_groups=0,
+            terminal_member_qk_per_head=0,**extra),(starts,lengths)
     # Fully chosen parents are final supports. Refine only the crossing parent.
     child_ids=pboundary[:,None]*state.children_per_parent+torch.arange(state.children_per_parent,device=device)
     child_available=available.reshape(groups,state.child_count,c.region_child_width).sum(2).gather(1,child_ids)
     child_available*=pactive[:,None]
     with stage(state,'region_child_boundary'):
-        score=boundary_scores(q,state.pooled_child,state.child_log_population,child_ids,pactive,start_group,scale)
+        score=boundary_scores(q,state.pooled_child,state.child_log_population,child_ids,pactive,start_group,scale,state.query_offset)
         co,cfull,cboundary,cactive,remaining=ranked_prefix(score,child_available,remaining)
     ordered_child=child_ids.gather(1,co)
     boundary_child=child_ids.gather(1,cboundary[:,None]).squeeze(1)
     fine_ids=boundary_child[:,None]*c.region_child_width+torch.arange(c.region_child_width,device=device)
     fine_available=available.gather(1,fine_ids)*cactive[:,None]
     with stage(state,'region_fine_boundary'):
-        score=boundary_scores(q,state.fine_keys,state.fine_log_population,fine_ids,cactive,start_group,scale)
+        score=boundary_scores(q,state.fine_keys,state.fine_log_population,fine_ids,cactive,start_group,scale,state.query_offset)
         fo,ffull,_,_,_=ranked_prefix(score,fine_available,remaining,include_boundary=True)
     ordered_fine=fine_ids.gather(1,fo)
     starts=torch.cat((state.parent_starts[po],state.child_starts[ordered_child],state.fine_starts[ordered_fine]),1)
@@ -195,23 +262,33 @@ class ValueRegionAVAttention(nn.Module):
         o,s=self.original,self.state;c=s.config
         if self.training or len(x)!=1:raise ValueError('Batch-one inference only')
         if self.layer!=s.previous_layer+1:raise ValueError('Invalid layer state order')
+        s.query_offset=(self.layer*c.query_shift_step)%s.n
         q,k,v=prepare_qkv(o,x,pos);q,k=q.to(v.dtype).contiguous(),k.to(v.dtype).contiguous()
         with stage(s,'value'),torch.autocast(x.device.type,enabled=False):
             features=v.mean(0,dtype=torch.float32)[s.patches]
             s.value.update(features,self.layer)
+        if s.policy is not None:
+            with stage(s,'adaptive_gate'):s.policy.decide(q,k,s,self.layer,o.scale)
+        with stage(s,'value'),torch.autocast(x.device.type,enabled=False):
             value_ids,merged=s.value.representatives(features,s.kv[self.layer])
         common=torch.cat((s.patches[value_ids],s.specials));kv=len(value_ids);ka=s.ka[self.layer]
         with stage(s,'pack'):pk=k[:,common].contiguous();pv=v[:,common].contiguous()
         is_value=torch.zeros(len(s.patches),device=x.device,dtype=torch.bool);is_value[value_ids]=True
         if ka:
             with stage(s,'value_region_hierarchy'):s.refresh_hierarchy(k,value_ids)
+        if c.parent_descriptors:
+            from .parent_descriptor_av import descriptor_layer
+            output=descriptor_layer(self,q,k,v,pk,pv,common,value_ids,merged,is_value)
+            del q,k,v,pk,pv,features
+            return o.proj_drop(o.proj(output.transpose(0,1).reshape(1,s.n,-1)))
         groups=math.ceil(s.n/32);output=torch.empty_like(v)
         next_history=min(s.total[self.layer],math.floor(c.history_fraction*s.ka[self.layer+1])) if self.layer<23 else 0
+        if s.policy is not None:next_history=s.policy.outgoing_history(s,self.layer)
         histories=[];captured=[];region_capture=[];all_counts=[];stats=[]
         for g in range(0,groups,c.window_groups):
             length=min(c.window_groups,groups-g);start=g*32;end=min(s.n,(g+length)*32)
             if ka:
-                old=None if s.history is None else s.history[g:g+length]
+                with stage(s,'query_history_realign'):old=aligned_history(s,g,length)
                 with stage(s,'selection_including_expansion'):
                     attention,counts,record,regions=select_value_regions(q,s,is_value,old,value_ids,ka,g,length,o.scale)
                 stats.append(record)
@@ -224,37 +301,51 @@ class ValueRegionAVAttention(nn.Module):
             if q.is_cuda:
                 from saf3r.triton.fused_shared_av import shared_av
                 with stage(s,'execution'):
-                    result,e,lse=shared_av(q[:,start:end],k,v,pk,pv,actual,kv,scale=o.scale,evidence=bool(next_history))
-            else:result,e,lse=reference_attention(q[:,start:end],k,v,common,actual,kv,o.scale)
-            output[:,start:end]=result
+                    if s.query_offset:
+                        result,e,lse=shared_av(q,k,v,pk,pv,actual,kv,scale=o.scale,evidence=bool(next_history),
+                            query_start=start,query_rows=end-start,query_offset=s.query_offset)
+                    else:result,e,lse=shared_av(q[:,start:end],k,v,pk,pv,actual,kv,scale=o.scale,evidence=bool(next_history))
+            else:
+                rows=(torch.arange(start,end,device=x.device)+s.query_offset)%s.n
+                result,e,lse=reference_attention(q[:,rows],k,v,common,actual,kv,o.scale)
+            # Only logical Query order changes; KV IDs and residual row order
+            # stay original. At most two slice copies, never a full Q/K/V roll.
+            destination=(start+s.query_offset)%s.n;first_length=min(end-start,s.n-destination)
+            output[:,destination:destination+first_length]=result[:,:first_length]
+            if first_length<end-start:output[:,:end-start-first_length]=result[:,first_length:]
             if next_history:
                 with stage(s,'history'):indices=ragged_history(e,lse,common,actual,counts,kv,next_history)
                 histories.append((indices.long()-(indices.long()//(s.height*s.width+5)+1)*5).int())
             if c.capture:captured.append(actual.clone())
-        s.history=torch.cat(histories) if next_history else None;s.previous_layer=self.layer
+        s.history=torch.cat(histories) if next_history else None;s.history_offset=s.query_offset;s.previous_layer=self.layer
         counts=torch.cat(all_counts);rows=(s.n-torch.arange(groups,device=x.device)*32).clamp_max(32)
         unique=(counts+len(common))*rows
         record=dict(layer=self.layer,attention_edges_target=ka,value_edges=kv,special_keys=len(s.specials),
             total_edges_target=ka+len(common),attention_capacity=attention.shape[1],
             actual_attention_min=counts.min(),actual_attention_max=counts.max(),
             overshoot_max=(counts-ka).max(),actual_density=unique.sum()/s.n**2,
+            overshoot_mean=(counts-ka).float().mean(),parent_only=c.parent_only,parent_topk=c.parent_topk,
             final_unique_qk_per_head=unique.sum(),
             final_padded_qk_per_head=groups*32*(math.ceil(len(common)/64)*64+math.ceil(attention.shape[1]/64)*64),
-            attention_ratio=c.attention_ratios[self.layer],history_out=next_history,
-            base_clusters=s.value.base_count,query_groups=groups,source='whole_Value_regions_boundary_refinement',
+            attention_ratio=ka/s.total[self.layer] if s.policy is not None else c.attention_ratios[self.layer],history_out=next_history,
+            query_offset=s.query_offset,query_shift_step=c.query_shift_step,
+            base_clusters=s.value.base_count,query_groups=groups,
+            source='whole_Value_parent_regions' if c.parent_only else 'whole_Value_regions_boundary_refinement',
             terminal_member_qk_per_head=0)
         if ka:
             record['max_fine_population']=s.fine_sizes.max()
+            record['max_parent_population']=s.parent_sizes.max()
             for name in stats[0]:record[name]=sum(z[name] for z in stats)
             record['routing_qk_per_head']=4*(groups*s.parent_count+
                 record['child_refined_groups']*s.children_per_parent+record['fine_refined_groups']*c.region_child_width)
         else:record['routing_qk_per_head']=0
+        if s.policy is not None:record.update(s.policy_info)
         s.records.append(record)
         if c.capture:
             s.captured[self.layer]=dict(common=common.clone(),attention=torch.cat(captured),
                 base_labels=s.value.labels.clone(),value_labels=None if merged is None else merged.clone(),
                 value_representatives=value_ids.clone(),regions=region_capture,
-                member_bank=None if not ka else s.member_bank.clone())
+                member_bank=None if not ka else s.member_bank.clone(),query_offset=s.query_offset)
         if ka:
             for name in ('pooled_parent','pooled_child','fine_keys','member_bank'):
                 setattr(s,name,None)

@@ -7,10 +7,10 @@ import triton.language as tl
 @triton.jit
 def _boundary(Q,K,POP,IX,ACTIVE,O, N:tl.constexpr,D:tl.constexpr,H:tl.constexpr,
               QH:tl.constexpr,KH:tl.constexpr,C:tl.constexpr,START,
-              SCALE:tl.constexpr,BD:tl.constexpr):
+              SCALE:tl.constexpr,BD:tl.constexpr,OFFSET):
     group=tl.program_id(0);rr=tl.arange(0,16);cc=tl.arange(0,16);dd=tl.arange(0,BD)
     if tl.load(ACTIVE+group):
-        qr=tl.minimum((START+group)*32+4+rr*8,N-1)
+        qr=(tl.minimum((START+group)*32+4+rr*8,N-1)+OFFSET)%N
         ids=tl.load(IX+group*C+cc,cc<C,0)
         pop=tl.load(POP+ids,cc<C,0)
         acc=tl.zeros((16,),tl.float32)
@@ -25,13 +25,13 @@ def _boundary(Q,K,POP,IX,ACTIVE,O, N:tl.constexpr,D:tl.constexpr,H:tl.constexpr,
     else:tl.store(O+group*C+cc,0.,cc<C)
 
 
-def boundary_probabilities(q,keys,log_population,candidates,active,start_group,scale):
+def boundary_probabilities(q,keys,log_population,candidates,active,start_group,scale,query_offset=0):
     groups,width=candidates.shape
     if width>16:raise ValueError('Boundary fanout must be <=16')
     if not(q.is_contiguous() and keys.is_contiguous()):raise ValueError('Contiguous scoring banks required')
     out=torch.empty((groups,width),device=q.device,dtype=torch.float32)
     _boundary[(groups,)](q,keys,log_population,candidates.contiguous(),active,out,q.shape[1],q.shape[2],q.shape[0],
-        q.stride(0),keys.stride(0),width,start_group,scale,max(16,triton.next_power_of_2(q.shape[2])),num_warps=4)
+        q.stride(0),keys.stride(0),width,start_group,scale,max(16,triton.next_power_of_2(q.shape[2])),query_offset,num_warps=4)
     return out
 
 

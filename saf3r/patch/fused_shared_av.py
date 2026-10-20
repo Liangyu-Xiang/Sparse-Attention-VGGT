@@ -43,10 +43,10 @@ class FusedSharedAVConfig:
     def __post_init__(self):
         if len(self.attention_ratios)!=24 or len(self.retentions)!=24:raise ValueError('24layer schedules required')
         if any(not math.isfinite(x) or not 0<=x<=1 for x in self.attention_ratios):raise ValueError('Invalid alpha')
-        if any(not math.isfinite(x) or not .1<=x<=.2 for x in self.retentions):raise ValueError('Final budget must be10–20%')
+        if any(not math.isfinite(x) or not .05<=x<=.2 for x in self.retentions):raise ValueError('Final budget must be5–20%')
         if self.attention_ratios[0]!=0:raise ValueError('L0 is Value-only, no Dense seed')
         if (self.query_block,self.key_tile)!=(32,64) or self.window_groups<1:raise ValueError('Unsupported tile/window')
-        if not 0<=self.history_fraction<=.5 or self.local_iterations<1:raise ValueError('Invalid history/update settings')
+        if not 0<=self.history_fraction<=1 or self.local_iterations<1:raise ValueError('Invalid history/update settings')
         if self.source_width<1:raise ValueError('Invalid local candidate width')
 
 
@@ -129,9 +129,10 @@ class FullCoverageValue:
         return centroid_nearest_gpu(x,labels,first),labels
 
 
-def shared_scores(q,pooled,scale,log_population,start_group,groups,block=32):
+def shared_scores(q,pooled,scale,log_population,start_group,groups,block=32,query_offset=0):
     offsets=torch.tensor([4,12,20,28],device=q.device)
     query=(torch.arange(start_group,start_group+groups,device=q.device)[:,None]*block+offsets).clamp_max(q.shape[1]-1)
+    if query_offset:query=(query+query_offset)%q.shape[1]
     probe=q[:,query].reshape(q.shape[0],groups*4,q.shape[-1])
     scores=probe@pooled.transpose(-1,-2)
     if q.is_cuda:

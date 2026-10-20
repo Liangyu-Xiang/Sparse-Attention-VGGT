@@ -3,7 +3,7 @@ import pytest
 import torch
 from types import SimpleNamespace
 from saf3r.patch.value_region_av import (ValueRegionAVConfig,ValueRegionAVState,
-    ValueRegionAVAttention,ranked_prefix,boundary_scores,expand_regions,ragged_history)
+    ValueRegionAVAttention,ranked_prefix,boundary_scores,expand_regions,ragged_history,aligned_history)
 from saf3r.patch.fused_shared_av import reference_attention
 from saf3r.patch.region_history_attention import prepare_qkv
 from saf3r.models.official_vggt.layers.attention import Attention
@@ -31,13 +31,18 @@ def test_boundary_fanout_is_validated_before_inference():
     with pytest.raises(ValueError):ValueRegionAVConfig(region_child_width=0)
     with pytest.raises(ValueError):ValueRegionAVConfig(region_child_width=3)
     with pytest.raises(ValueError):ValueRegionAVConfig(source_width=64,region_child_width=2)
+    with pytest.raises(ValueError):ValueRegionAVConfig(query_shift_step=2)
+    with pytest.raises(ValueError):ValueRegionAVConfig(query_shift_step=1,history_fraction=.8)
 
 
 @pytest.mark.parametrize('device',['cpu','cuda'])
-def test_all24_whole_regions_history_budgets_unified_output_and_reset(device):
+@pytest.mark.parametrize('shift',[0,1])
+@pytest.mark.parametrize('parent_only',[False,True])
+def test_all24_whole_regions_history_budgets_unified_output_and_reset(device,shift,parent_only,history_fraction=.5):
     if device=='cuda' and not torch.cuda.is_available():pytest.skip('CUDA absent')
     torch.manual_seed(9)
-    config=ValueRegionAVConfig(capture=True,source_width=4,region_child_width=2,window_groups=2)
+    config=ValueRegionAVConfig(capture=True,source_width=4,region_child_width=2,window_groups=2,
+        query_shift_step=shift,parent_only=parent_only,history_fraction=history_fraction)
     state=ValueRegionAVState(config);state.reset(1,8,16,device)
     for layer in range(24):
         original=Attention(dim=32,num_heads=2).to(device).eval()
@@ -50,16 +55,19 @@ def test_all24_whole_regions_history_budgets_unified_output_and_reset(device):
             valid_counts=(att>=0).sum(1)
             mask=torch.zeros(133,133,device=device,dtype=torch.bool)
             for group,row in enumerate(att):
+                query_rows=(torch.arange(group*32,min(133,(group+1)*32),device=device)+layer*shift)%133
                 full=torch.cat((common,row[row>=0].long()))
                 assert len(full)==len(full.unique()) and full.min()>=0 and full.max()<133
                 assert set(range(5)).issubset(full.tolist())
                 assert len(full)>=math.floor(.2*133)
                 if layer:
-                    assert len(full)-math.floor(.2*133)<int(state.fine_sizes.max())
+                    population=state.parent_sizes if parent_only else state.fine_sizes
+                    assert len(full)-math.floor(.2*133)<int(population.max())
                 if incoming is not None:
-                    ids=incoming[group];ids=ids[ids>=0].long()
+                    previous_groups=((query_rows-(layer-1)*shift)%133//32).unique()
+                    ids=incoming[previous_groups].flatten();ids=ids[ids>=0].long()
                     assert set(state.patches[ids].tolist()).issubset(full.tolist())
-                mask[group*32:min(133,(group+1)*32),full]=True
+                mask[query_rows[:,None],full[None,:]]=True
             # Every selected parent/child/fine region contributes ALL its members.
             for window,(starts,lengths) in enumerate(data['regions']):
                 for row in range(len(starts)):
@@ -80,6 +88,25 @@ def test_all24_whole_regions_history_budgets_unified_output_and_reset(device):
     assert state.history is None and state.previous_layer==-1 and not state.records
 
 
+@pytest.mark.parametrize('device',['cpu','cuda'])
+def test_history80_all_layers_keep_history_and_unified_outputs(device):
+    test_all24_whole_regions_history_budgets_unified_output_and_reset(device,0,True,.8)
+
+
+@pytest.mark.parametrize('device',['cpu','cuda'])
+def test_shift_history_union_tail_one_query_and_overlap_dedup(device):
+    if device=='cuda' and not torch.cuda.is_available():pytest.skip('CUDA absent')
+    history=torch.tensor([[0,1,2],[2,3,4],[4,5,6]],device=device,dtype=torch.int32)
+    state=SimpleNamespace(history=history,history_offset=0,query_offset=1,n=65,patches=torch.arange(60,device=device))
+    result=aligned_history(state,0,3)
+    assert [set(r[r>=0].tolist()) for r in result]==[{0,1,2,3,4},{2,3,4,5,6},{0,1,2}]
+    for row in result:
+        valid=row[row>=0]
+        assert len(valid.unique())==len(valid)
+    state.query_offset=0
+    assert torch.equal(aligned_history(state,1,2),history[1:])
+
+
 def test_dynamic_members_are_the_actual_value_clusters_not_spatial_grid():
     state=ValueRegionAVState(ValueRegionAVConfig(source_width=4,region_child_width=2))
     state.reset(2,8,8,'cpu');torch.manual_seed(7)
@@ -97,20 +124,35 @@ def test_dynamic_members_are_the_actual_value_clusters_not_spatial_grid():
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA absent')
-def test_boundary_tensorcore_matches_per_head_per_probe_softmax_and_is_query_specific():
+@pytest.mark.parametrize('offset',[0,23])
+def test_boundary_tensorcore_matches_per_head_per_probe_softmax_and_is_query_specific(offset):
     torch.manual_seed(1);q=torch.randn(16,77,64,device='cuda',dtype=torch.bfloat16)
     k=torch.randn(16,20,64,device='cuda',dtype=torch.bfloat16)
     logpop=torch.rand(20,device='cuda');candidates=torch.tensor([[0,2,4,7],[0,2,4,7]],device='cuda')
     active=torch.tensor([True,True],device='cuda')
-    got=boundary_scores(q,k,logpop,candidates,active,1,64**-.5)
+    got=boundary_scores(q,k,logpop,candidates,active,1,64**-.5,offset)
     probes=(torch.arange(2,device='cuda')[:,None]+1)*32+torch.tensor([4,12,20,28],device='cuda')
-    probes=probes.clamp_max(76)
+    probes=(probes.clamp_max(76)+offset)%77
     logits=torch.einsum('hgtd,hgcd->hgtc',q[:,probes].float(),k[:,candidates].float())/8
     expected=(logits+logpop[candidates][None,:,None]).softmax(-1).mean((0,2))
     torch.testing.assert_close(got,expected,atol=.001,rtol=.005)
     assert not torch.allclose(got[0],got[1])
     active[1]=False
-    assert (boundary_scores(q,k,logpop,candidates,active,1,64**-.5)[1]==0).all()
+    assert (boundary_scores(q,k,logpop,candidates,active,1,64**-.5,offset)[1]==0).all()
+
+
+@pytest.mark.parametrize('device',['cpu','cuda'])
+def test_parent_scores_use_shifted_queries_not_original_groups(device):
+    if device=='cuda' and not torch.cuda.is_available():pytest.skip('CUDA absent')
+    from saf3r.patch.fused_shared_av import shared_scores
+    torch.manual_seed(12);dtype=torch.bfloat16 if device=='cuda' else torch.float32
+    q=torch.randn(2,77,32,device=device,dtype=dtype)
+    keys=torch.randn(2,5,32,device=device,dtype=dtype);population=torch.rand(5,device=device)
+    got=shared_scores(q,keys,32**-.5,population,1,2,query_offset=23)
+    probes=(torch.tensor([[36,44,52,60],[68,76,76,76]],device=device)+23)%77
+    logits=torch.einsum('hgtd,hcd->hgtc',q[:,probes].float(),keys.float())*32**-.5
+    expected=(logits+population).softmax(-1).mean((0,2))
+    torch.testing.assert_close(got,expected,atol=.001,rtol=.01)
 
 
 def test_ragged_history_never_retains_padding_or_special_keys():
@@ -139,17 +181,25 @@ def test_streamed_region_expansion_multiple_blocks_matches_cpu_without_token_sel
     assert torch.equal(actual.cpu(),expected) and torch.equal(gpu_counts.cpu(),counts)
 
 
-@pytest.mark.parametrize('mode',['value','attention','shrinking'])
+@pytest.mark.parametrize('mode',['value','attention','shrinking','early05','early10'])
 def test_ablation_and_budget_shrink(mode):
     ratios=(0.,)*24 if mode=='value' else (0.,)+(1.,)*23 if mode=='attention' else ValueRegionAVConfig().attention_ratios
     retentions=(.2,)*10+(.15,)*7+(.1,)*7 if mode=='shrinking' else (.2,)*24
-    config=ValueRegionAVConfig(attention_ratios=ratios,retentions=retentions,capture=True,source_width=4,region_child_width=2)
+    if mode.startswith('early'):retentions=((.05 if mode=='early05' else .1),)*9+(.2,)*15
+    config=ValueRegionAVConfig(attention_ratios=ratios,retentions=retentions,capture=True,source_width=4,
+        region_child_width=2,parent_only=mode.startswith('early'))
     state=ValueRegionAVState(config);state.reset(1,8,16,'cpu')
     for layer in range(24):
         original=Attention(dim=8,num_heads=2).eval()
+        incoming=None if state.history is None else state.history.clone()
         with torch.inference_mode():ValueRegionAVAttention(original,state,layer).eval()(torch.randn(1,133,8))
         data=state.captured[layer]
-        for row in data['attention']:
+        for group,row in enumerate(data['attention']):
             ids=torch.cat((data['common'],row[row>=0].long()))
             assert len(ids.unique())==len(ids) and len(ids)>=math.floor(retentions[layer]*133)
-            if state.ka[layer]:assert len(ids)-math.floor(retentions[layer]*133)<int(state.fine_sizes.max())
+            if state.ka[layer]:
+                population=state.parent_sizes if config.parent_only else state.fine_sizes
+                assert len(ids)-math.floor(retentions[layer]*133)<int(population.max())
+            if incoming is not None:
+                previous=incoming[group];previous=previous[previous>=0].long()
+                assert set(state.patches[previous].tolist()).issubset(ids.tolist())

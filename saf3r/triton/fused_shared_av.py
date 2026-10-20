@@ -12,10 +12,12 @@ import triton.language as tl
 def _run(Q,K,V,PK,PV,IX,O,E,LSE, N:tl.constexpr,R:tl.constexpr,P:tl.constexpr,
          A:tl.constexpr,D:tl.constexpr,VC:tl.constexpr,QH:tl.constexpr,QS:tl.constexpr,
          KH:tl.constexpr,PH:tl.constexpr,SCALE:tl.constexpr,BQ:tl.constexpr,
-         BK:tl.constexpr,BD:tl.constexpr,SLOTS:tl.constexpr,EVIDENCE:tl.constexpr):
+         BK:tl.constexpr,BD:tl.constexpr,SLOTS:tl.constexpr,EVIDENCE:tl.constexpr,
+         QN:tl.constexpr,QSTART,QOFFSET,SHIFTED:tl.constexpr):
     group,head=tl.program_id(0),tl.program_id(1)
     qr=group*BQ+tl.arange(0,BQ);dd=tl.arange(0,BD);cc=tl.arange(0,BK)
-    qq=tl.load(Q+head*QH+qr[:,None]*QS+dd[None,:],(qr[:,None]<R)&(dd[None,:]<D),0)
+    qi=(QSTART+qr+QOFFSET)%QN if SHIFTED else qr
+    qq=tl.load(Q+head*QH+qi[:,None]*QS+dd[None,:],(qr[:,None]<R)&(dd[None,:]<D),0)
     maximum=tl.full((BQ,),-float('inf'),tl.float32)
     den=tl.zeros((BQ,),tl.float32);acc=tl.zeros((BQ,BD),tl.float32)
     # Compile two independent pipelinable loops. A dynamic bank branch in
@@ -55,14 +57,19 @@ def _run(Q,K,V,PK,PV,IX,O,E,LSE, N:tl.constexpr,R:tl.constexpr,P:tl.constexpr,
 
 
 def shared_av(q,k,v,packed_k,packed_v,indices,value_count,*,scale=None,
-              query_block=32,key_tile=64,evidence=False):
+              query_block=32,key_tile=64,evidence=False,query_start=0,query_rows=None,query_offset=0):
     """Q[H,R,D], KV[H,N,D], common bank[H,P,D], IX[ceil(R/BQ),A].
 
     Bank order: actual Value representative tokens, then specials. Attention
     indices must be unique per group and disjoint from the bank. -1 is padding.
     Callers stream bounded Query windows when requesting history evidence.
+    Optional query_start/query_rows/query_offset read a cyclic logical Query
+    window directly from the full Q bank; K/V indices are never permuted.
     """
-    h,r,d=q.shape;p=packed_k.shape[1];a=indices.shape[1]
+    h,qn,d=q.shape;r=qn if query_rows is None else query_rows
+    p=packed_k.shape[1];a=indices.shape[1]
+    if not 0<=query_offset<qn or not 0<=query_start<qn or not 0<r<=qn-query_start:
+        raise ValueError('Invalid cyclic Query window')
     if query_block!=32 or key_tile!=64:raise ValueError('Supported tile is32x64')
     if indices.shape[0]!=triton.cdiv(r,query_block):raise ValueError('Invalid Query-group index count')
     if not 0<=value_count<=p:raise ValueError('Invalid Value bank size')
@@ -77,5 +84,6 @@ def shared_av(q,k,v,packed_k,packed_v,indices,value_count,*,scale=None,
     _run[(indices.shape[0],h)](q,k,v,packed_k,packed_v,indices,out,e,lse,
         k.shape[1],r,p,a,d,value_count,q.stride(0),q.stride(1),k.stride(0),packed_k.stride(0),
         d**-.5 if scale is None else scale,query_block,key_tile,max(16,triton.next_power_of_2(d)),slots,evidence,
+        qn,query_start,query_offset,bool(query_start or query_offset),
         num_warps=4,num_stages=2)
     return out,e,lse

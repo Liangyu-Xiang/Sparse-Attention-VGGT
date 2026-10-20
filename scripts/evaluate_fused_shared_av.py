@@ -10,6 +10,7 @@ import numpy as np
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT));sys.path.insert(0,str(ROOT/'evaluation'))
+from scripts.quality_metrics import quality_record, quality_markdown
 
 
 def save(path,data):
@@ -46,6 +47,15 @@ def run(args):
     if args.mode=='attention':ratios=(0.,)+(1.,)*23
     settings=dict(attention_ratios=ratios,retentions=(args.retention,)*24,window_groups=args.window_groups,capture=args.capture)
     if args.schedule:settings.update(json.loads(args.schedule.read_text()))
+    if args.query_shift_step:
+        if args.mode!='region':raise ValueError('Query shifting is supported only by mode=region')
+        settings['query_shift_step']=args.query_shift_step
+    if args.parent_only or args.parent_topk or args.parent_descriptors:
+        if args.mode!='region':raise ValueError('Parent-only routing requires mode=region')
+        settings.update(parent_only=True,parent_topk=args.parent_topk,parent_descriptors=args.parent_descriptors)
+    if args.adaptive_gate:
+        if args.mode!='region':raise ValueError('Internal A/V gate requires mode=region')
+        settings.update(adaptive_gate=str(args.adaptive_gate),parent_only=True)
     # Ablations must not silently inherit the mixed alpha array from a schedule.
     if args.mode=='value':settings['attention_ratios']=(0.,)*24
     if args.mode=='attention':settings['attention_ratios']=(0.,)+(1.,)*23
@@ -54,7 +64,13 @@ def run(args):
     sources=['saf3r/patch/fused_shared_av.py','saf3r/triton/fused_shared_av.py',
         'saf3r/triton/shared_av_terminal.py','saf3r/triton/shared_av_routing.py',
         'saf3r/patch/value_clustering_gpu.py','scripts/evaluate_fused_shared_av.py']
-    if args.mode=='region':sources+=['saf3r/patch/value_region_av.py','saf3r/triton/value_region_selection.py']
+    if args.mode=='region':
+        sources+=['saf3r/patch/value_region_av.py','saf3r/triton/value_region_selection.py','saf3r/patch/parent_region_selection.py']
+        if config.adaptive_gate:
+            sources+=['saf3r/patch/av_internal_gate.py']
+            save(out/'gate_parameters.json',json.loads(Path(config.adaptive_gate).read_text()))
+        if config.parent_topk:sources+=['saf3r/triton/parent_partial_topk.py']
+        if config.parent_descriptors:sources+=['saf3r/patch/parent_descriptor_av.py','saf3r/triton/parent_descriptor_attention.py']
     if args.mode=='saf3r':
         sources+=['saf3r/patch/patch_vggt.py','saf3r/patch/wrapper.py','saf3r/patch/utils.py',
             'saf3r/triton/fused_qk_topk.py','configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json']
@@ -145,6 +161,11 @@ def run(args):
             saf3r_cache_reset=args.saf3r_cache_reset if args.mode=='saf3r' else None),
         timing='One warmup/three samples by default; no primary layer hooks or sync; includes reset/selection/state/kernel',
         hardware=dict(gpu=torch.cuda.get_device_name(),torch=torch.__version__,cuda=torch.version.cuda))
+    result['quality']=quality_record(metrics)
+    result['quality_protocol']=dict(reconstruction='recon_unposed',
+        f1_threshold_m=dataset.eval_threshold,downsample_m=dataset.down_sample)
+    save(out/'quality.json',result['quality'])
+    (out/'quality.md').write_text(quality_markdown(result['quality']))
     save(out/'result.json',result);save(out/'status.json',dict(stage='complete'))
     print('RESULT',json.dumps({k:v for k,v in result.items() if k in ['metrics','median_seconds','median_peak_gib']},default=lambda x:x.item()),flush=True)
 
@@ -156,9 +177,14 @@ if __name__=='__main__':
     p.add_argument('--frames',type=int,default=128);p.add_argument('--retention',type=float,default=.2)
     p.add_argument('--window-groups',type=int,default=128);p.add_argument('--warmup',type=int,default=1);p.add_argument('--repeats',type=int,default=3)
     p.add_argument('--schedule',type=Path);p.add_argument('--capture',action='store_true');p.add_argument('--profile',action='store_true')
-    p.add_argument('--tasks',nargs='+',choices=['pose','depth','recon_unposed'],default=['pose'])
+    p.add_argument('--tasks',nargs='+',choices=['pose','depth','recon_unposed'],default=['pose','depth','recon_unposed'])
     p.add_argument('--saf3r-topk',type=int,default=128,help='Per-frame Top-K; previous comparison used 128, official default is 4')
     p.add_argument('--saf3r-cache-reset',choices=['release','retain'],default='release',help='Release obsolete indices before fresh selection; retain reproduces old harness')
+    p.add_argument('--query-shift-step',type=int,choices=[0,1],default=0,help='For mode=region: shift group starts by one Query per layer; default0 reproduces fixed groups')
+    p.add_argument('--parent-only',action='store_true',help='Keep the complete boundary Parent; no Child/Fine refinement')
+    p.add_argument('--parent-topk',type=int,default=0,help='Initial partial Parent Top-K;0 is stable full-sort control')
+    p.add_argument('--parent-descriptors',action='store_true',help='Direct Parent descriptor attention, no member expansion')
+    p.add_argument('--adaptive-gate',type=Path,help='Opt-in internal-signal A/V gate, calibrated on ETH3D')
     args=p.parse_args()
     try:run(args)
     except Exception as error:
@@ -171,4 +197,7 @@ if __name__=='__main__':
             failure.update(peak_allocated_gib=torch.cuda.max_memory_allocated()/2**30,
                 peak_reserved_gib=torch.cuda.max_memory_reserved()/2**30)
         save(out/'status.json',failure)
+        quality=quality_record({},failure['stage']+': '+str(error))
+        save(out/'quality.json',quality)
+        (out/'quality.md').write_text(quality_markdown(quality))
         raise
