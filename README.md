@@ -243,6 +243,13 @@ To generate these profiling results from scratch:
    ```
 
 
+## Local History80 Research Extension
+
+The currently selected local sparse variant is **original History80 with residual
+cluster-population compensation**. See the [current implementation and reproduction guide](docs/experiments/current_history80_population.md).
+The middle-ratio calibration candidate is experimental and is **not** the selected version.
+This extension is separate from official SAF3R;no lossless-quality or deployment-speed claim is implied.
+
 ## Acknowledgements
 This repository builds upon several excellent open-source projects, including [VGGT](https://github.com/facebookresearch/vggt), [Pi3](https://github.com/yyfz/Pi3), [DA3](https://github.com/ByteDance-Seed/depth-anything-3), [StreamVGGT](https://github.com/wzzheng/streamvggt), [LingBot-Map](https://github.com/robbyant/lingbot-map), [FastVGGT](https://github.com/mystorm16/FastVGGT), [SparseVGGT](https://github.com/brianwang00001/sparse-vggt), and [Speed3R](https://github.com/Visual-AI/speed3r). We sincerely thank the authors and contributors for making their code publicly available.
 

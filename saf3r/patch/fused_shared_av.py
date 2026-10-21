@@ -351,13 +351,14 @@ class FusedSharedAVAttention(nn.Module):
         return o.proj_drop(o.proj(output.transpose(0,1).reshape(1,s.n,-1)))
 
 
-def reference_attention(q,k,v,common,attention,value_count,scale):
+def reference_attention(q,k,v,common,attention,value_count,scale,common_log_weights=None):
     """Small CPU reference; never used by the CUDA inference path."""
     h,r,d=q.shape;ps=math.ceil(len(common)/64);slots=ps+math.ceil(attention.shape[1]/64)
     out=torch.empty_like(q);e=torch.full((h,r,slots),-torch.inf,device=q.device);lse=torch.empty((h,r),device=q.device)
     for row in range(r):
         ids=torch.cat((common,attention[row//32].long()));valid=ids>=0;safe=ids.clamp_min(0)
         z=(q[:,row,None].float()*k[:,safe].float()).sum(-1)*scale
+        if common_log_weights is not None:z[:,:len(common)]+=common_log_weights[row//32]
         z=z.masked_fill(~valid[None],-torch.inf);lse[:,row]=z.logsumexp(-1)
         out[:,row]=(z.softmax(-1)[:,:,None]*v[:,safe].float()).sum(1)
         for slot in range(ps):e[:,row,slot]=z[:,slot*64:min((slot+1)*64,value_count)].logsumexp(-1)

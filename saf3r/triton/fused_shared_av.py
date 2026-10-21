@@ -9,7 +9,7 @@ import triton.language as tl
 
 
 @triton.jit
-def _run(Q,K,V,PK,PV,IX,O,E,LSE, N:tl.constexpr,R:tl.constexpr,P:tl.constexpr,
+def _run(Q,K,V,PK,PV,IX,O,E,LSE,BIAS,WEIGHTED:tl.constexpr, N:tl.constexpr,R:tl.constexpr,P:tl.constexpr,
          A:tl.constexpr,D:tl.constexpr,VC:tl.constexpr,QH:tl.constexpr,QS:tl.constexpr,
          KH:tl.constexpr,PH:tl.constexpr,SCALE:tl.constexpr,BQ:tl.constexpr,
          BK:tl.constexpr,BD:tl.constexpr,SLOTS:tl.constexpr,EVIDENCE:tl.constexpr,
@@ -40,6 +40,9 @@ def _run(Q,K,V,PK,PV,IX,O,E,LSE, N:tl.constexpr,R:tl.constexpr,P:tl.constexpr,
                 vv=tl.load(V+head*KH+tl.maximum(ids,0)[:,None]*D+dd[None,:],
                            valid[:,None]&(dd[None,:]<D),0)
             z=tl.dot(qq,kk)*SCALE
+            if bank==0 and WEIGHTED:
+                bias=tl.load(BIAS+group*P+col,col<P,0.)
+                z+=bias[None,:]
             z=tl.where(valid[None,:],z,-float('inf'))
             local_max=tl.max(z,1);new_max=tl.maximum(maximum,local_max)
             safe=tl.where(new_max==-float('inf'),0.,new_max)
@@ -57,7 +60,8 @@ def _run(Q,K,V,PK,PV,IX,O,E,LSE, N:tl.constexpr,R:tl.constexpr,P:tl.constexpr,
 
 
 def shared_av(q,k,v,packed_k,packed_v,indices,value_count,*,scale=None,
-              query_block=32,key_tile=64,evidence=False,query_start=0,query_rows=None,query_offset=0):
+              query_block=32,key_tile=64,evidence=False,query_start=0,query_rows=None,query_offset=0,
+              common_log_weights=None):
     """Q[H,R,D], KV[H,N,D], common bank[H,P,D], IX[ceil(R/BQ),A].
 
     Bank order: actual Value representative tokens, then specials. Attention
@@ -74,6 +78,11 @@ def shared_av(q,k,v,packed_k,packed_v,indices,value_count,*,scale=None,
     if indices.shape[0]!=triton.cdiv(r,query_block):raise ValueError('Invalid Query-group index count')
     if not 0<=value_count<=p:raise ValueError('Invalid Value bank size')
     if p==0:raise ValueError('Common bank must include special Keys')
+    if common_log_weights is not None:
+        if common_log_weights.shape!=(indices.shape[0],p) or not common_log_weights.is_contiguous():
+            raise ValueError('Common log weights must be contiguous [Query groups, common Keys]')
+        if common_log_weights.device!=q.device or common_log_weights.dtype!=torch.float32:
+            raise ValueError('Common log weights require device-matched FP32')
     if q.dtype not in (torch.bfloat16,torch.float16):raise ValueError('BF16/FP16 Tensor-core path only')
     if not (k.is_contiguous() and v.is_contiguous() and packed_k.is_contiguous() and packed_v.is_contiguous()):
         raise ValueError('KV banks must be contiguous')
@@ -82,6 +91,7 @@ def shared_av(q,k,v,packed_k,packed_v,indices,value_count,*,scale=None,
     e=torch.empty((h,r,slots) if evidence else (0,),device=q.device,dtype=torch.float32)
     lse=torch.empty((h,r) if evidence else (0,),device=q.device,dtype=torch.float32)
     _run[(indices.shape[0],h)](q,k,v,packed_k,packed_v,indices,out,e,lse,
+        common_log_weights if common_log_weights is not None else q,common_log_weights is not None,
         k.shape[1],r,p,a,d,value_count,q.stride(0),q.stride(1),k.stride(0),packed_k.stride(0),
         d**-.5 if scale is None else scale,query_block,key_tile,max(16,triton.next_power_of_2(d)),slots,evidence,
         qn,query_start,query_offset,bool(query_start or query_offset),

@@ -23,9 +23,19 @@ class ValueRegionAVConfig(FusedSharedAVConfig):
     parent_topk:int=0
     parent_descriptors:bool=False
     adaptive_gate:str|None=None
+    population_compensation:bool=False
+    incoming_history_fractions:tuple|None=None
 
     def __post_init__(self):
         super().__post_init__()
+        if self.incoming_history_fractions is not None:
+            object.__setattr__(self,'incoming_history_fractions',tuple(self.incoming_history_fractions))
+            if len(self.incoming_history_fractions)!=24 or any(not math.isfinite(v) or not 0<=v<=1 for v in self.incoming_history_fractions):
+                raise ValueError('Incoming history schedule requires24 finite fractions in[0,1]')
+            if self.query_shift_step and max(self.incoming_history_fractions)>.5:
+                raise ValueError('Shifted groups require every history fraction<=0.5')
+        if self.population_compensation and self.parent_descriptors:
+            raise ValueError('Population compensation currently requires expanded execution')
         if self.adaptive_gate and (not self.parent_only or self.parent_descriptors):
             raise ValueError('Internal gate currently requires whole-Parent expanded execution')
         if self.query_shift_step not in (0,1):raise ValueError('Query shift step must be 0 or 1')
@@ -106,6 +116,25 @@ class ValueRegionAVState:
         # They must have ZERO probability, not population=1 in head softmax.
         self.child_log_population=self.child_sizes.float().log()
         self.fine_log_population=sizes.float().log()
+
+
+def residual_population_log_weights(populations,labels,attention,special_count):
+    """Each real Attention Key owns unit mass; reps cover only remaining members.
+
+    attention contains unique patch-local IDs, excludes representative IDs, and
+    uses -1 for padding. Work is bounded by a streamed Query-group window.
+    """
+    groups=len(attention);count=len(populations)
+    if not count:
+        return torch.zeros((groups,special_count),device=labels.device,dtype=torch.float32)
+    remaining=populations.float()[None].expand(groups,-1).clone()
+    if attention.shape[1]:
+        member_labels=labels[attention.long().clamp_min(0)]
+        remaining.scatter_add_(1,member_labels,-(attention>=0).float())
+    # A representative always remains in its cluster: selection excludes it.
+    # Do not silently clamp invalid negative/zero residuals to hide double count.
+    weights=remaining.log()
+    return F.pad(weights,(0,special_count),value=0.).contiguous()
 
 
 def boundary_scores(q,keys,log_population,candidates,active,start_group,scale,query_offset=0):
@@ -272,6 +301,7 @@ class ValueRegionAVAttention(nn.Module):
         with stage(s,'value'),torch.autocast(x.device.type,enabled=False):
             value_ids,merged=s.value.representatives(features,s.kv[self.layer])
         common=torch.cat((s.patches[value_ids],s.specials));kv=len(value_ids);ka=s.ka[self.layer]
+        populations=torch.bincount(merged,minlength=kv) if c.population_compensation and kv else None
         with stage(s,'pack'):pk=k[:,common].contiguous();pv=v[:,common].contiguous()
         is_value=torch.zeros(len(s.patches),device=x.device,dtype=torch.bool);is_value[value_ids]=True
         if ka:
@@ -282,7 +312,8 @@ class ValueRegionAVAttention(nn.Module):
             del q,k,v,pk,pv,features
             return o.proj_drop(o.proj(output.transpose(0,1).reshape(1,s.n,-1)))
         groups=math.ceil(s.n/32);output=torch.empty_like(v)
-        next_history=min(s.total[self.layer],math.floor(c.history_fraction*s.ka[self.layer+1])) if self.layer<23 else 0
+        next_fraction=c.history_fraction if c.incoming_history_fractions is None else c.incoming_history_fractions[min(23,self.layer+1)]
+        next_history=min(s.total[self.layer],math.floor(next_fraction*s.ka[self.layer+1])) if self.layer<23 else 0
         if s.policy is not None:next_history=s.policy.outgoing_history(s,self.layer)
         histories=[];captured=[];region_capture=[];all_counts=[];stats=[]
         for g in range(0,groups,c.window_groups):
@@ -298,16 +329,24 @@ class ValueRegionAVAttention(nn.Module):
                 counts=torch.zeros(length,device=x.device,dtype=torch.long)
             all_counts.append(counts)
             actual=s.patches[attention.long().clamp_min(0)].masked_fill(attention<0,-1).int()
+            common_log_weights=None
+            if c.population_compensation:
+                with stage(s,'population_compensation'):
+                    common_log_weights=residual_population_log_weights(
+                        populations if kv else torch.empty(0,device=x.device),
+                        merged if kv else s.value.labels,attention,len(s.specials))
             if q.is_cuda:
                 from saf3r.triton.fused_shared_av import shared_av
                 with stage(s,'execution'):
                     if s.query_offset:
                         result,e,lse=shared_av(q,k,v,pk,pv,actual,kv,scale=o.scale,evidence=bool(next_history),
-                            query_start=start,query_rows=end-start,query_offset=s.query_offset)
-                    else:result,e,lse=shared_av(q[:,start:end],k,v,pk,pv,actual,kv,scale=o.scale,evidence=bool(next_history))
+                            query_start=start,query_rows=end-start,query_offset=s.query_offset,
+                            common_log_weights=common_log_weights)
+                    else:result,e,lse=shared_av(q[:,start:end],k,v,pk,pv,actual,kv,scale=o.scale,
+                        evidence=bool(next_history),common_log_weights=common_log_weights)
             else:
                 rows=(torch.arange(start,end,device=x.device)+s.query_offset)%s.n
-                result,e,lse=reference_attention(q[:,rows],k,v,common,actual,kv,o.scale)
+                result,e,lse=reference_attention(q[:,rows],k,v,common,actual,kv,o.scale,common_log_weights)
             # Only logical Query order changes; KV IDs and residual row order
             # stay original. At most two slice copies, never a full Q/K/V roll.
             destination=(start+s.query_offset)%s.n;first_length=min(end-start,s.n-destination)
@@ -321,6 +360,9 @@ class ValueRegionAVAttention(nn.Module):
         counts=torch.cat(all_counts);rows=(s.n-torch.arange(groups,device=x.device)*32).clamp_max(32)
         unique=(counts+len(common))*rows
         record=dict(layer=self.layer,attention_edges_target=ka,value_edges=kv,special_keys=len(s.specials),
+            population_compensation=c.population_compensation,
+            outgoing_history_fraction=next_fraction if self.layer<23 else 0.,
+            population_rule='cluster size minus real Attention members; specials unit' if c.population_compensation else 'unit',
             total_edges_target=ka+len(common),attention_capacity=attention.shape[1],
             actual_attention_min=counts.min(),actual_attention_max=counts.max(),
             overshoot_max=(counts-ka).max(),actual_density=unique.sum()/s.n**2,
