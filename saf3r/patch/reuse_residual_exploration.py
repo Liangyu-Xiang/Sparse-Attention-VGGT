@@ -334,8 +334,18 @@ class ReuseResidualExploration(nn.Module):
                 history.append(ids.masked_fill(~real,-1).int());weights.append(relation_mass.half())
                 grids.append(probability.half());coverages.append(coverage.half())
             stats.append(record)
-            if c.capture:capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
-                                             mass=mass.clone(),reuse=record['reuse_edges'].clone()))
+            if c.capture:
+                if self.layer==0:
+                    history_candidates=torch.empty((g,0),device=x.device,dtype=torch.int32)
+                    history_selected=torch.empty((g,0),device=x.device,dtype=torch.int32)
+                else:
+                    history_candidates=s.patches[hids.clamp_min(0)].masked_fill(~hvalid,-1).int()
+                    hkeep=(selected[:,:hids.shape[1]]==1)&hvalid
+                    history_selected=s.patches[hids.clamp_min(0)].masked_fill(~hkeep,-1).int()
+                capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
+                    mass=mass.clone(),reuse=record['reuse_edges'].clone(),
+                    history_candidates=history_candidates.clone(),
+                    history_selected=history_selected.clone()))
         full_history=torch.cat(history);full_weights=torch.cat(weights)
         s.history_ids,s.history_weights=compact_history_bank(full_history,full_weights)
         s.previous_grid=torch.cat(grids);s.previous_coverage=torch.cat(coverages)
