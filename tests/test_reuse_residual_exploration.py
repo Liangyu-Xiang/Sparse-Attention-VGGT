@@ -64,9 +64,9 @@ def test_history_filter_uses_current_region_persistence_and_old_relative_salienc
 
 def test_conditioned_exploration_history_is_not_removed_by_value_redundancy():
     # Two identical Value directions in one cluster.  Key 1 is a strong History
-    # edge while key 0 is the nominal representative.  Because the History
-    # decision is relation-only, Value redundancy must suppress the *new Rep*,
-    # never the retained History edge.
+    # edge while key 0 is the nominal representative.  The retained History key
+    # should be promoted to representative at zero additional QK cost, rather
+    # than being replaced by the nominal Value representative.
     hgain=torch.tensor([[.8]])
     hvalid=torch.tensor([[True]])
     hids=torch.tensor([[1]])
@@ -79,13 +79,19 @@ def test_conditioned_exploration_history_is_not_removed_by_value_redundancy():
     reps=torch.tensor([0])
     unit=torch.tensor([[1.,0.],[1.,0.]])
     mean=torch.tensor([[1.,0.]])
-    hkeep,estate,total,errors,costs,hdist,hcount,rep_in_history=conditioned_exploration_at_price(
+    state=conditioned_exploration_at_price(
         hgain,hvalid,hids,price,pi,rep_dist,pop,allowed,labels,reps,unit,mean)
+    hkeep,estate,total,errors,costs,hdist,hcount,anchor_pos=state[:8]
     assert hkeep.tolist()==[[True]]
-    assert estate.tolist()==[[0]]  # History-only: adding the redundant Rep has no gain.
+    assert estate.tolist()==[[1]]  # History-Rep, not New-Rep.
     assert total.item()==1
     torch.testing.assert_close(hdist,torch.zeros_like(hdist))
-    assert hcount.item()==1 and not rep_in_history.item()
+    assert hcount.item()==1 and anchor_pos.item()==0
+    ids,pops,_,record=pack_conditioned_support(
+        hkeep,estate,hids,reps,labels,pop,1,anchor_pos)
+    assert ids.tolist()==[[1]]
+    torch.testing.assert_close(pops,torch.tensor([[2.]]))
+    assert record['history_promoted_representatives'].item()==1
 
 
 def test_conditioned_exploration_reuses_history_representative_at_zero_incremental_cost():
@@ -101,14 +107,15 @@ def test_conditioned_exploration_reuses_history_representative_at_zero_increment
     reps=torch.tensor([0])
     unit=torch.tensor([[1.,0.],[1.,0.],[1.,0.]])
     mean=torch.tensor([[1.,0.]])
-    hkeep,estate,total,*_=conditioned_exploration_at_price(
+    state=conditioned_exploration_at_price(
         hgain,hvalid,hids,price,pi,rep_dist,pop,allowed,labels,reps,unit,mean)
+    hkeep,estate,total=state[:3];anchor_pos=state[7]
     # The same physical History key can take the population-representative role
     # for free; no second QK edge is introduced.
     assert hkeep.tolist()==[[True]] and estate.tolist()==[[1]]
     assert total.item()==1
     ids,pops,_,record=pack_conditioned_support(
-        hkeep,estate,hids,reps,labels,pop,1)
+        hkeep,estate,hids,reps,labels,pop,1,anchor_pos)
     assert ids.tolist()==[[0]]
     torch.testing.assert_close(pops,torch.tensor([[3.]]))
     assert record['reuse_edges'].item()==1
@@ -123,8 +130,9 @@ def test_conditioned_exploration_exact_costs_only_uncovered_members():
     reps=torch.tensor([0])
     labels=torch.tensor([0,0,0,0])
     pop=torch.tensor([4.])
+    anchor_pos=torch.zeros((1,1),dtype=torch.long)
     ids,pops,_,record=pack_conditioned_support(
-        hkeep,estate,hids,reps,labels,pop,4)
+        hkeep,estate,hids,reps,labels,pop,4,anchor_pos)
     valid=ids[0]>=0
     assert set(ids[0][valid].tolist())=={0,1,2,3}
     assert record['reuse_edges'].item()==1
@@ -149,8 +157,9 @@ def test_conditioned_budget_no_history_reduces_to_drop_rep_exact_geometry():
     hkeep,estate,total,errors,costs=state[:5]
     assert hkeep.numel()==0 and total<=2
     torch.testing.assert_close(errors[0,:,0],pi[0])
-    torch.testing.assert_close(errors[0,:,1],torch.tensor([.2,.1]))
-    assert torch.isinf(errors[0,0,2]) and errors[0,1,2]==0
+    assert torch.isinf(errors[0,:,1]).all()
+    torch.testing.assert_close(errors[0,:,2],torch.tensor([.2,.1]))
+    assert torch.isinf(errors[0,0,3]) and errors[0,1,3]==0
 
 
 def test_physical_history_rep_overlap_costs_one_slot_and_preserves_both_roles():
