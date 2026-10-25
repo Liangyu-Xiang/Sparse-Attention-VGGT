@@ -1,14 +1,19 @@
-"""Unified History-reuse + current-layer Value exploration.
+"""Joint History reuse + current-layer Value exploration.
 
 History is the complete previous sparse-mask patch support: every patch QK edge
 that was actually executed, regardless of whether it entered as Rep, Exact, or
-earlier History. History is a relation prior, never a predicted current-layer
-attention probability. Current coarse attention supplies current-layer importance; current
-V supplies representation redundancy. History and Value states compete under one
-global budget through a common bounded loss.
+earlier History.  History is a relation prior, never a predicted current-layer
+attention probability.  Current coarse attention supplies current-layer
+importance; current V supplies representation redundancy.
 
-The old artificial target pi*mean(V), residual subtraction, and fine
-representative QK probes are deliberately removed.
+The intended selector follows the useful operating-point structure of the old
+reuse+residual prototype: History-prefix and Exploration choices are enumerated
+as JOINT per-cluster states and selected together by one global Lagrangian
+budget optimizer.  History is therefore not preselected in a separate stage.
+
+The old artificial target pi*mean(V), explicit residual probability subtraction,
+fine representative QK probes, fixed History ratio, and per-cluster History cap
+remain deliberately removed.
 """
 from dataclasses import dataclass
 import math
@@ -49,7 +54,7 @@ def canonical_layout(frames,height,width,gy,gx,device):
 
 
 def budget_states(errors,costs,budget,iterations=16):
-    """Independent region operating points; feasible <=B, no fixed split.
+    """Discrete operating-point budget search; feasible <=B, no fixed split.
 
     Exact knapsack optimum is not claimed. Costs must be nonnegative; first
     state is drop with zero cost. Integer regions can leave unused budget.
