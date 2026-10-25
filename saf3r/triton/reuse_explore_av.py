@@ -1,7 +1,9 @@
-"""Weighted group-shared attention and compact edge-mass diagnostic.
+"""Weighted group-shared attention and compact edge-salience diagnostics.
 
-The evidence kernel repeats selected QK once; this explicit prototype overhead
-is counted in timings. Never materializes H x N x selected-key logits.
+The legacy exact evidence path is retained for controlled tests. The refactored
+selector uses a 4/32-query probe evidence path, so next-layer History salience no
+longer requires a second full selected-QK pass. Neither path materializes a
+H x N x selected-key logit tensor.
 """
 import torch
 import triton
