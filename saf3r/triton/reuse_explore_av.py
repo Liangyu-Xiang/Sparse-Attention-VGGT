@@ -69,3 +69,45 @@ def weighted_attention(q,k,v,indices,log_weights,specials,scale):
         _mass[(g,h,triton.cdiv(a,64))](q,k,indices,log_weights,lse,mass,h,r,a,d,
                                     q.stride(0),k.stride(0),scale,bd,num_warps=4)
     return output,mass
+
+
+@triton.jit
+def _probe_mass(Q,K,IDS,BIAS,LSE,M,
+                H:tl.constexpr,R:tl.constexpr,A:tl.constexpr,D:tl.constexpr,
+                QH:tl.constexpr,KH:tl.constexpr,SCALE:tl.constexpr,BD:tl.constexpr):
+    """Approximate group-mean selected-key mass on the same four probes used by routing."""
+    group,head,tile=tl.program_id(0),tl.program_id(1),tl.program_id(2)
+    pp=tl.arange(0,4);rr=tl.minimum(group*32+4+pp*8,R-1)
+    col=tile*64+tl.arange(0,64);dd=tl.arange(0,BD)
+    ids=tl.load(IDS+group*A+col,col<A,-1);valid=(col<A)&(ids>=0)
+    q=tl.load(Q+head*QH+rr[:,None]*D+dd[None,:],dd[None,:]<D,0)
+    k=tl.load(K+head*KH+tl.maximum(ids,0)[None,:]*D+dd[:,None],
+              valid[None,:]&(dd[:,None]<D),0)
+    bias=tl.load(BIAS+group*A+col,col<A,-float('inf'))
+    lse=tl.load(LSE+head*R+rr)
+    z=tl.dot(q,k)*SCALE+bias[None,:]
+    p=tl.where(valid[None,:],tl.exp(z-lse[:,None]),0.)
+    mass=tl.sum(p,0)/(H*4)
+    tl.atomic_add(M+group*A+col,mass,valid,sem='relaxed')
+
+
+def weighted_attention_probe_mass(q,k,v,indices,log_weights,specials,scale):
+    """Weighted sparse attention plus low-cost salience evidence.
+
+    The output is exact for the supplied support.  Per-key evidence is estimated
+    only on offsets [4,12,20,28] of each 32-query group, reducing the evidence
+    QK work from one full repeated sparse pass to 4/32 of that work.
+    """
+    h,r,d=q.shape;g,a=indices.shape
+    if g!=triton.cdiv(r,32):raise ValueError('Invalid group count')
+    if q.stride(1)!=d or q.stride(2)!=1 or not all(t.is_contiguous() for t in (k,v,indices,log_weights,specials)):
+        raise ValueError('Contiguous banks required')
+    output=torch.empty_like(q);lse=torch.empty((h,r),device=q.device,dtype=torch.float32)
+    mass=torch.zeros((g,a),device=q.device,dtype=torch.float32)
+    bd=max(16,triton.next_power_of_2(d))
+    _attention[(g,h)](q,k,v,indices,log_weights,specials,output,lse,h,r,k.shape[1],a,len(specials),d,
+                      q.stride(0),k.stride(0),scale,bd,num_warps=4)
+    if a:
+        _probe_mass[(g,h,triton.cdiv(a,64))](q,k,indices,log_weights,lse,mass,h,r,a,d,
+                                             q.stride(0),k.stride(0),scale,bd,num_warps=4)
+    return output,mass
