@@ -438,7 +438,8 @@ class ReuseResidualExploration(nn.Module):
                     history_candidates=torch.zeros(g,device=x.device),
                     history_rep_candidate_overlap=torch.zeros(g,device=x.device),
                     history_exact_overlap_selected=torch.zeros(g,device=x.device),
-                    population_representative_clusters=torch.full((g,),s.budget,device=x.device))
+                    population_representative_clusters=torch.full((g,),s.budget,device=x.device),
+                    optimizer_cost=torch.full((g,),s.budget,device=x.device))
             else:
                 with stage(s,'reuse_prior'):
                     previous=s.previous_grid[start:start+g].float()
@@ -467,6 +468,7 @@ class ReuseResidualExploration(nn.Module):
                         record['history_exact_overlap_selected']=torch.zeros_like(record['reuse_edges'])
                     record['history_candidates']=hvalid.sum(1)
                     record['history_rep_candidate_overlap']=history_rep_candidate_overlap
+                    record['optimizer_cost']=count
                     record['proxy_drop_error']=errors[:,:,0].masked_fill(torch.isinf(errors[:,:,0]),0).sum(1)
                     record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).squeeze(-1).sum(1)
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
@@ -510,6 +512,8 @@ class ReuseResidualExploration(nn.Module):
             fine_clusters=s.fine.base_count,canonical_regions=s.regions,
             **{key+'_mean':val.float().mean() for key,val in joined.items()},
             actual_unique_density=((joined['counts']+len(s.specials))*rows).sum()/s.n**2,
+            physical_budget_utilization_mean=(joined['counts'].float()/s.budget).mean(),
+            optimizer_physical_gap_mean=(joined['optimizer_cost'].float()-joined['counts'].float()).mean(),
             unused_budget_mean=(s.budget-joined['counts']).float().mean(),
             canonical_qk_per_head=4*s.groups*s.regions,
             fine_probe_qk_per_head=0,
