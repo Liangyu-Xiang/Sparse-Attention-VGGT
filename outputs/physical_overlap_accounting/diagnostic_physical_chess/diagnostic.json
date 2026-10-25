@@ -1,0 +1,137 @@
+{
+  "method": "reuse_explore",
+  "scene": "chess",
+  "dataset": "7scenes",
+  "frames": 2,
+  "input": {
+    "image_paths": [
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000999.color.png"
+    ],
+    "frame_indices": [
+      0,
+      999
+    ],
+    "shape": [
+      2,
+      3,
+      392,
+      518
+    ],
+    "checkpoint": "/data_NVME1/mmc_lyxiang/3D/SAF3R/checkpoints/vggt/model_tracker_fixed_e20.pt"
+  },
+  "config": {
+    "retention": 0.2,
+    "grid_y": 2,
+    "grid_x": 2,
+    "source_width": 32,
+    "local_iterations": 2,
+    "window_groups": 8,
+    "candidate_fraction": 0.25,
+    "dual_iterations": 16,
+    "physical_overlap_accounting": true,
+    "capture": true
+  },
+  "model_config": {
+    "name": "VGGT",
+    "dpt_only": true,
+    "ckpt_path": "/data_NVME1/mmc_lyxiang/3D/SAF3R/checkpoints/vggt/model_tracker_fixed_e20.pt"
+  },
+  "saf3r": null,
+  "source_sha256": {
+    "saf3r/patch/reuse_residual_exploration.py": "501ce4007ebea655d609ba48c845ccd9683be7e2523eeaf1146a86d166e8fb23",
+    "saf3r/triton/reuse_explore_av.py": "2f4e4766b78ee1cba26ec6693577b11ae8b09e0ba28e13643d5df49d8e3901ee",
+    "saf3r/patch/fused_shared_av.py": "18812393e72d273a8c52e7a5d63f42d31fca86740b47e4ad307cb048c29b8554",
+    "saf3r/patch/value_clustering_gpu.py": "caa604347c6b2dfdf18f09295c3618ae0dcfa8098163c69fdcdd233ec2fd2fcc",
+    "saf3r/patch/region_history_attention.py": "f3a97e3c46582528b511c841d26a8e828598d352267ccd54269aab9a90ec8f26",
+    "saf3r/patch/value_evolving_attention.py": "b804d63a6aef940fb20754331f17d21f2f70e32743ee47d8896443cfbd509962",
+    "saf3r/patch/value_region_av.py": "334a1cddb4d32a2438f7a2469bb4ad32f16ca7524be3693c1d29841ab065b16e",
+    "saf3r/patch/patch_vggt.py": "b77a7ea3e562e4e1975d357c2e364b3140f83de19f136dd73eb2c55f3ea6093a",
+    "saf3r/triton/fused_shared_av.py": "2a3426aec363718fbaf458b01a2c43267cf17cad1142de4be2bb08147bdfbd49",
+    "saf3r/triton/value_region_selection.py": "b2e0e3527b6d1153a9b1f81d68f8203cfb437664a3c62be160b3e6f2f399d878",
+    "scripts/evaluate_reuse_exploration.py": "ac9a6fae7fd1d7ed2cd9f955469452f2b91f1594969e019d7b60f5f1cb0e3dfe",
+    "scripts/quality_metrics.py": "d20b85e2e3e8bf6a61d58239bd51d880c2f5551440703b34d1f566fd407df4e6",
+    "scripts/unified_diagnostic_runtime.py": "03e13a2be71b1fd739068313a07b2c67692e8eff6986d91e3dbd40786dd3dc4b",
+    "scripts/evaluate_all_edge_history.py": "ce9f7ca4d4f36ed728de9edcdd2ba7848a7eeb9218402e429660883c6ab5a3e2",
+    "configs/evaluation/reuse_residual_exploration.json": "44ba22fc2c1da3ad2855b91bffe4a89cfbf9efc08be0d183463b5ceff90a504d",
+    "configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json": "d1c348fa2a5933e0d0789515026d478dc0eb21c4a82375ad090ffc164317bfe2"
+  },
+  "timing": {
+    "median_seconds": 2.348191797005711,
+    "samples": [
+      {
+        "seconds": 2.348191797005711,
+        "peak_allocated_gib": 7.139264106750488,
+        "peak_reserved_gib": 8.087890625
+      },
+      {
+        "seconds": 2.0865225459856447,
+        "peak_allocated_gib": 7.1378374099731445,
+        "peak_reserved_gib": 8.041015625
+      },
+      {
+        "seconds": 2.7811794349981938,
+        "peak_allocated_gib": 7.137578010559082,
+        "peak_reserved_gib": 7.998046875
+      }
+    ],
+    "cold_samples": [
+      {
+        "seconds": 7.942012685001828,
+        "peak_allocated_gib": 7.139034271240234,
+        "peak_reserved_gib": 8.087890625
+      }
+    ],
+    "warmup": 1,
+    "repeats": 3,
+    "capture": true,
+    "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "torch": "2.3.1+cu121",
+    "cuda": "12.1"
+  },
+  "quality_protocol": {
+    "tasks": [
+      "pose",
+      "recon_unposed"
+    ],
+    "sampling": "uniform",
+    "seed": 0,
+    "f1_threshold_m": 0.05,
+    "downsample_m": 0.0078125,
+    "cd_definition": "(ACC+Comp)/2 unsquared metres",
+    "reconstruction": "unposed"
+  },
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated",
+      "auc30": "Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated",
+      "acc": "Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated",
+      "comp": "Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated",
+      "cd": "Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated",
+      "f1": "Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated"
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  }
+}
