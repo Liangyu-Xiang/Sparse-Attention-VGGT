@@ -4,6 +4,7 @@ from dataclasses import asdict,replace
 import gc
 import hashlib
 import json
+import os
 from pathlib import Path
 import sys
 import time
@@ -108,13 +109,14 @@ def run(args):
     common=dict(method=args.method,scene=args.scene,dataset='7scenes',frames=len(images),input=canonical,
         config=None if config is None else asdict(config),model_config=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,
         source_sha256=hashes,timing=timing,
-        hardware=dict(gpu=torch.cuda.get_device_name(),torch=torch.__version__,cuda=torch.version.cuda),
+        hardware=dict(gpu=torch.cuda.get_device_name(),torch=torch.__version__,cuda=torch.version.cuda,
+            device_uuid=os.environ.get('CUDA_VISIBLE_DEVICES')),
         quality_protocol=dict(tasks=['pose','recon_unposed'],sampling='uniform',seed=0,
             f1_threshold_m=dataset.eval_threshold,downsample_m=dataset.down_sample,
             cd_definition='(ACC+Comp)/2 unsquared metres',reconstruction='unposed'))
     save(out/'forward.json',common)
     if args.diagnostic:
-        q=quality_record({},'Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated')
+        q=quality_record({},'Forward-only diagnostic/timing run: pose and recon_unposed not evaluated')
         write_quality(out,q);save(out/'diagnostic.json',dict(common,quality=q))
         save(out/'status.json',dict(stage='diagnostic_complete'));return
     ext,intr=pose_encoding_to_extri_intri(raw['pose_enc'],images.shape[-2:])
