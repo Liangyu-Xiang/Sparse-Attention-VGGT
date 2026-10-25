@@ -349,6 +349,7 @@ The current code records:
 - `reuse_edges_mean`
 - `history_reuse_ratio_mean`
 - `history_filter_keep_ratio_mean`
+- `history_rep_candidate_overlap_mean`
 - `representatives_mean`
 - `exact_edges_mean`
 - `counts_mean`
@@ -359,8 +360,8 @@ Aggregate equally across all seven scenes.
 
 Produce this table for every L0-L23:
 
-| layer | History candidates | selected History | History fraction of final support | filter keep ratio | Rep | Exact | stored History MiB |
-|---|---:|---:|---:|---:|---:|---:|---:|
+| layer | History candidates | selected History | History fraction of final support | filter keep ratio | History/Rep candidate overlap | unused budget | Rep | Exact | stored History MiB |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 
 Also produce stage averages:
 
@@ -404,6 +405,13 @@ For the new version include:
 
 Important: if History memory rises strongly because the complete 20% previous
 support is stored, report it explicitly.  Do not hide this cost.
+
+Also report `history_rep_candidate_overlap_mean` and `unused_budget_mean`.
+With all previous support eligible, the same physical key can appear both as a
+History item and as a current representative candidate.  The current independent
+dual formulation can over-count that shared cost before packing deduplicates it.
+This is a diagnostic confound to measure in this ablation, not something to
+silently fix at the same time.
 
 ---
 
