@@ -77,7 +77,7 @@ def compact_history_bank(ids,weights):
     return out[:,:width].contiguous(),score[:,:width].contiguous()
 
 
-def history_relation_items(ids,weights,beta,coverage,current_region,grid):
+def history_relation_items(ids,weights,beta,current_region,grid):
     """Cheap query-group History candidates, without Fine-cluster remapping.
 
     A previous genuine QK edge remains a relation candidate by identity. Old
@@ -86,16 +86,16 @@ def history_relation_items(ids,weights,beta,coverage,current_region,grid):
     probability. Thus no previous probability is transferred across layers.
 
         conditional_salience_e = old_weight_e / sum_{j in H_r} old_weight_j
-        gain_e = p_r^current * beta_r * coverage_r^previous * conditional_salience_e
+        gain_e = p_r^current * beta_r * conditional_salience_e
 
-    coverage is measured entirely inside the PREVIOUS sparse softmax as the
-    genuine-edge mass divided by total patch mass in that canonical region. It
-    describes how far relations had already sharpened into explicit QK edges;
-    it is not a cross-layer probability estimate or a residual.
+    Every patch edge actually executed by the previous sparse mask is eligible,
+    regardless of whether that key entered as a representative, an Exact member,
+    or an already reused History edge. Filtering happens in the NEXT layer via
+    current coarse importance/persistence and the previous edge's measured
+    within-region salience.
 
     The gains of all old edges in a region are bounded by current coarse
-    importance times persistence times previous explicit-relation coverage,
-    giving natural saturation without a fixed
+    importance times persistence, giving natural saturation without a fixed
     History ratio, threshold, or per-cluster History cap.
     """
     g=beta.shape[0];device=beta.device
@@ -109,8 +109,7 @@ def history_relation_items(ids,weights,beta,coverage,current_region,grid):
     old=weights.float().clamp_min(0)*valid
     totals=torch.zeros_like(current_region).scatter_add_(1,region,old)
     conditional=old/totals.gather(1,region).clamp_min(1e-30)
-    gain=(current_region.gather(1,region)*beta.gather(1,region)*
-          coverage.gather(1,region)*conditional)
+    gain=current_region.gather(1,region)*beta.gather(1,region)*conditional
     gain=gain.masked_fill(~valid,0)
     return ids.long(),gain,valid
 
@@ -244,7 +243,7 @@ class ReuseExploreState:
         self.fine=FullCoverageValue(frames,height*width,self.budget,device,c.source_width,c.local_iterations)
         self.grid,self.regions=canonical_layout(frames,height,width,c.grid_y,c.grid_x,device)
         self.grid_sizes=torch.bincount(self.grid,minlength=self.regions).float()
-        self.history_ids=None;self.history_weights=None;self.previous_grid=None;self.previous_coverage=None
+        self.history_ids=None;self.history_weights=None;self.previous_grid=None
         self.previous_layer=-1;self.records=[];self.captured={};self.profile_events=[]
 
     def prepare(self,k,features):
@@ -279,7 +278,7 @@ class ReuseResidualExploration(nn.Module):
             s.fine.update(features,self.layer)
         with stage(s,'pooling'),torch.autocast(x.device.type,enabled=False):
             population,unit_features,mean_unit,rep_dist,pooled,overlap=s.prepare(k,features)
-        output=torch.empty_like(v);history=[];weights=[];grids=[];coverages=[];stats=[];capture=[]
+        output=torch.empty_like(v);history=[];weights=[];grids=[];stats=[];capture=[]
         exact_count=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
         for start in range(0,s.groups,c.window_groups):
             g=min(c.window_groups,s.groups-start);first=start*32;end=min(s.n,(start+g)*32)
@@ -295,7 +294,8 @@ class ReuseResidualExploration(nn.Module):
                 pops=population[None].expand(g,-1).contiguous();real=torch.zeros_like(ids,dtype=torch.bool)
                 record=dict(reuse_edges=torch.zeros(g,device=x.device),representatives=torch.full((g,),s.budget,device=x.device),
                     exact_edges=torch.zeros(g,device=x.device),dropped_clusters=torch.zeros(g,device=x.device),
-                    counts=torch.full((g,),s.budget,device=x.device),history_rep_merges=torch.zeros(g,device=x.device))
+                    counts=torch.full((g,),s.budget,device=x.device),history_rep_merges=torch.zeros(g,device=x.device),
+                    history_candidates=torch.zeros(g,device=x.device))
             else:
                 with stage(s,'reuse_prior'):
                     previous=s.previous_grid[start:start+g].float()
@@ -305,12 +305,12 @@ class ReuseResidualExploration(nn.Module):
                 with stage(s,'reuse_and_budget'),torch.autocast(x.device.type,enabled=False):
                     old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                     old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
-                    old_coverage=s.previous_coverage[start:start+g].float()
-                    hids,hgain,hvalid=history_relation_items(old_ids,old_weights,beta,old_coverage,probability,s.grid)
+                    hids,hgain,hvalid=history_relation_items(old_ids,old_weights,beta,probability,s.grid)
                     e_errors,e_costs=exploration_operating_points(pi,rep_dist,population,allowed)
                     errors,costs=joint_operating_points(hgain,hvalid,e_errors,e_costs)
                     selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
                     ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
+                    record['history_candidates']=hvalid.sum(1)
                     record['proxy_drop_error']=errors[:,:,0].masked_fill(torch.isinf(errors[:,:,0]),0).sum(1)
                     record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).squeeze(-1).sum(1)
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
@@ -322,17 +322,15 @@ class ReuseResidualExploration(nn.Module):
                 else:result,mass=reference_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale)
             output[:,first:end]=result
             with stage(s,'history_summary'):
-                # Evidence is used only to rank genuine old relations next layer.
-                # Cross-layer persistence uses the SAME canonical estimator on
-                # both layers, stored independently below.
+                # History is the complete patch support that actually executed QK
+                # in this layer.  For population representatives, divide aggregate
+                # probability mass by population to recover a single-edge salience
+                # proxy; do NOT discard the edge just because it was a representative.
                 mass=mass/mass.sum(1,keepdim=True).clamp_min(1e-30)
-                relation_mass=(mass/pops.clamp_min(1))*real
-                key_grid=s.grid[ids.clamp_min(0)]
-                total_grid=torch.zeros((g,s.regions),device=x.device).scatter_add_(1,key_grid,mass)
-                genuine_grid=torch.zeros_like(total_grid).scatter_add_(1,key_grid,relation_mass)
-                coverage=(genuine_grid/total_grid.clamp_min(1e-30)).clamp(0,1)
-                history.append(ids.masked_fill(~real,-1).int());weights.append(relation_mass.half())
-                grids.append(probability.half());coverages.append(coverage.half())
+                valid=ids>=0
+                relation_mass=(mass/pops.clamp_min(1))*valid
+                history.append(ids.masked_fill(~valid,-1).int());weights.append(relation_mass.half())
+                grids.append(probability.half())
             stats.append(record)
             if c.capture:
                 if self.layer==0:
@@ -343,12 +341,12 @@ class ReuseResidualExploration(nn.Module):
                     hkeep=(selected[:,:hids.shape[1]]==1)&hvalid
                     history_selected=s.patches[hids.clamp_min(0)].masked_fill(~hkeep,-1).int()
                 capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
-                    mass=mass.clone(),reuse=record['reuse_edges'].clone(),
+                    all_executed_history=(ids>=0).clone(),mass=mass.clone(),reuse=record['reuse_edges'].clone(),
                     history_candidates=history_candidates.clone(),
                     history_selected=history_selected.clone()))
         full_history=torch.cat(history);full_weights=torch.cat(weights)
         s.history_ids,s.history_weights=compact_history_bank(full_history,full_weights)
-        s.previous_grid=torch.cat(grids);s.previous_coverage=torch.cat(coverages)
+        s.previous_grid=torch.cat(grids)
         s.previous_layer=self.layer
         joined={key:torch.cat([r[key] for r in stats]) for key in stats[0]}
         rows=(s.n-torch.arange(s.groups,device=x.device)*32).clamp_max(32)
@@ -362,11 +360,13 @@ class ReuseResidualExploration(nn.Module):
             final_unique_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),
             evidence_extra_qk_per_head=(joined['counts']*torch.minimum(rows,torch.full_like(rows,4))).sum(),
             stored_history_bytes=s.history_ids.numel()*4+s.history_weights.numel()*2,
-            explicit_relation_coverage_mean=s.previous_coverage.float().mean(),
-            stored_grid_bytes=(s.previous_grid.numel()+s.previous_coverage.numel())*2,
+            history_reuse_ratio_mean=(joined['reuse_edges'].float()/joined['counts'].clamp_min(1).float()).mean(),
+            history_filter_keep_ratio_mean=torch.where(joined['history_candidates']>0,
+                joined['reuse_edges'].float()/joined['history_candidates'].float(),torch.zeros_like(joined['reuse_edges'].float())).mean(),
+            stored_grid_bytes=s.previous_grid.numel()*2,
             population_compensation=True,head_aware=False,
             selector='global History relation items + current Value Drop/Rep/Exact items under one dual budget',
-            history='direct History relations; gain=current coarse importance x persistence x previous explicit-relation coverage x old within-region salience',
+            history='all previously executed sparse-mask patch edges; gain=current coarse importance x persistence x old within-region salience',
             evidence='4/32-query probe evidence for next-layer salience; full repeated selected-QK evidence removed'))
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
             canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
