@@ -29,7 +29,8 @@ class ReuseExploreConfig:
     window_groups:int=8
     candidate_fraction:float=.25  # current-importance fraction eligible for exact expansion; no QK probe
     dual_iterations:int=16
-    physical_overlap_accounting:bool=True
+    joint_history_exploration:bool=True
+    physical_overlap_accounting:bool=True  # legacy independent-loss control
     capture:bool=False
 
     def __post_init__(self):
@@ -131,6 +132,249 @@ def exploration_operating_points(pi,rep_dist,population,exact_allowed):
     costs=torch.stack((torch.zeros_like(pi),torch.ones_like(pi),
                        population[None].expand_as(pi)), -1)
     return errors,costs
+
+
+
+def history_cluster_prefixes(ids,gain,valid,labels,num_clusters):
+    """Group all History relations by the CURRENT Fine Value cluster.
+
+    Within each cluster, candidates are sorted by relation reliability.  No
+    fixed History ratio and no per-cluster History cap are introduced.  The
+    resulting prefixes are joint-state candidates; they are not selected before
+    Exploration.
+    """
+    g=valid.shape[0];device=valid.device
+    h=0 if ids is None else ids.shape[1]
+    if h==0:
+        empty_i=torch.empty((g,num_clusters,0),device=device,dtype=torch.long)
+        empty_f=torch.empty((g,num_clusters,0),device=device)
+        empty_b=torch.empty((g,num_clusters,0),device=device,dtype=torch.bool)
+        return empty_i,empty_f,empty_b
+
+    safe=ids.long().clamp_min(0)
+    cluster=labels[safe]
+    score=gain.float().masked_fill(~valid,-torch.inf)
+
+    # First sort by reliability, then stably group by current cluster so the
+    # order inside each cluster remains descending in History reliability.
+    order=score.argsort(dim=1,descending=True,stable=True)
+    c1=cluster.gather(1,order)
+    v1=valid.gather(1,order)
+    ckey=c1.masked_fill(~v1,num_clusters)
+    regroup=ckey.argsort(dim=1,stable=True)
+    order=order.gather(1,regroup)
+    c2=cluster.gather(1,order)
+    v2=valid.gather(1,order)
+
+    counts=torch.zeros((g,num_clusters),device=device,dtype=torch.long)
+    counts.scatter_add_(1,c2.clamp_max(num_clusters-1),v2.long())
+    width=int(counts.max().item()) if counts.numel() else 0
+    if width==0:
+        empty_i=torch.empty((g,num_clusters,0),device=device,dtype=torch.long)
+        empty_f=torch.empty((g,num_clusters,0),device=device)
+        empty_b=torch.empty((g,num_clusters,0),device=device,dtype=torch.bool)
+        return empty_i,empty_f,empty_b
+
+    pos=torch.arange(h,device=device)[None].expand(g,-1)
+    first=torch.ones_like(v2)
+    first[:,1:]=(~v2[:,1:]) | (~v2[:,:-1]) | (c2[:,1:]!=c2[:,:-1])
+    start=torch.where(first,pos,0).cummax(1).values
+    rank=pos-start
+    keep=v2 & (rank<width)
+    slot=torch.where(keep,c2*width+rank,num_clusters*width)
+
+    out_i=torch.full((g,num_clusters*width+1),-1,device=device,dtype=torch.long)
+    out_g=torch.zeros((g,num_clusters*width+1),device=device)
+    out_v=torch.zeros((g,num_clusters*width+1),device=device,dtype=torch.bool)
+    ordered_ids=ids.long().gather(1,order)
+    ordered_gain=gain.float().gather(1,order)
+    out_i.scatter_(1,slot,ordered_ids.masked_fill(~keep,-1))
+    out_g.scatter_(1,slot,ordered_gain.masked_fill(~keep,0))
+    out_v.scatter_(1,slot,keep)
+    return (out_i[:,:-1].reshape(g,num_clusters,width),
+            out_g[:,:-1].reshape(g,num_clusters,width),
+            out_v[:,:-1].reshape(g,num_clusters,width))
+
+
+def joint_history_exploration_operating_points(
+        pi,rep_dist,population,exact_allowed,hids,hgain,hvalid,
+        unit_features,mean_unit,reps):
+    """Joint History+Exploration operating points for one global optimizer.
+
+    This restores the useful structure of the old reuse+residual prototype:
+    History-prefix and Exploration choices are *joint states* and are selected
+    together by one Lagrangian budget objective.
+
+    The old artificial vector target pi*mean(V) is NOT restored.  Instead every
+    state uses a bounded upper-envelope surrogate on the current-importance
+    scale:
+
+        L(state) = max(missed_history_relation_mass,
+                       residual_current_value_distortion)
+
+    History candidates are ordered only by relation reliability.  For each
+    prefix t, Exploration may either promote the best retained History key to
+    represent residual members at no extra QK cost, or add the current Value
+    representative.  Thus a reliable History edge can replace a redundant new
+    representative without any sequential preselection.
+
+    State layout:
+      0                  Drop
+      1                  Rep
+      2+2(t-1)           History-prefix(t) -> History representative
+      3+2(t-1)           History-prefix(t) + current representative
+      2+2K               Exact
+    """
+    g,f=pi.shape;device=pi.device;k=hids.shape[-1]
+    total_gain=hgain.sum(-1)
+    errors=[torch.maximum(total_gain,pi)]
+    costs=[torch.zeros_like(pi)]
+
+    errors.append(torch.maximum(total_gain,pi*rep_dist[None]))
+    costs.append(torch.ones_like(pi))
+
+    if k:
+        safe=hids.clamp_min(0)
+        hu=unit_features[safe]
+        center=mean_unit[None,:,None,:]
+        hdist=((1-(hu*center).sum(-1)).clamp(0,2)*.5).masked_fill(~hvalid,torch.inf)
+        prefix_gain=hgain.cumsum(-1)
+        prefix_valid=hvalid.cumsum(-1)
+        prefix_rep_match=(hvalid & (hids==reps[None,:,None])).cumsum(-1)>0
+
+        best_dist=torch.full((g,f),torch.inf,device=device)
+        best_pos=torch.full((g,f),-1,device=device,dtype=torch.long)
+        anchor_pos=[]
+        for ti in range(k):
+            feasible=hvalid[:,:,ti]
+            cand=hdist[:,:,ti]
+            better=feasible & (cand<best_dist)
+            best_dist=torch.where(better,cand,best_dist)
+            best_pos=torch.where(better,torch.full_like(best_pos,ti),best_pos)
+            anchor_pos.append(best_pos)
+
+            t=ti+1
+            prefix_ok=prefix_valid[:,:,ti]==t
+            missed=(total_gain-prefix_gain[:,:,ti]).clamp_min(0)
+            residual=(population[None]-t).clamp_min(0)
+            frac=residual/population.clamp_min(1)[None]
+
+            # Retained History itself can carry the population representative
+            # role.  Value is used only to decide the residual Exploration role,
+            # never to invalidate the History prefix.
+            hrep_value=pi*frac*best_dist
+            hrep_error=torch.maximum(missed,hrep_value)
+            hrep_error=hrep_error.masked_fill(~prefix_ok,torch.inf)
+            errors.append(hrep_error)
+            costs.append(torch.full_like(pi,float(t)))
+
+            newrep_value=pi*frac*rep_dist[None]
+            newrep_error=torch.maximum(missed,newrep_value)
+            newrep_error=newrep_error.masked_fill(~prefix_ok,torch.inf)
+            # If the nominal representative is already in the History prefix,
+            # no second physical key is charged.
+            newrep_cost=torch.full_like(pi,float(t+1))
+            newrep_cost=torch.where(prefix_rep_match[:,:,ti],
+                                    torch.full_like(pi,float(t)),newrep_cost)
+            errors.append(newrep_error)
+            costs.append(newrep_cost)
+        anchor_pos=torch.stack(anchor_pos,-1)
+    else:
+        anchor_pos=torch.empty((g,f,0),device=device,dtype=torch.long)
+
+    exact=torch.zeros_like(pi).masked_fill(~exact_allowed,torch.inf)
+    errors.append(exact)
+    costs.append(population[None].expand_as(pi))
+    return torch.stack(errors,-1),torch.stack(costs,-1),anchor_pos
+
+
+def pack_joint_history_exploration(
+        selected,hids,hvalid,anchor_pos,reps,labels,population,budget):
+    """Pack one selected joint state per Fine cluster into physical QK support."""
+    g,f=selected.shape;device=selected.device;k=hids.shape[-1]
+    exact_index=2+2*k
+    exact=selected==exact_index
+    plain_rep=selected==1
+
+    hist_state=(selected>=2)&(selected<exact_index)
+    offset=(selected-2).clamp_min(0)
+    t=torch.where(hist_state,offset//2+1,torch.zeros_like(selected))
+    use_history_rep=hist_state & ((offset%2)==0)
+    use_new_rep=hist_state & ((offset%2)==1)
+
+    if k:
+        rank=torch.arange(k,device=device)[None,None]
+        prefix=(rank<t[:,:,None]) & hvalid & ~exact[:,:,None]
+        hist=hids.masked_fill(~prefix,-1)
+        hist_pop=prefix.float()
+
+        residual=(population[None]-t.float()).clamp_min(0)
+
+        # History-prefix -> History-Rep: promote the best retained History key by
+        # assigning it the residual cluster population.
+        prefix_index=(t-1).clamp(0,k-1)
+        anchor=anchor_pos.gather(2,prefix_index[:,:,None]).squeeze(-1).clamp_min(0)
+        anchor_bonus=torch.zeros_like(hist_pop)
+        anchor_bonus.scatter_add_(2,anchor[:,:,None],
+                                  (residual*use_history_rep).float()[:,:,None])
+        hist_pop=hist_pop+anchor_bonus
+
+        # History-prefix + current Rep: if the nominal representative already
+        # belongs to the prefix, promote that historical slot instead of adding
+        # a duplicate physical key.
+        rep_match=prefix & (hids==reps[None,:,None])
+        has_rep=rep_match.any(-1)
+        rep_pos=rep_match.float().argmax(-1)
+        rep_bonus=torch.zeros_like(hist_pop)
+        rep_bonus.scatter_add_(2,rep_pos[:,:,None],
+                               (residual*use_new_rep*has_rep).float()[:,:,None])
+        hist_pop=hist_pop+rep_bonus
+    else:
+        prefix=torch.empty((g,f,0),device=device,dtype=torch.bool)
+        hist=torch.empty((g,f,0),device=device,dtype=torch.long)
+        hist_pop=torch.empty((g,f,0),device=device)
+        residual=population[None].expand(g,-1)
+        has_rep=torch.zeros((g,f),device=device,dtype=torch.bool)
+
+    new_rep=plain_rep | (use_new_rep & ~has_rep)
+    rep_ids=reps[None].expand(g,-1).masked_fill(~new_rep,-1)
+    rep_pop=torch.where(plain_rep,population[None],residual)*new_rep.float()
+
+    # Exact is a single joint state: every member is executed, so all History
+    # relations inside the cluster are satisfied without separate duplicate keys.
+    member=torch.arange(len(labels),device=device)[None].expand(g,-1)
+    exact_member=exact[:,labels]
+    member=member.masked_fill(~exact_member,-1)
+
+    raw=torch.cat((hist.reshape(g,-1),rep_ids,member),1)
+    pop=torch.cat((hist_pop.reshape(g,-1),rep_pop,(member>=0).float()),1)
+    relation=torch.cat((prefix.reshape(g,-1),torch.zeros_like(new_rep),
+                        (member>=0)),1)
+
+    valid=raw>=0
+    if bool((valid.sum(1)>budget).any()):
+        raise RuntimeError('Joint History/Exploration selector exceeded physical budget')
+    pos=valid.long().cumsum(1)-1
+    slots=pos.masked_fill(~valid,budget)
+    out=torch.full((g,budget+1),-1,device=device,dtype=torch.long)
+    out_pop=torch.zeros((g,budget+1),device=device)
+    real=torch.zeros((g,budget+1),device=device,dtype=torch.bool)
+    out.scatter_(1,slots,raw);out_pop.scatter_(1,slots,pop);real.scatter_(1,slots,relation)
+    out=out[:,:-1].contiguous();out_pop=out_pop[:,:-1].contiguous();real=real[:,:-1].contiguous()
+
+    selected_history=hist.reshape(g,-1)
+    history_exact_satisfied=(hvalid & exact[:,:,None]).sum((1,2)) if k else torch.zeros(g,device=device)
+    record=dict(
+        reuse_edges=prefix.sum((1,2)) if k else torch.zeros(g,device=device),
+        representatives=(rep_ids>=0).sum(1),
+        exact_edges=(member>=0).sum(1),
+        dropped_clusters=(selected==0).sum(1),
+        counts=valid.sum(1),
+        history_rep_merges=(use_history_rep | (use_new_rep&has_rep)).sum(1),
+        history_promoted_representatives=(use_history_rep | (use_new_rep&has_rep)).sum(1),
+        history_exact_overlap_selected=history_exact_satisfied,
+        population_representative_clusters=(plain_rep|use_history_rep|use_new_rep).sum(1))
+    return out,out_pop,real,record,selected_history
 
 
 def physical_joint_operating_points(history_gain,history_valid,history_ids,reps,
@@ -453,19 +697,32 @@ class ReuseResidualExploration(nn.Module):
                     history_hits=torch.zeros((g,len(s.patches)),device=x.device,dtype=torch.int32)
                     history_hits.scatter_add_(1,hids.clamp_min(0),hvalid.int())
                     history_rep_candidate_overlap=(history_hits[:,s.fine.reps]>0).sum(1)
-                    e_errors,e_costs=exploration_operating_points(pi,rep_dist,population,allowed)
-                    if c.physical_overlap_accounting:
-                        errors,costs,overlap_valid,overlap_index,matched_history=physical_joint_operating_points(
-                            hgain,hvalid,hids,s.fine.reps,e_errors,e_costs,len(s.patches))
+                    if c.joint_history_exploration:
+                        chids,chgains,chvalid=history_cluster_prefixes(
+                            hids,hgain,hvalid,s.fine.labels,len(s.fine.reps))
+                        errors,costs,anchor_pos=joint_history_exploration_operating_points(
+                            pi,rep_dist,population,allowed,chids,chgains,chvalid,
+                            unit_features,mean_unit,s.fine.reps)
                         selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
-                        ids,pops,real,record=pack_support_physical(
-                            selected,hids,s.fine.reps,s.fine.labels,population,s.budget,overlap_valid)
+                        ids,pops,real,record,joint_history_selected=pack_joint_history_exploration(
+                            selected,chids,chvalid,anchor_pos,s.fine.reps,s.fine.labels,
+                            population,s.budget)
                     else:
-                        errors,costs=joint_operating_points(hgain,hvalid,e_errors,e_costs)
-                        selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
-                        ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
-                        record['population_representative_clusters']=record['representatives']
-                        record['history_exact_overlap_selected']=torch.zeros_like(record['reuse_edges'])
+                        e_errors,e_costs=exploration_operating_points(pi,rep_dist,population,allowed)
+                        if c.physical_overlap_accounting:
+                            errors,costs,overlap_valid,overlap_index,matched_history=physical_joint_operating_points(
+                                hgain,hvalid,hids,s.fine.reps,e_errors,e_costs,len(s.patches))
+                            selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
+                            ids,pops,real,record=pack_support_physical(
+                                selected,hids,s.fine.reps,s.fine.labels,population,s.budget,overlap_valid)
+                        else:
+                            errors,costs=joint_operating_points(hgain,hvalid,e_errors,e_costs)
+                            selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
+                            ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
+                            record['population_representative_clusters']=record['representatives']
+                            record['history_exact_overlap_selected']=torch.zeros_like(record['reuse_edges'])
+                        joint_history_selected=None
+                        record['history_promoted_representatives']=record['history_rep_merges']
                     record['history_candidates']=hvalid.sum(1)
                     record['history_rep_candidate_overlap']=history_rep_candidate_overlap
                     record['optimizer_cost']=count
@@ -496,16 +753,20 @@ class ReuseResidualExploration(nn.Module):
                     history_selected=torch.empty((g,0),device=x.device,dtype=torch.int32)
                 else:
                     history_candidates=s.patches[hids.clamp_min(0)].masked_fill(~hvalid,-1).int()
-                    hkeep=(selected[:,:hids.shape[1]]==1)&hvalid
-                    history_selected=s.patches[hids.clamp_min(0)].masked_fill(~hkeep,-1).int()
-                    if c.physical_overlap_accounting:
-                        # Merged History-only/History+Rep states disable the
-                        # standalone History item, but still retain its relation.
-                        # Capture must include these physical History keys too.
-                        estate=selected[:,hids.shape[1]:]
-                        merged=overlap_valid & ((estate==1)|(estate==2))
-                        merged_ids=s.patches[s.fine.reps][None].expand(g,-1).masked_fill(~merged,-1).int()
-                        history_selected=torch.cat((history_selected,merged_ids),1)
+                    if c.joint_history_exploration:
+                        history_selected=s.patches[joint_history_selected.clamp_min(0)].masked_fill(
+                            joint_history_selected<0,-1).int()
+                    else:
+                        hkeep=(selected[:,:hids.shape[1]]==1)&hvalid
+                        history_selected=s.patches[hids.clamp_min(0)].masked_fill(~hkeep,-1).int()
+                        if c.physical_overlap_accounting:
+                            # Merged History-only/History+Rep states disable the
+                            # standalone History item, but still retain its relation.
+                            # Capture must include these physical History keys too.
+                            estate=selected[:,hids.shape[1]:]
+                            merged=overlap_valid & ((estate==1)|(estate==2))
+                            merged_ids=s.patches[s.fine.reps][None].expand(g,-1).masked_fill(~merged,-1).int()
+                            history_selected=torch.cat((history_selected,merged_ids),1)
                 capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
                     all_executed_history=(ids>=0).clone(),mass=mass.clone(),reuse=record['reuse_edges'].clone(),
                     history_candidates=history_candidates.clone(),
@@ -533,7 +794,9 @@ class ReuseResidualExploration(nn.Module):
                 joined['reuse_edges'].float()/joined['history_candidates'].float(),torch.zeros_like(joined['reuse_edges'].float())).mean(),
             stored_grid_bytes=s.previous_grid.numel()*2,
             population_compensation=True,head_aware=False,
-            selector='shared History/Value dual budget with physical History-current-Rep overlap accounting',
+            selector=('joint History-prefix/Exploration operating points under one dual budget'
+                      if c.joint_history_exploration else
+                      'shared History/Value dual budget with physical History-current-Rep overlap accounting'),
             history='all previously executed sparse-mask patch edges; gain=current coarse importance x persistence x old within-region salience',
             evidence='4/32-query probe evidence for next-layer salience; full repeated selected-QK evidence removed'))
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
