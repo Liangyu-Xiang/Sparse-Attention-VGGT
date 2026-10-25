@@ -1,7 +1,12 @@
-"""Independent Reuse + residual drop/representative/exact prototype.
+"""Unified History-reuse + current-layer Value exploration.
 
-Reference allocator: a separable output-contribution proxy and Lagrange budget
-search, NOT an exact knapsack optimizer or a Dense-output error oracle.
+History is a relation prior, never a predicted current-layer attention
+probability. Current coarse attention supplies current-layer importance; current
+V supplies representation redundancy. History and Value states compete under one
+global budget through a common bounded loss.
+
+The old artificial target pi*mean(V), residual subtraction, and fine
+representative QK probes are deliberately removed.
 """
 from dataclasses import dataclass
 import math
@@ -21,7 +26,7 @@ class ReuseExploreConfig:
     local_iterations:int=2
     window_groups:int=8
     history_per_cluster:int=4
-    candidate_fraction:float=.25
+    candidate_fraction:float=.25  # current-importance fraction eligible for exact expansion; no QK probe
     dual_iterations:int=16
     capture:bool=False
 
@@ -59,10 +64,11 @@ def budget_states(errors,costs,budget,iterations=16):
 
 
 def top_history(ids,weights,beta,grid,labels,reps,limit):
-    """Current-canonical stability times previous measured edge importance.
+    """Build History candidates from old salience and cross-layer persistence.
 
-    Cap candidates per current fine cluster for bounded state enumeration.
-    Current representative is excluded, avoiding duplicate reuse+rep supports.
+    weights is used only as PREVIOUS-layer salience among old genuine edges.
+    beta modulates how trustworthy that old ordering remains. The returned score
+    is a reuse PRIOR; it is never interpreted as current-layer attention mass.
     """
     g=beta.shape[0];f=len(reps);device=beta.device
     if ids is None:
@@ -70,52 +76,58 @@ def top_history(ids,weights,beta,grid,labels,reps,limit):
                 torch.zeros((g,f,limit),device=device),torch.zeros(g,device=device))
     valid=ids>=0;safe=ids.long().clamp_min(0);fine=labels[safe]
     valid &= safe!=reps[fine]
-    u=weights.float()*beta.gather(1,grid[safe])
-    valid &= u>0
-    order=u.masked_fill(~valid,-1).argsort(dim=1,descending=True,stable=True)
+    prior=weights.float().clamp(0,1)*beta.gather(1,grid[safe])
+    valid &= prior>0
+    order=prior.masked_fill(~valid,-1).argsort(dim=1,descending=True,stable=True)
     label=fine.gather(1,order).masked_fill(~valid.gather(1,order),f)
     group_order=label.argsort(dim=1,stable=True)
     order=order.gather(1,group_order);label=label.gather(1,group_order)
     pos=torch.arange(ids.shape[1],device=device)[None].expand(g,-1)
     first=torch.ones_like(label,dtype=torch.bool);first[:,1:]=label[:,1:]!=label[:,:-1]
-    start=torch.where(first,pos,0).cummax(1).values
-    rank=pos-start;keep=(label<f)&(rank<limit)
+    begin=torch.where(first,pos,0).cummax(1).values
+    rank=pos-begin;keep=(label<f)&(rank<limit)
     slot=torch.where(keep,label*limit+rank,f*limit)
     out=torch.full((g,f*limit+1),-1,device=device,dtype=torch.long)
-    mass=torch.zeros((g,f*limit+1),device=device)
+    score=torch.zeros((g,f*limit+1),device=device)
     out.scatter_(1,slot,ids.long().gather(1,order).masked_fill(~keep,-1))
-    mass.scatter_(1,slot,u.gather(1,order).masked_fill(~keep,0))
+    score.scatter_(1,slot,prior.gather(1,order).masked_fill(~keep,0))
     discarded=valid.sum(1)-keep.sum(1)
-    return out[:,:-1].reshape(g,f,limit),mass[:,:-1].reshape(g,f,limit),discarded
+    return out[:,:-1].reshape(g,f,limit),score[:,:-1].reshape(g,f,limit),discarded
 
 
-def operating_points(pi,pi_hat,means,rep_values,population,hids,hmass,features,exact_allowed):
-    """Same vector-output units for drop, rep, reuse-prefix, reuse+rep, exact.
+def unified_operating_points(pi,mean_unit,rep_dist,population,hids,hprior,unit_features,exact_allowed):
+    """Common-scale states without a fabricated cluster output target.
 
-    Target pi*mean_V is a proxy for true attention-conditioned region output.
-    pi_hat comes from current representative-probe QK, not assumed equal to pi.
+    pi_C is CURRENT coarse-attention importance. Value loss is the actual mean
+    cosine distortion from all cluster members to the best selected single
+    anchor. History contributes independently through a previous-layer reuse
+    prior. For Value distortion D and selected priors r_e, relation survival is
+    R=1-prod(1-r_e), and the unexplained loss is pi_C*D*(1-R).
+
+    Thus History is rewarded for relation persistence rather than for resembling
+    a cluster mean, while a selected History key also becomes a current-V anchor.
     """
     g,f=pi.shape;limit=hids.shape[-1]
-    target=pi[:,:,None]*means[None]
-    total=hmass.sum(-1)
-    hmass=hmass*torch.minimum(torch.ones_like(total),pi/total.clamp_min(1e-30))[:,:,None]
-    hv=(features[hids.clamp_min(0)]*hmass[:,:,:,None]).cumsum(2)
-    error=[target.norm(dim=-1),(target-pi_hat[:,:,None]*rep_values[None]).norm(dim=-1)]
+    safe=hids.clamp_min(0)
+    hunit=unit_features[safe]
+    hdist=((1-(hunit*mean_unit[None,:,None]).sum(-1)).clamp(0,2)*.5).masked_fill(hids<0,1)
+    best_hist=hdist.cummin(-1).values
+    relation=1-(1-hprior.clamp(0,1)).cumprod(-1)
+
+    error=[pi,pi*rep_dist[None]]
     cost=[torch.zeros_like(pi),torch.ones_like(pi)]
     for t in range(1,limit+1):
         feasible=hids[:,:,t-1]>=0
-        error.append((target-hv[:,:,t-1]).norm(dim=-1).masked_fill(~feasible,torch.inf))
+        error.append((pi*best_hist[:,:,t-1]*(1-relation[:,:,t-1])).masked_fill(~feasible,torch.inf))
         cost.append(torch.full_like(pi,t))
     for t in range(1,limit+1):
         feasible=(hids[:,:,t-1]>=0)&(population[None]>t)
-        residual=pi_hat*(population[None]-t).clamp_min(0)/population.clamp_min(1)[None]
-        estimate=hv[:,:,t-1]+residual[:,:,None]*rep_values[None]
-        error.append((target-estimate).norm(dim=-1).masked_fill(~feasible,torch.inf))
+        d=torch.minimum(best_hist[:,:,t-1],rep_dist[None])
+        error.append((pi*d*(1-relation[:,:,t-1])).masked_fill(~feasible,torch.inf))
         cost.append(torch.full_like(pi,t+1))
     error.append(torch.zeros_like(pi).masked_fill(~exact_allowed,torch.inf))
     cost.append(population[None].expand(g,-1).float())
     return torch.stack(error,-1),torch.stack(cost,-1)
-
 
 def pack_support(selected,hids,reps,labels,population,budget):
     g,f=selected.shape;limit=hids.shape[-1];device=selected.device
@@ -168,14 +180,17 @@ class ReuseExploreState:
         self.fine=FullCoverageValue(frames,height*width,self.budget,device,c.source_width,c.local_iterations)
         self.grid,self.regions=canonical_layout(frames,height,width,c.grid_y,c.grid_x,device)
         self.grid_sizes=torch.bincount(self.grid,minlength=self.regions).float()
-        self.history_ids=None;self.history_weights=None;self.previous_grid=None;self.previous_real_grid=None
+        self.history_ids=None;self.history_weights=None;self.previous_grid=None
         self.previous_layer=-1;self.records=[];self.captured={};self.profile_events=[]
 
     def prepare(self,k,features):
         f=self.fine.base_count;r=self.regions
         population=torch.bincount(self.fine.labels,minlength=f).float()
-        means=torch.zeros((f,features.shape[-1]),device=k.device).index_add_(0,self.fine.labels,features)
-        means/=population[:,None]
+        unit=features.float()/features.float().norm(dim=-1,keepdim=True).clamp_min(1e-12)
+        mean_unit=torch.zeros((f,unit.shape[-1]),device=k.device).index_add_(0,self.fine.labels,unit)
+        mean_unit/=population[:,None]
+        rep_unit=unit[self.fine.reps]
+        rep_dist=((1-(mean_unit*rep_unit).sum(-1)).clamp(0,2)*.5)
         pooled=torch.zeros((len(k),r,k.shape[-1]),device=k.device)
         pooled.index_add_(1,self.grid,k[:,self.patches].float())
         pooled=(pooled/self.grid_sizes[None,:,None]).to(k.dtype).contiguous()
@@ -183,7 +198,8 @@ class ReuseExploreState:
         unique,count=torch.unique(pair,sorted=True,return_counts=True)
         overlap=torch.sparse_coo_tensor(torch.stack((unique//r,unique%r)),
             count.float()/self.grid_sizes[unique%r],size=(f,r),device=k.device).coalesce()
-        return population,means,pooled,overlap
+        return population,unit,mean_unit,rep_dist,pooled,overlap
+
 
 
 class ReuseResidualExploration(nn.Module):
@@ -198,9 +214,9 @@ class ReuseResidualExploration(nn.Module):
             features=v.mean(0,dtype=torch.float32)[s.patches]
             s.fine.update(features,self.layer)
         with stage(s,'pooling'),torch.autocast(x.device.type,enabled=False):
-            population,means,pooled,overlap=s.prepare(k,features)
-        output=torch.empty_like(v);history=[];weights=[];grids=[];real_grids=[];stats=[];capture=[]
-        candidates=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
+            population,unit_features,mean_unit,rep_dist,pooled,overlap=s.prepare(k,features)
+        output=torch.empty_like(v);history=[];weights=[];grids=[];stats=[];capture=[]
+        exact_count=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
         for start in range(0,s.groups,c.window_groups):
             g=min(c.window_groups,s.groups-start);first=start*32;end=min(s.n,(start+g)*32)
             if self.layer==0:
@@ -215,27 +231,18 @@ class ReuseResidualExploration(nn.Module):
                 pq=q[:,probe]
                 with stage(s,'coarse_observation'):
                     z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+s.grid_sizes.log()
-                    normalizer=z.logsumexp(-1,keepdim=True)
                     probability=z.softmax(-1).mean((0,2))
                     previous=s.previous_grid[start:start+g].float()
                     beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
-                    demand=(probability-beta*s.previous_real_grid[start:start+g].float()).clamp_min(0)
-                with stage(s,'residual_fine_probe'),torch.autocast(x.device.type,enabled=False):
                     pi=torch.sparse.mm(overlap,probability.T).T.contiguous()
-                    residual=torch.sparse.mm(overlap,demand.T).T
-                    candidate=residual.topk(candidates,dim=1).indices
+                    candidate=pi.topk(exact_count,dim=1).indices
                     allowed=torch.zeros_like(pi,dtype=torch.bool).scatter_(1,candidate,True)
-                    ck=k[:,s.patches[s.fine.reps[candidate]]]
-                    logits=(pq@ck.transpose(-1,-2)).float()*o.scale+population[candidate].log()[None,:,None]
-                    fine_mass=(logits-normalizer).exp().mean((0,2))
-                    pi_hat=pi.clone().scatter_(1,candidate,fine_mass)
-                    pi_hat/=pi_hat.sum(1,keepdim=True).clamp_min(1e-30)
                 with stage(s,'reuse_and_budget'),torch.autocast(x.device.type,enabled=False):
                     old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                     old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
-                    hids,hmass,discarded=top_history(old_ids,old_weights,beta,s.grid,s.fine.labels,s.fine.reps,c.history_per_cluster)
-                    errors,costs=operating_points(pi,pi_hat,means,features[s.fine.reps],population,
-                                                hids,hmass,features,allowed)
+                    hids,hprior,discarded=top_history(old_ids,old_weights,beta,s.grid,s.fine.labels,s.fine.reps,c.history_per_cluster)
+                    errors,costs=unified_operating_points(pi,mean_unit,rep_dist,population,
+                                                         hids,hprior,unit_features,allowed)
                     selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
                     ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
                     record['history_cap_discarded']=discarded
@@ -245,22 +252,21 @@ class ReuseResidualExploration(nn.Module):
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
                 if q.is_cuda:
-                    from saf3r.triton.reuse_explore_av import weighted_attention
-                    result,mass=weighted_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale)
+                    from saf3r.triton.reuse_explore_av import weighted_attention_probe_mass
+                    result,mass=weighted_attention_probe_mass(q[:,first:end],k,v,actual,bias,s.specials,o.scale)
                 else:result,mass=reference_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale)
             output[:,first:end]=result
             with stage(s,'history_summary'):
                 mass=mass/mass.sum(1,keepdim=True).clamp_min(1e-30)
                 key_grid=s.grid[ids.clamp_min(0)]
                 grid=torch.zeros((g,s.regions),device=x.device).scatter_add_(1,key_grid,mass)
-                real_grid=torch.zeros_like(grid).scatter_add_(1,key_grid,mass*real)
                 history.append(ids.masked_fill(~real,-1).int());weights.append((mass*real).half())
-                grids.append(grid.half());real_grids.append(real_grid.half())
+                grids.append(grid.half())
             stats.append(record)
             if c.capture:capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
                                              mass=mass.clone(),reuse=record['reuse_edges'].clone()))
         s.history_ids=torch.cat(history);s.history_weights=torch.cat(weights)
-        s.previous_grid=torch.cat(grids);s.previous_real_grid=torch.cat(real_grids)
+        s.previous_grid=torch.cat(grids)
         s.previous_layer=self.layer
         joined={key:torch.cat([r[key] for r in stats]) for key in stats[0]}
         rows=(s.n-torch.arange(s.groups,device=x.device)*32).clamp_max(32)
@@ -270,15 +276,15 @@ class ReuseResidualExploration(nn.Module):
             actual_unique_density=((joined['counts']+len(s.specials))*rows).sum()/s.n**2,
             unused_budget_mean=(s.budget-joined['counts']).float().mean(),
             canonical_qk_per_head=0 if self.layer==0 else 4*s.groups*s.regions,
-            fine_probe_qk_per_head=0 if self.layer==0 else 4*s.groups*candidates,
+            fine_probe_qk_per_head=0,
             final_unique_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),
-            evidence_extra_qk_per_head=(joined['counts']*rows).sum(),
+            evidence_extra_qk_per_head=(joined['counts']*torch.minimum(rows,torch.full_like(rows,4))).sum(),
             stored_history_bytes=s.history_ids.numel()*4+s.history_weights.numel()*2,
-            stored_grid_bytes=s.previous_grid.numel()*4,
+            stored_grid_bytes=s.previous_grid.numel()*2,
             population_compensation=True,head_aware=False,
-            selector='separable vector-output proxy, discrete dual budget search; not exact knapsack',
-            history='FP16 group-mean conditional patch mass; genuine edges only; no fixed retention ratio',
-            evidence='second selected-QK pass, explicitly included in timing'))
+            selector='current coarse importance x Value distortion with independent History reuse prior; discrete dual budget search',
+            history='previous-layer salience is a reuse prior only; no cross-layer probability transfer or fixed retention ratio',
+            evidence='4/32-query probe evidence for next-layer salience; full repeated selected-QK evidence removed'))
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
             canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
         return o.proj_drop(o.proj(output.transpose(0,1).reshape(1,s.n,-1)))
