@@ -445,9 +445,9 @@ class ReuseResidualExploration(nn.Module):
                     old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                     old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
                     hids,hgain,hvalid=history_relation_items(old_ids,old_weights,beta,probability,s.grid)
-                    history_map=torch.zeros((g,len(s.patches)),device=x.device,dtype=torch.bool)
-                    history_map.scatter_(1,hids.clamp_min(0),hvalid)
-                    history_rep_candidate_overlap=history_map[:,s.fine.reps].sum(1)
+                    history_hits=torch.zeros((g,len(s.patches)),device=x.device,dtype=torch.int32)
+                    history_hits.scatter_add_(1,hids.clamp_min(0),hvalid.int())
+                    history_rep_candidate_overlap=(history_hits[:,s.fine.reps]>0).sum(1)
                     e_errors,e_costs=exploration_operating_points(pi,rep_dist,population,allowed)
                     if c.physical_overlap_accounting:
                         errors,costs,overlap_valid,overlap_index,matched_history=physical_joint_operating_points(
