@@ -219,6 +219,13 @@ class ReuseResidualExploration(nn.Module):
         exact_count=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
         for start in range(0,s.groups,c.window_groups):
             g=min(c.window_groups,s.groups-start);first=start*32;end=min(s.n,(start+g)*32)
+            probe=(torch.arange(start,start+g,device=x.device)[:,None]*32+
+                   torch.tensor([4,12,20,28],device=x.device)).clamp_max(s.n-1)
+            pq=q[:,probe]
+            with stage(s,'coarse_observation'):
+                z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+s.grid_sizes.log()
+                probability=z.softmax(-1).mean((0,2))
+                pi=torch.sparse.mm(overlap,probability.T).T.contiguous()
             if self.layer==0:
                 ids=s.fine.reps[None].expand(g,-1).contiguous()
                 pops=population[None].expand(g,-1).contiguous();real=torch.zeros_like(ids,dtype=torch.bool)
@@ -226,15 +233,9 @@ class ReuseResidualExploration(nn.Module):
                     exact_edges=torch.zeros(g,device=x.device),dropped_clusters=torch.zeros(g,device=x.device),
                     counts=torch.full((g,),s.budget,device=x.device),history_cap_discarded=torch.zeros(g,device=x.device))
             else:
-                probe=(torch.arange(start,start+g,device=x.device)[:,None]*32+
-                       torch.tensor([4,12,20,28],device=x.device)).clamp_max(s.n-1)
-                pq=q[:,probe]
-                with stage(s,'coarse_observation'):
-                    z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+s.grid_sizes.log()
-                    probability=z.softmax(-1).mean((0,2))
+                with stage(s,'reuse_prior'):
                     previous=s.previous_grid[start:start+g].float()
                     beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
-                    pi=torch.sparse.mm(overlap,probability.T).T.contiguous()
                     candidate=pi.topk(exact_count,dim=1).indices
                     allowed=torch.zeros_like(pi,dtype=torch.bool).scatter_(1,candidate,True)
                 with stage(s,'reuse_and_budget'),torch.autocast(x.device.type,enabled=False):
@@ -257,11 +258,12 @@ class ReuseResidualExploration(nn.Module):
                 else:result,mass=reference_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale)
             output[:,first:end]=result
             with stage(s,'history_summary'):
+                # Evidence is used only to rank genuine old relations next layer.
+                # Cross-layer persistence uses the SAME canonical estimator on
+                # both layers, stored independently below.
                 mass=mass/mass.sum(1,keepdim=True).clamp_min(1e-30)
-                key_grid=s.grid[ids.clamp_min(0)]
-                grid=torch.zeros((g,s.regions),device=x.device).scatter_add_(1,key_grid,mass)
                 history.append(ids.masked_fill(~real,-1).int());weights.append((mass*real).half())
-                grids.append(grid.half())
+                grids.append(probability.half())
             stats.append(record)
             if c.capture:capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
                                              mass=mass.clone(),reuse=record['reuse_edges'].clone()))
@@ -275,7 +277,7 @@ class ReuseResidualExploration(nn.Module):
             **{key+'_mean':val.float().mean() for key,val in joined.items()},
             actual_unique_density=((joined['counts']+len(s.specials))*rows).sum()/s.n**2,
             unused_budget_mean=(s.budget-joined['counts']).float().mean(),
-            canonical_qk_per_head=0 if self.layer==0 else 4*s.groups*s.regions,
+            canonical_qk_per_head=4*s.groups*s.regions,
             fine_probe_qk_per_head=0,
             final_unique_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),
             evidence_extra_qk_per_head=(joined['counts']*torch.minimum(rows,torch.full_like(rows,4))).sum(),
