@@ -12,7 +12,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 _installed=False
 
-def install():
+def install(diagnostic_reporting=True):
     global _installed
     if _installed:return
     _installed=True
@@ -26,7 +26,7 @@ def install():
     def fp32_sparse_mm(a,b,*args,**kwargs):
         with torch.autocast(a.device.type,enabled=False):return original(a,b,*args,**kwargs)
     torch.sparse.mm=fp32_sparse_mm
-    atexit.register(report)
+    if diagnostic_reporting:atexit.register(report)
 
 def pytest_configure(config):install()
 
@@ -39,6 +39,6 @@ def report():
     q=quality_record({},'Stage1 diagnostic/microbenchmark only: pose and recon_unposed not evaluated; no paired Dense timing')
     write_quality(out,q)
     (out/'diagnostic_provenance.json').write_text(json.dumps(dict(
-        upstream='0856426c0537195255946b356f027416d349be5b',argv=sys.argv,
+        upstream='1a7bb41d955da284eded195a2e0b11faf49c2ec3',argv=sys.argv,
         compatibility='Diagnostic-only FP32 sparse.mm and archived four-effective-probe padded kernel; production files unchanged',
         quality_evaluation=False,speedup_vs_dense=None),indent=2)+'\n')

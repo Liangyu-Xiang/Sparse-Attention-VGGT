@@ -38,7 +38,7 @@ def run(args):
     dataset=MV_REGISTRY.get('7scenes')()
     positions,scene=sample_frames(dataset.get_data(args.scene),args.scene,args.frames,sample_mode='uniform',seed=0)
     cfg=Dict(yaml.safe_load((ROOT/'configs/evaluation/eval_saf3r_vggt.yaml').read_text())['model'])
-    cfg.ckpt_path=str(ROOT/'checkpoints/vggt/model_tracker_fixed_e20.pt')
+    cfg.ckpt_path=str(getattr(args,'checkpoint',None) or ROOT/'checkpoints/vggt/model_tracker_fixed_e20.pt')
     cfg.sparse_config_path=str(ROOT/cfg.sparse_config_path)
     saf3r_settings=dict(profile=cfg.sparse_config_path,topk=cfg.patch_module.topk,
         topk_source='lazy first-correspondence head, NOT paper DINO feature Top-K',
@@ -60,6 +60,10 @@ def run(args):
         if saf3r_settings['topk']!=4 or not saf3r_settings['lazy_dino_topk']:raise ValueError('Frozen SAF3R configuration changed')
         update_args_per_forward(model,'vggt',*images.shape[-2:])
     canonical=dict(image_paths=scene.image_files,frame_indices=positions,shape=list(images.shape),checkpoint=cfg.ckpt_path)
+    if getattr(args,'expected_input',None):
+        expected=json.loads(args.expected_input.read_text())
+        if json.loads(json.dumps(canonical,default=lambda x:x.tolist()))!=expected:
+            raise ValueError('Exact historical checkpoint/frame/preprocessing input mismatch')
     save(out/'input.json',canonical)
     save(out/'config.json',dict(method=args.method,config=None if config is None else asdict(config),
         model=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,seed=0))
@@ -68,7 +72,8 @@ def run(args):
         'saf3r/patch/region_history_attention.py','saf3r/patch/value_evolving_attention.py',
         'saf3r/patch/value_region_av.py','saf3r/patch/patch_vggt.py','saf3r/triton/fused_shared_av.py',
         'saf3r/triton/value_region_selection.py','scripts/evaluate_reuse_exploration.py',
-        'scripts/quality_metrics.py','configs/evaluation/reuse_residual_exploration.json',
+        'scripts/quality_metrics.py','scripts/unified_diagnostic_runtime.py',
+        'scripts/evaluate_all_edge_history.py','configs/evaluation/reuse_residual_exploration.json',
         'configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json']
     hashes={}
     for name in sources:
@@ -150,6 +155,8 @@ if __name__=='__main__':
     p.add_argument('--method',choices=['dense','saf3r','history80','reuse_explore'],required=True)
     p.add_argument('--scene',required=True);p.add_argument('--frames',type=int,default=128)
     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
+    p.add_argument('--checkpoint',type=Path)
+    p.add_argument('--expected-input',type=Path)
     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')
     p.add_argument('--warmup',type=int,default=1);p.add_argument('--repeats',type=int,default=3)
     p.add_argument('--capture',action='store_true');p.add_argument('--diagnostic',action='store_true')

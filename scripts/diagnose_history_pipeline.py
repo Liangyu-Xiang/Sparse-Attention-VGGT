@@ -63,8 +63,8 @@ def support_metrics(probs,target,candidate_abs,query_abs,patch_abs):
     safe=q_cand.clamp_min(0);counts.scatter_add_(1,safe,q_valid.int());mask=counts>0
     hit=mask[None].expand(probs.shape[0],-1,-1).gather(2,target).float().sum(2)
     recall=hit/target.shape[-1]
-    unique_keys=mask.sum(1).clamp_min(1)
-    precision=hit/unique_keys[None]
+    unique_keys=mask.sum(1)
+    precision=hit/unique_keys.clamp_min(1)[None]
     mass=(probs*mask[None]).sum(2)
     density=mask.float().mean(1)
     target_density=target.shape[-1]/npatch

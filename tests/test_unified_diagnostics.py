@@ -14,3 +14,8 @@ def test_pipeline_qk_shape_and_support_reference():
 def test_spearman_ties_have_equal_rank():
     r=rank(np.array([2.,1.,1.,3.]))
     assert r.tolist()==[3.,1.5,1.5,4.]
+
+def test_pipeline_empty_history_reports_zero_keys():
+    p=torch.full((1,5,5),.2);target=torch.tensor([[[0,1]]*5])
+    r=support_metrics(p,target,torch.full((1,2),-1),torch.arange(5),torch.arange(5))
+    assert r['keys']==0 and r['density']==0 and r['precision']==0 and r['enrichment']==0
