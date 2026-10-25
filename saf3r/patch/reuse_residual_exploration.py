@@ -1,7 +1,9 @@
 """Unified History-reuse + current-layer Value exploration.
 
-History is a relation prior, never a predicted current-layer attention
-probability. Current coarse attention supplies current-layer importance; current
+History is the complete previous sparse-mask patch support: every patch QK edge
+that was actually executed, regardless of whether it entered as Rep, Exact, or
+earlier History. History is a relation prior, never a predicted current-layer
+attention probability. Current coarse attention supplies current-layer importance; current
 V supplies representation redundancy. History and Value states compete under one
 global budget through a common bounded loss.
 
@@ -63,7 +65,7 @@ def budget_states(errors,costs,budget,iterations=16):
 
 
 def compact_history_bank(ids,weights):
-    """Remove per-group padding once per layer; preserve all genuine relations."""
+    """Remove per-group padding once per layer; preserve all executed patch relations."""
     valid=ids>=0
     if not valid.any():
         return ids[:,:0].contiguous(),weights[:,:0].contiguous()
