@@ -15,6 +15,7 @@ This script does not alter the selector and should not be used as an accelerator
 """
 from __future__ import annotations
 import argparse, csv, json
+from dataclasses import replace
 from pathlib import Path
 import numpy as np
 import torch
@@ -67,7 +68,7 @@ def main():
     missing=[str(p) for p in paths if not p.is_file()]
     if missing:raise FileNotFoundError("\n".join(missing))
     images=load_and_process_images_vggt([str(p) for p in paths]).to(a.device);model=build_model(a.checkpoint,a.device)
-    cfg=ReuseExploreConfig(**json.loads(a.config.read_text()));cfg=ReuseExploreConfig(**{**cfg.__dict__,"capture":True})
+    cfg=replace(ReuseExploreConfig(**json.loads(a.config.read_text())),capture=True)
     state=install_reuse_residual_exploration(model,cfg); qk={};handles=[]
     def make_pre(layer):
         def hook(wrapper,args,kwargs):
