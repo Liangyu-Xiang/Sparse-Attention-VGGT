@@ -116,10 +116,22 @@ s_e = old_weight_e / sum_{j in H_r} old_weight_j
 The current layer supplies its own coarse region importance `p_r`, and the
 adjacent-layer canonical comparison supplies persistence `beta_r`.
 
+The History relation gain additionally uses the previous layer's explicit-
+relation coverage
+
+```
+c_r(previous) = genuine-edge patch mass / total patch mass
+```
+
+measured inside the same previous sparse softmax. This is a *formation /
+sharpening confidence*: low coverage means the region is still represented
+mostly by diffuse/population representatives, while high coverage means the
+region has already concentrated onto explicit QK relations.
+
 The History relation gain is
 
 ```
-G_H(e) = p_r(current) * beta_r * s_e
+G_H(e) = p_r(current) * beta_r * c_r(previous) * s_e
 ```
 
 Interpretation:
@@ -127,11 +139,16 @@ Interpretation:
 - `s_e`: among the already-computed old relations in this region, which were
   more important;
 - `beta_r`: how trustworthy reuse remains across the adjacent layers;
+- `c_r(previous)`: how far the previous region had sharpened onto genuine
+  QK relations rather than diffuse representative mass;
 - `p_r(current)`: how important this region is in the current layer.
 
 The previous absolute probability is therefore never treated as a current
 probability. The gains of all old edges in one region sum to at most
-`p_r * beta_r`, which also provides natural diminishing return.
+`p_r * beta_r * c_r`. This prevents early middle layers, where attention is
+only beginning to concentrate, from prematurely locking onto History; as
+attention sharpens in later layers, stronger genuine-edge coverage
+automatically increases reuse pressure.
 
 Crucially, History IDs are not remapped into Fine clusters before selection.
 There is no `history_per_cluster`, no History Top-K per cluster, and no current
