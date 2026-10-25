@@ -125,7 +125,7 @@ def test_conditioned_exploration_reuses_history_representative_at_zero_increment
 
 def test_conditioned_exploration_exact_costs_only_uncovered_members():
     hkeep=torch.tensor([[True,False]])
-    estate=torch.tensor([[2]])
+    estate=torch.tensor([[3]])
     hids=torch.tensor([[0,1]])
     reps=torch.tensor([0])
     labels=torch.tensor([0,0,0,0])
