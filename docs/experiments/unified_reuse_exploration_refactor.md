@@ -104,64 +104,63 @@ already produced strong reconstruction quality.
 
 ## Direct History relation pool
 
-Assume a previous genuine History edge e belongs to canonical region r.
+History is now defined exactly as the previous layer's **executed sparse patch
+support**.  If a patch key participated in QK in layer l-1, it is a History
+candidate in layer l, independent of how it entered the previous mask:
 
-The previous edge weight is **not** moved into the current layer. Instead, old
-weights are used only to form relative salience inside the old region:
+- Value representative;
+- Exact member;
+- previously reused History edge.
+
+This definition deliberately separates **where an edge came from** from
+**whether the relation was actually computed**.  Rep/Exact are construction
+mechanisms; History is an execution record.
+
+For each previous executed edge e in canonical region r, its previous measured
+patch attention is divided by its represented population to obtain a
+single-edge salience proxy.  These proxies are normalized only within the old
+region:
 
 ```
-s_e = old_weight_e / sum_{j in H_r} old_weight_j
+s_e = old_single_edge_salience_e / sum_{j in H_r} old_single_edge_salience_j
 ```
 
 The current layer supplies its own coarse region importance `p_r`, and the
-adjacent-layer canonical comparison supplies persistence `beta_r`.
+adjacent-layer comparison of the same canonical estimator supplies persistence
+`beta_r`.
 
-The History relation gain additionally uses the previous layer's explicit-
-relation coverage
-
-```
-c_r(previous) = genuine-edge patch mass / total patch mass
-```
-
-measured inside the same previous sparse softmax. This is a *formation /
-sharpening confidence*: low coverage means the region is still represented
-mostly by diffuse/population representatives, while high coverage means the
-region has already concentrated onto explicit QK relations.
-
-The History relation gain is
+The History relation gain is therefore
 
 ```
-G_H(e) = p_r(current) * beta_r * c_r(previous) * s_e
+G_H(e) = p_r(current) * beta_r * s_e(previous)
 ```
 
-Interpretation:
+There is **no explicit-relation coverage gate**.  Coverage was removed because
+it depended on which edge types the previous selector had already labeled as
+"genuine", creating a bootstrap loop.  Sharpening is instead expected to emerge
+implicitly:
 
-- `s_e`: among the already-computed old relations in this region, which were
-  more important;
-- `beta_r`: how trustworthy reuse remains across the adjacent layers;
-- `c_r(previous)`: how far the previous region had sharpened onto genuine
-  QK relations rather than diffuse representative mass;
-- `p_r(current)`: how important this region is in the current layer.
+1. early layers expose a broad previous support;
+2. old low-salience edges receive small individual gains;
+3. current coarse changes suppress stale regions through `beta_r` and
+   `p_r(current)`;
+4. retained edges are re-evaluated by current QK;
+5. their new measured salience is used in the next layer;
+6. new Rep/Exact exploration edges also join the next History bank automatically.
 
-The previous absolute probability is therefore never treated as a current
-probability. The gains of all old edges in one region sum to at most
-`p_r * beta_r * c_r`. This prevents early middle layers, where attention is
-only beginning to concentrate, from prematurely locking onto History; as
-attention sharpens in later layers, stronger genuine-edge coverage
-automatically increases reuse pressure.
+Thus a relation may become progressively stronger or disappear without moving
+the previous absolute softmax probability into the current layer.
 
-Crucially, History IDs are not remapped into Fine clusters before selection.
-There is no `history_per_cluster`, no History Top-K per cluster, and no current
-Fine-QK test of those edges.
-
-Each History edge is simply a two-state global item:
+History IDs are never remapped into Fine clusters before scoring.  Each
+historical relation is a two-state global item:
 
 ```
 drop : cost 0, loss G_H(e)
 keep : cost 1, loss 0
 ```
 
-This is the intended cheap History reuse mechanism.
+History and exploration still share the same total budget.  The number of
+selected History edges is an optimization outcome, not a fixed ratio.
 
 ## Current-layer exploration
 
@@ -226,9 +225,11 @@ aggregate population mass from being mistaken for genuine edge probability.
 The original prototype stored every query group with the full patch-budget
 History width, producing a large padded History bank.
 
-The refactor compacts all genuine relations once at the end of each layer and
-stores only the maximum genuine count needed by any query group. No sorting or
-Fine-cluster regrouping is required.
+The refactor stores all executed patch relations from the previous layer and
+removes only invalid padding. No Fine-cluster regrouping is used. Because the
+full previous support can be close to the sparse budget width, this version can
+increase History memory and selector work; the next experiment explicitly
+profiles that cost before any efficiency optimization.
 
 This directly reduces:
 
