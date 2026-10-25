@@ -181,8 +181,9 @@ def pack_support(selected,history_ids,reps,labels,population,budget):
         rep_for_hist=reps[hcluster]
         hist_is_rep=hkeep & rep.gather(1,hcluster) & (history_ids==rep_for_hist)
         hist_pop=hist_pop + hist_is_rep.float()*residual.gather(1,hcluster)
-        duplicate_rep=torch.zeros((g,f),device=device,dtype=torch.bool)
-        duplicate_rep.scatter_(1,hcluster,hist_is_rep)
+        duplicate_rep=torch.zeros((g,f),device=device,dtype=torch.int32)
+        duplicate_rep.scatter_add_(1,hcluster,hist_is_rep.int())
+        duplicate_rep=duplicate_rep>0
         rep_ids=rep_ids.masked_fill(duplicate_rep,-1)
         rep_pop=rep_pop.masked_fill(duplicate_rep,0)
 
