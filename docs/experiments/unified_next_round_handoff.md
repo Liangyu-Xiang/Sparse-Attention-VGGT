@@ -391,8 +391,7 @@ with all raw CSV/JSON/figures plus:
 
 `outputs/unified_next_round/analysis.md`
 
-The analysis must contain:
-
+Use `docs/experiments/unified_next_round_analysis_template.md` as the report template.\n\nThe analysis must contain:\n
 ### History
 
 - Dense reuse ceiling by layer and candidate ratio;
