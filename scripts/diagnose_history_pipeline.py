@@ -53,8 +53,8 @@ def support_metrics(probs,target,candidate_abs,query_abs,patch_abs):
     cand=candidate_abs.to(device).long(); valid=(cand>=0)&(cand<total_tokens)
     local=torch.full_like(cand,-1);local[valid]=lookup[cand[valid]];valid&=local>=0
     group=(query_abs//32).long(); q_cand=local[group];q_valid=valid[group]
-    mask=torch.zeros((len(query_abs),npatch),device=device,dtype=torch.bool)
-    safe=q_cand.clamp_min(0);mask.scatter_(1,safe,q_valid)
+    counts=torch.zeros((len(query_abs),npatch),device=device,dtype=torch.int32)
+    safe=q_cand.clamp_min(0);counts.scatter_add_(1,safe,q_valid.int());mask=counts>0
     recall=mask[None].expand(probs.shape[0],-1,-1).gather(2,target).float().mean(2)
     mass=(probs*mask[None]).sum(2)
     density=q_valid.float().sum(1)/npatch
