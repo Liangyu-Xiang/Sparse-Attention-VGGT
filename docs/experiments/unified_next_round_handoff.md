@@ -150,7 +150,8 @@ cd ../Sparse-Attention-VGGT-next
 
 git rev-parse HEAD
 
-python -m py_compile   scripts/diagnose_history_reuse_ceiling.py   scripts/diagnose_history_pipeline.py   scripts/diagnose_value_cluster_compressibility.py   scripts/summarize_value_compressibility.py   scripts/benchmark_history_reuse_scaling.py
+python -m py_compile   scripts/diagnose_history_reuse_ceiling.py   scripts/diagnose_history_pipeline.py   scripts/diagnose_value_cluster_compressibility.py   scripts/summarize_value_compressibility.py   scripts/benchmark_history_reuse_scaling.py \
+  scripts/diagnose_query_group_granularity.py
 
 pytest -q tests/test_reuse_residual_exploration.py
 ```
@@ -296,27 +297,35 @@ The final method should eventually satisfy a stronger property:
 
 ---
 
-## Stage 1E: optional group-granularity diagnostic
+## Stage 1E: query-group granularity diagnostic
 
-Only if Stage 1A shows strong per-query Dense reuse but Stage 1B shows poor group-shared recall, extend the diagnostic before modifying
-the method.
+The script is already implemented:
 
-Compare query support sharing at:
+`scripts/diagnose_query_group_granularity.py`
 
-- group32
-- group16
-- group8
-- group4
-- per-query
+Run it at least on Chess; repeat on Fire/RedKitchen if the effect is large:
 
-and, if practical:
+```bash
+python scripts/diagnose_query_group_granularity.py \
+  --scene chess \
+  --num-frames 2 \
+  --first-frame 0 \
+  --frame-gap 20 \
+  --retention 0.20 \
+  --group-sizes 32 16 8 4 1 \
+  --layer-start 9 \
+  --layer-end 15 \
+  --output-dir outputs/unified_next_round/query_granularity/chess
+```
 
-- all-head shared
-- small head groups
-- per-head
+All variants use the same 20% candidate density.  The source support is built from previous Dense attention averaged over heads and
+over the specified query group.  The target remains per-head/per-query current Top20.
 
-Use Dense Top20 recall / attention-mass coverage as the first metric.  Do not run five end-to-end variants until the offline diagnostic
-shows a meaningful recall gain.
+If recall rises substantially from group32 to group8/group4/group1, that directly measures information loss caused by shared query
+support.  This experiment deliberately keeps head sharing fixed; only after a query-group effect is established should a separate
+head-group diagnostic be added.
+
+Do not run five end-to-end variants until this offline diagnostic shows a meaningful recall gain.
 
 ---
 
