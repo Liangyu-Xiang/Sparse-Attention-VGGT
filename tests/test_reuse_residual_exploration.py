@@ -1,7 +1,7 @@
 import pytest
 import torch
 from saf3r.patch.reuse_residual_exploration import (ReuseExploreConfig,ReuseExploreState,
-    ReuseResidualExploration,canonical_layout,budget_states,top_history,reference_attention)
+    ReuseResidualExploration,canonical_layout,budget_states,top_history,unified_operating_points,reference_attention)
 from saf3r.patch.region_history_attention import prepare_qkv
 from saf3r.models.official_vggt.layers.attention import Attention
 
@@ -30,6 +30,39 @@ def test_stability_uses_measured_mass_not_old_edge_counts():
     torch.testing.assert_close(u,torch.tensor([[[.006,.00001],[.3,.001]]]))
     h,u,_=top_history(ids,w,torch.tensor([[0.,1.]]),grid,labels,reps,2)
     assert (h[0,0]==-1).all() and (u[0,0]==0).all()
+
+
+def test_unified_objective_separates_history_prior_from_value_representation():
+    # One cluster, current importance=.8. Rep distortion is deliberately large.
+    # A reliable History edge must reduce loss because of relation persistence,
+    # not because it approximates an artificial cluster-mean output.
+    pi=torch.tensor([[.8]])
+    mean_unit=torch.tensor([[1.,0.]])
+    rep_dist=torch.tensor([.4])
+    population=torch.tensor([4.])
+    hids=torch.tensor([[[1,-1]]])
+    hprior=torch.tensor([[[.5,0.]]])
+    unit=torch.tensor([[1.,0.],[0.,1.],[1.,0.],[1.,0.]])
+    allowed=torch.tensor([[False]])
+    errors,costs=unified_operating_points(pi,mean_unit,rep_dist,population,hids,hprior,unit,allowed)
+    # drop=.8, rep=.32. History anchor is orthogonal to cluster members:
+    # D=.5, but relation prior .5 still lowers its error to .2.
+    torch.testing.assert_close(errors[0,0,0],torch.tensor(.8))
+    torch.testing.assert_close(errors[0,0,1],torch.tensor(.32))
+    torch.testing.assert_close(errors[0,0,2],torch.tensor(.2))
+    assert costs[0,0,2]==1
+
+
+def test_history_weight_is_prior_not_current_attention_mass():
+    labels=torch.tensor([0,0,1,1]);reps=torch.tensor([0,2]);grid=torch.tensor([0,0,1,1])
+    ids=torch.tensor([[1,3]],dtype=torch.int32)
+    old=torch.tensor([[.7,.2]])
+    beta=torch.tensor([[.5,1.]])
+    _,prior,_=top_history(ids,old,beta,grid,labels,reps,1)
+    # Scores retain only previous-layer salience x persistence. They are not
+    # normalized to current coarse attention and therefore do not sum to one.
+    torch.testing.assert_close(prior[0,:,0],torch.tensor([.35,.2]))
+    assert prior.sum()<1
 
 
 @pytest.mark.parametrize('device',['cpu','cuda'])
