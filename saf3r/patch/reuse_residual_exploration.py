@@ -297,7 +297,8 @@ class ReuseResidualExploration(nn.Module):
                 record=dict(reuse_edges=torch.zeros(g,device=x.device),representatives=torch.full((g,),s.budget,device=x.device),
                     exact_edges=torch.zeros(g,device=x.device),dropped_clusters=torch.zeros(g,device=x.device),
                     counts=torch.full((g,),s.budget,device=x.device),history_rep_merges=torch.zeros(g,device=x.device),
-                    history_candidates=torch.zeros(g,device=x.device))
+                    history_candidates=torch.zeros(g,device=x.device),
+                    history_rep_candidate_overlap=torch.zeros(g,device=x.device))
             else:
                 with stage(s,'reuse_prior'):
                     previous=s.previous_grid[start:start+g].float()
@@ -308,11 +309,15 @@ class ReuseResidualExploration(nn.Module):
                     old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                     old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
                     hids,hgain,hvalid=history_relation_items(old_ids,old_weights,beta,probability,s.grid)
+                    history_map=torch.zeros((g,len(s.patches)),device=x.device,dtype=torch.bool)
+                    history_map.scatter_(1,hids.clamp_min(0),hvalid)
+                    history_rep_candidate_overlap=history_map[:,s.fine.reps].sum(1)
                     e_errors,e_costs=exploration_operating_points(pi,rep_dist,population,allowed)
                     errors,costs=joint_operating_points(hgain,hvalid,e_errors,e_costs)
                     selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
                     ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
                     record['history_candidates']=hvalid.sum(1)
+                    record['history_rep_candidate_overlap']=history_rep_candidate_overlap
                     record['proxy_drop_error']=errors[:,:,0].masked_fill(torch.isinf(errors[:,:,0]),0).sum(1)
                     record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).squeeze(-1).sum(1)
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
