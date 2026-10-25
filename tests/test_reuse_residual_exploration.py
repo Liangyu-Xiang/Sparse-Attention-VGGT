@@ -3,7 +3,9 @@ import torch
 from saf3r.patch.reuse_residual_exploration import (ReuseExploreConfig,ReuseExploreState,
     ReuseResidualExploration,canonical_layout,budget_states,compact_history_bank,
     history_relation_items,exploration_operating_points,joint_operating_points,
-    physical_joint_operating_points,pack_support_physical,reference_attention)
+    history_cluster_prefixes,joint_history_exploration_operating_points,
+    pack_joint_history_exploration,physical_joint_operating_points,
+    pack_support_physical,reference_attention)
 from saf3r.patch.region_history_attention import prepare_qkv
 from saf3r.models.official_vggt.layers.attention import Attention
 
@@ -60,6 +62,101 @@ def test_history_filter_uses_current_region_persistence_and_old_relative_salienc
     torch.testing.assert_close(gain[0,:2],torch.tensor([.48,.12]))
     # Region 1 is filtered by low current importance and low persistence.
     torch.testing.assert_close(gain[0,2],torch.tensor(.025))
+
+
+def test_joint_history_prefixes_are_cluster_local_sorted_and_not_fixed_cap():
+    ids=torch.tensor([[0,1,2,3,4]],dtype=torch.int32)
+    gain=torch.tensor([[.1,.5,.2,.4,.3]])
+    valid=torch.ones_like(ids,dtype=torch.bool)
+    labels=torch.tensor([0,0,0,0,0])
+    hids,hgain,hvalid=history_cluster_prefixes(ids,gain,valid,labels,1)
+    assert hids.shape==(1,1,5)
+    assert hids.tolist()==[[[1,3,4,2,0]]]
+    torch.testing.assert_close(hgain,torch.tensor([[[.5,.4,.3,.2,.1]]]))
+    assert hvalid.all()
+
+
+def test_joint_optimizer_keeps_reliable_history_and_uses_it_as_rep_in_one_objective():
+    # The nominal Value representative (key 0) and reliable History key (key 1)
+    # are equally good Value representatives.  The single joint objective should
+    # choose the History-prefix->History-Rep state at the same physical cost,
+    # rather than preselecting History in a separate stage.
+    hids=torch.tensor([[[1]]])
+    hgain=torch.tensor([[[.8]]])
+    hvalid=torch.tensor([[[True]]])
+    pi=torch.tensor([[.5]])
+    rep_dist=torch.tensor([0.])
+    pop=torch.tensor([2.])
+    allowed=torch.tensor([[False]])
+    unit=torch.tensor([[1.,0.],[1.,0.]])
+    mean=torch.tensor([[1.,0.]])
+    reps=torch.tensor([0])
+    errors,costs,anchor=joint_history_exploration_operating_points(
+        pi,rep_dist,pop,allowed,hids,hgain,hvalid,unit,mean,reps)
+    chosen,count=budget_states(errors,costs,1,20)
+    # K=1 -> states: Drop, Rep, H1->HRep, H1+Rep, Exact.
+    assert chosen.tolist()==[[2]]
+    assert count.item()==1
+    ids,pops,_,record,selected_history=pack_joint_history_exploration(
+        chosen,hids,hvalid,anchor,reps,torch.tensor([0,0]),pop,1)
+    assert ids.tolist()==[[1]]
+    torch.testing.assert_close(pops,torch.tensor([[2.]]))
+    assert selected_history[selected_history>=0].tolist()==[1]
+    assert record['reuse_edges'].item()==1
+    assert record['history_promoted_representatives'].item()==1
+    assert record['counts'].item()==1
+
+
+def test_joint_optimizer_can_choose_exploration_instead_of_weak_bad_history():
+    # This specifically rules out the incorrect sequential implementation:
+    # History is only one family of JOINT states.  A weak, poor History anchor
+    # can lose to the current Value representative under the same objective.
+    hids=torch.tensor([[[1]]])
+    hgain=torch.tensor([[[.1]]])
+    hvalid=torch.tensor([[[True]]])
+    pi=torch.tensor([[.5]])
+    rep_dist=torch.tensor([0.])
+    pop=torch.tensor([2.])
+    allowed=torch.tensor([[False]])
+    unit=torch.tensor([[1.,0.],[-1.,0.]])
+    mean=torch.tensor([[1.,0.]])
+    reps=torch.tensor([0])
+    errors,costs,_=joint_history_exploration_operating_points(
+        pi,rep_dist,pop,allowed,hids,hgain,hvalid,unit,mean,reps)
+    chosen,count=budget_states(errors,costs,1,20)
+    assert chosen.tolist()==[[1]]
+    assert count.item()==1
+
+
+def test_joint_exact_and_history_rep_costs_match_physical_packing():
+    hids=torch.tensor([[[0,1]]])
+    hgain=torch.tensor([[[.6,.4]]])
+    hvalid=torch.tensor([[[True,True]]])
+    pi=torch.tensor([[.8]])
+    rep_dist=torch.tensor([.5])
+    pop=torch.tensor([4.])
+    allowed=torch.tensor([[True]])
+    unit=torch.tensor([[1.,0.],[.9,.1],[0.,1.],[0.,1.]])
+    unit=unit/unit.norm(dim=-1,keepdim=True)
+    mean=unit.mean(0,keepdim=True)
+    reps=torch.tensor([2])
+    errors,costs,anchor=joint_history_exploration_operating_points(
+        pi,rep_dist,pop,allowed,hids,hgain,hvalid,unit,mean,reps)
+    # Explicitly pack every feasible joint state and require the declared cost
+    # to equal the number of physical keys after deduplication.
+    for state in range(errors.shape[-1]):
+        if torch.isinf(errors[0,0,state]):
+            continue
+        selected=torch.tensor([[state]])
+        declared=costs[0,0,state]
+        if declared>4:
+            continue
+        ids,_,_,record,_=pack_joint_history_exploration(
+            selected,hids,hvalid,anchor,reps,torch.tensor([0,0,0,0]),pop,4)
+        assert record['counts'].item()==int(declared.item())
+        valid=ids[0]>=0
+        assert len(ids[0][valid].unique())==int(valid.sum())
+
 
 def test_physical_history_rep_overlap_costs_one_slot_and_preserves_both_roles():
     hgain=torch.tensor([[.40]])
