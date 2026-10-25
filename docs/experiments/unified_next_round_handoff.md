@@ -145,12 +145,17 @@ Use an isolated worktree if the server has local changes.
 
 ```bash
 git fetch origin
-git worktree add ../Sparse-Attention-VGGT-next   origin/refactor/unified-reuse-exploration
+git worktree add ../Sparse-Attention-VGGT-next origin/refactor/unified-reuse-exploration
 cd ../Sparse-Attention-VGGT-next
 
 git rev-parse HEAD
 
-python -m py_compile   scripts/diagnose_history_reuse_ceiling.py   scripts/diagnose_history_pipeline.py   scripts/diagnose_value_cluster_compressibility.py   scripts/summarize_value_compressibility.py   scripts/benchmark_history_reuse_scaling.py \
+python -m py_compile \
+  scripts/diagnose_history_reuse_ceiling.py \
+  scripts/diagnose_history_pipeline.py \
+  scripts/diagnose_value_cluster_compressibility.py \
+  scripts/summarize_value_compressibility.py \
+  scripts/benchmark_history_reuse_scaling.py \
   scripts/diagnose_query_group_granularity.py
 
 pytest -q tests/test_reuse_residual_exploration.py
