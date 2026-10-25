@@ -143,26 +143,29 @@ def exploration_operating_points(pi,rep_dist,population,exact_allowed):
 def conditioned_exploration_at_price(history_gain,history_valid,history_ids,price,
                                      pi,rep_dist,population,exact_allowed,
                                      labels,reps,unit_features,mean_unit):
-    """One Lagrange-price step for History-conditioned Exploration.
+    """One Lagrange-price step for outer-History / inner-Exploration selection.
 
     History is selected *only* from relation reliability:
         keep h iff history_gain(h) > price.
 
-    The selected History keys are then treated as already-paid anchors in their
-    current Value clusters.  Exploration optimizes only residual representation
-    distortion:
+    The retained History keys are fixed before the inner Exploration decision.
+    For each current Value cluster, Exploration then chooses among:
 
-      Drop : pi_C * D(C | H_C),                         incremental cost 0
-      Rep  : pi_C * D(C | H_C union {r_C}),             cost 0 or 1
-      Exact: 0,                                          cost |C|-|H_C|
+      Drop        : keep only explicit History members;
+      History-Rep : promote the best retained History key to represent the
+                    residual cluster members at zero additional QK cost;
+      New-Rep     : add the current Value representative at cost one;
+      Exact       : add every residual member.
 
-    D is a cheap cluster-centre cosine distortion.  In particular, Value
-    similarity can suppress a redundant *new representative* but can never
-    remove a History edge that passed the reliability decision.
+    Inner losses use one common quantity: current cluster importance multiplied
+    by residual representation distortion.  Crucially, Value similarity can
+    make a *new representative* redundant, but it never removes a History edge
+    that passed the outer relation-reliability decision.
 
-    This is an efficient flattened approximation to the intended outer-History /
-    inner-Exploration dependence.  It deliberately does not resurrect the old
-    pi*mean(V) output target or current-minus-previous probability subtraction.
+    This is a lightweight flattened approximation to the intended bilevel
+    History -> residual Exploration dependence.  It does not resurrect the old
+    pi*mean(V) output target, explicit current-minus-previous subtraction, or
+    fine representative QK probing.
     """
     g,f=pi.shape;device=pi.device
     h=0 if history_ids is None else history_ids.shape[1]
@@ -174,47 +177,73 @@ def conditioned_exploration_at_price(history_gain,history_valid,history_ids,pric
         hcount=torch.zeros((g,f),device=device)
         hcount.scatter_add_(1,hcluster,hkeep.float())
 
-        # Use the same normalized-Value/cluster-centre geometry as rep_dist.
-        # Unselected/padded History cannot become a residual anchor.
+        # Candidate History anchors are evaluated only for the *inner*
+        # representative role; this geometry never feeds back to hkeep.
         hu=unit_features[safe]
         hc=mean_unit[hcluster]
-        hdist=((1-(hu*hc).sum(-1)).clamp(0,2)*.5).masked_fill(~hkeep,torch.inf)
-        history_dist=torch.full((g,f),torch.inf,device=device)
-        history_dist.scatter_reduce_(1,hcluster,hdist,reduce='amin',include_self=True)
-        history_dist=torch.where(torch.isfinite(history_dist),history_dist,torch.ones_like(history_dist))
+        candidate_dist=((1-(hu*hc).sum(-1)).clamp(0,2)*.5)
+        selected_dist=candidate_dist.masked_fill(~hkeep,torch.inf)
+        history_rep_dist=torch.full((g,f),torch.inf,device=device)
+        history_rep_dist.scatter_reduce_(1,hcluster,selected_dist,reduce='amin',include_self=True)
 
-        hist_is_rep=hkeep & (safe==reps[hcluster])
-        rep_in_history=torch.zeros((g,f),device=device,dtype=torch.int32)
-        rep_in_history.scatter_add_(1,hcluster,hist_is_rep.int())
-        rep_in_history=rep_in_history>0
+        # Recover one concrete retained History position attaining the minimum,
+        # so packing can promote that already-paid key to population representative.
+        best=(hkeep & (candidate_dist<=history_rep_dist.gather(1,hcluster)+1e-7))
+        pos=torch.arange(h,device=device,dtype=torch.long)[None].expand(g,-1)
+        sentinel=torch.full_like(pos,h)
+        history_anchor_pos=torch.full((g,f),h,device=device,dtype=torch.long)
+        history_anchor_pos.scatter_reduce_(
+            1,hcluster,torch.where(best,pos,sentinel),reduce='amin',include_self=True)
+        history_anchor_valid=history_anchor_pos<h
+
+        hist_is_nominal_rep=hkeep & (safe==reps[hcluster])
+        nominal_rep_in_history=torch.zeros((g,f),device=device,dtype=torch.int32)
+        nominal_rep_in_history.scatter_add_(1,hcluster,hist_is_nominal_rep.int())
+        nominal_rep_in_history=nominal_rep_in_history>0
     else:
         hkeep=torch.empty((g,0),device=device,dtype=torch.bool)
         hcount=torch.zeros((g,f),device=device)
-        history_dist=torch.ones((g,f),device=device)
-        rep_in_history=torch.zeros((g,f),device=device,dtype=torch.bool)
+        history_rep_dist=torch.full((g,f),torch.inf,device=device)
+        history_anchor_pos=torch.zeros((g,f),device=device,dtype=torch.long)
+        history_anchor_valid=torch.zeros((g,f),device=device,dtype=torch.bool)
+        nominal_rep_in_history=torch.zeros((g,f),device=device,dtype=torch.bool)
 
     residual=(population[None]-hcount).clamp_min(0)
-    drop_error=pi*history_dist
-    rep_error=pi*torch.minimum(history_dist,rep_dist[None])
-    exact_error=torch.zeros_like(pi).masked_fill(~exact_allowed,torch.inf)
+    residual_fraction=residual/population.clamp_min(1)[None]
 
-    rep_cost=((residual>0)&~rep_in_history).float()
-    exact_cost=residual
-    errors=torch.stack((drop_error,rep_error,exact_error),-1)
-    costs=torch.stack((torch.zeros_like(pi),rep_cost,exact_cost),-1)
+    # State0: selected History members remain explicit, but uncovered members
+    # are not represented by any population representative.
+    drop_error=pi*residual_fraction
+
+    # State1: a reliable History key is promoted to representative at zero
+    # incremental physical cost.  This is the central H -> E coupling.
+    history_rep_error=pi*residual_fraction*history_rep_dist
+    history_rep_error=history_rep_error.masked_fill(
+        ~history_anchor_valid | (residual<=0),torch.inf)
+
+    # State2: add a new current-Value representative only when History cannot
+    # provide it for free.  If the nominal representative is already History,
+    # State1 dominates and duplicate physical selection is forbidden.
+    new_rep_error=pi*residual_fraction*rep_dist[None]
+    new_rep_error=new_rep_error.masked_fill(
+        nominal_rep_in_history | (residual<=0),torch.inf)
+
+    # State3: exact expansion adds only members not already retained by History.
+    exact_error=torch.zeros_like(pi).masked_fill(~exact_allowed | (residual<=0),torch.inf)
+
+    errors=torch.stack((drop_error,history_rep_error,new_rep_error,exact_error),-1)
+    costs=torch.stack((
+        torch.zeros_like(pi),
+        torch.zeros_like(pi),
+        ((residual>0)&~nominal_rep_in_history).float(),
+        residual),-1)
     score=errors+price[:,None,None]*costs
     estate=score.argmin(-1)
 
-    # If the already-selected History key is itself the representative, assigning
-    # it the representative role is free.  Prefer that role on an exact tie so
-    # population compensation covers the remaining cluster members at zero
-    # additional QK cost.
-    free_rep=rep_in_history & (rep_error<=drop_error)
-    estate=torch.where(free_rep & (estate==0),torch.ones_like(estate),estate)
-
     exploration_cost=costs.gather(2,estate[:,:,None]).squeeze(-1).sum(1)
     total_cost=hkeep.sum(1).float()+exploration_cost
-    return hkeep,estate,total_cost,errors,costs,history_dist,hcount,rep_in_history
+    return (hkeep,estate,total_cost,errors,costs,history_rep_dist,hcount,
+            history_anchor_pos,history_anchor_valid,nominal_rep_in_history)
 
 
 def conditioned_budget_states(history_gain,history_valid,history_ids,
@@ -222,19 +251,18 @@ def conditioned_budget_states(history_gain,history_valid,history_ids,
                               labels,reps,unit_features,mean_unit,budget,iterations=16):
     """Approximate the nested History -> residual Exploration problem.
 
-    A single shadow price is searched only to satisfy the global physical QK
-    budget.  At each price, History is filtered from relation evidence first;
-    Exploration is then recomputed *conditioned on that retained History*.
-    This preserves the causal ordering without materializing an exponential
-    History/Exploration state table.
+    The shared shadow price enforces one physical QK budget.  At every price,
+    History is filtered first from relation evidence; only then are the inner
+    residual Exploration states recomputed.  Therefore a reliable History edge
+    can replace a redundant new representative without being judged by Value
+    similarity itself.
     """
     g=pi.shape[0];device=pi.device
     hmax=history_gain.masked_fill(~history_valid,0).amax(1) if history_gain.shape[1] else torch.zeros(g,device=device)
-    # Drop/Rep errors are bounded by pi<=1, so this upper bound always permits
-    # the zero-cost all-drop solution.
     lo=torch.zeros(g,device=device)
+    # At a price above both maximum History gain and maximum cluster importance,
+    # all positive-cost actions are dominated by Drop; this is a feasible bound.
     hi=torch.maximum(hmax,pi.amax(1))+1e-6
-    latest=None
     for _ in range(iterations):
         mid=(lo+hi)*.5
         state=conditioned_exploration_at_price(
@@ -243,15 +271,19 @@ def conditioned_budget_states(history_gain,history_valid,history_ids,
         over=state[2]>budget
         lo=torch.where(over,mid,lo)
         hi=torch.where(over,hi,mid)
-        latest=state
     state=conditioned_exploration_at_price(
         history_gain,history_valid,history_ids,hi,pi,rep_dist,population,exact_allowed,
         labels,reps,unit_features,mean_unit)
     return state+(hi,)
 
 
-def pack_conditioned_support(hkeep,estate,history_ids,reps,labels,population,budget):
-    """Pack fixed History first, then only the residual Exploration support."""
+def pack_conditioned_support(hkeep,estate,history_ids,reps,labels,population,budget,
+                             history_anchor_pos):
+    """Pack retained History, then add only residual Exploration support.
+
+    A History-Rep state promotes an already-selected historical key by assigning
+    it the residual cluster population; no new physical key is emitted.
+    """
     g,f=estate.shape;device=estate.device
     h=0 if history_ids is None else history_ids.shape[1]
     safe=history_ids.long().clamp_min(0) if h else torch.empty((g,0),device=device,dtype=torch.long)
@@ -262,28 +294,21 @@ def pack_conditioned_support(hkeep,estate,history_ids,reps,labels,population,bud
         hcount.scatter_add_(1,hcluster,hkeep.float())
 
     residual=(population[None]-hcount).clamp_min(0)
-    rep=estate==1
-    exact=estate==2
-
-    if h:
-        hist_is_rep=hkeep & (safe==reps[hcluster])
-        duplicate_rep=torch.zeros((g,f),device=device,dtype=torch.int32)
-        duplicate_rep.scatter_add_(1,hcluster,hist_is_rep.int())
-        duplicate_rep=duplicate_rep>0
-    else:
-        hist_is_rep=torch.empty((g,0),device=device,dtype=torch.bool)
-        duplicate_rep=torch.zeros((g,f),device=device,dtype=torch.bool)
+    history_rep=estate==1
+    new_rep=estate==2
+    exact=estate==3
 
     hist_pop=hkeep.float()
     if h:
-        # A retained History representative can cover the residual cluster
-        # population without another physical QK edge.
-        hist_pop=hist_pop + hist_is_rep.float()*(
-            residual.gather(1,hcluster)*rep.gather(1,hcluster))
+        # Scatter residual population onto the chosen retained History slot.
+        anchor=history_anchor_pos.clamp(0,h-1)
+        bonus=(residual*history_rep).float()
+        history_bonus=torch.zeros((g,h),device=device)
+        history_bonus.scatter_add_(1,anchor,bonus)
+        hist_pop=hist_pop+history_bonus
 
-    rep_physical=rep & (residual>0) & ~duplicate_rep
-    rep_ids=reps[None].expand(g,-1).masked_fill(~rep_physical,-1)
-    rep_pop=residual*rep_physical
+    rep_ids=reps[None].expand(g,-1).masked_fill(~new_rep,-1)
+    rep_pop=residual*new_rep
 
     member=torch.arange(len(labels),device=device)[None].expand(g,-1)
     exact_member=exact[:,labels]
@@ -295,7 +320,7 @@ def pack_conditioned_support(hkeep,estate,history_ids,reps,labels,population,bud
 
     raw=torch.cat((hist,rep_ids,member),1)
     pop=torch.cat((hist_pop,rep_pop,(member>=0).float()),1)
-    relation=torch.cat((hkeep,torch.zeros_like(rep_physical),(member>=0)),1)
+    relation=torch.cat((hkeep,torch.zeros_like(new_rep),(member>=0)),1)
     valid=raw>=0
     pos=valid.long().cumsum(1)-1
     if bool((valid.sum(1)>budget).any()):
@@ -314,9 +339,10 @@ def pack_conditioned_support(hkeep,estate,history_ids,reps,labels,population,bud
         exact_edges=(member>=0).sum(1),
         dropped_clusters=(estate==0).sum(1),
         counts=valid.sum(1),
-        history_rep_merges=(hist_is_rep & rep.gather(1,hcluster)).sum(1) if h else torch.zeros(g,device=device),
+        history_rep_merges=history_rep.sum(1),
+        history_promoted_representatives=history_rep.sum(1),
         history_exact_overlap_selected=selected_history_in_exact,
-        population_representative_clusters=rep.sum(1))
+        population_representative_clusters=(history_rep|new_rep).sum(1))
 
 
 def physical_joint_operating_points(history_gain,history_valid,history_ids,reps,
@@ -648,13 +674,15 @@ class ReuseResidualExploration(nn.Module):
                     history_hits.scatter_add_(1,hids.clamp_min(0),hvalid.int())
                     history_rep_candidate_overlap=(history_hits[:,s.fine.reps]>0).sum(1)
                     if c.history_conditioned_exploration:
-                        (hkeep,estate,count,errors,costs,history_dist,hcount,rep_in_history,price)=conditioned_budget_states(
+                        (hkeep,estate,count,errors,costs,history_dist,hcount,history_anchor_pos,
+                         history_anchor_valid,rep_in_history,price)=conditioned_budget_states(
                             hgain,hvalid,hids,pi,rep_dist,population,allowed,s.fine.labels,s.fine.reps,
                             unit_features,mean_unit,s.budget,c.dual_iterations)
                         ids,pops,real,record=pack_conditioned_support(
-                            hkeep,estate,hids,s.fine.reps,s.fine.labels,population,s.budget)
+                            hkeep,estate,hids,s.fine.reps,s.fine.labels,population,s.budget,history_anchor_pos)
                         selected=None
-                        record['conditioned_history_distortion']=history_dist.mean(1)
+                        finite_history_dist=torch.where(torch.isfinite(history_dist),history_dist,torch.ones_like(history_dist))
+                        record['conditioned_history_distortion']=finite_history_dist.mean(1)
                         record['history_selected_cluster_coverage']=(hcount>0).float().mean(1)
                         record['shadow_price']=price
                     else:
@@ -684,8 +712,8 @@ class ReuseResidualExploration(nn.Module):
                         record['missed_history_gain']=(hgain*(hvalid&~hkeep)).sum(1)
                         record['history_conditioned_clusters']=(hcount>0).sum(1)
                         record['history_only_clusters']=((hcount>0)&(estate==0)).sum(1)
-                        record['history_plus_rep_clusters']=((hcount>0)&(estate==1)).sum(1)
-                        record['history_plus_exact_clusters']=((hcount>0)&(estate==2)).sum(1)
+                        record['history_plus_rep_clusters']=((hcount>0)&((estate==1)|(estate==2))).sum(1)
+                        record['history_plus_exact_clusters']=((hcount>0)&(estate==3)).sum(1)
                     else:
                         record['missed_history_gain']=torch.zeros(g,device=x.device)
                         record['history_conditioned_clusters']=torch.zeros(g,device=x.device)
