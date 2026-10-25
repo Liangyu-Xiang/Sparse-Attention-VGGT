@@ -99,7 +99,7 @@ def run(args):
             torch.save(cpu(state.captured),out/'supports.pt')
     timing=dict(median_seconds=float(np.median([s['seconds'] for s in samples])),samples=samples,cold_samples=cold,
         warmup=args.warmup,repeats=args.repeats,capture=args.capture,
-        scope='Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync')
+        scope='Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync')
     common=dict(method=args.method,scene=args.scene,dataset='7scenes',frames=len(images),input=canonical,
         config=None if config is None else asdict(config),model_config=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,
         source_sha256=hashes,timing=timing,
