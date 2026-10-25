@@ -289,8 +289,6 @@ class ReuseResidualExploration(nn.Module):
                     ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
                     record['proxy_drop_error']=errors[:,:,0].masked_fill(torch.isinf(errors[:,:,0]),0).sum(1)
                     record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).squeeze(-1).sum(1)
-                    record['proxy_drop_error']=(errors[:,:,0]).sum(1)
-                    record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).sum((1,2))
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
