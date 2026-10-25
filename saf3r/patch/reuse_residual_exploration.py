@@ -82,7 +82,7 @@ def compact_history_bank(ids,weights):
 def history_relation_items(ids,weights,beta,current_region,grid):
     """Cheap query-group History candidates, without Fine-cluster remapping.
 
-    A previous genuine QK edge remains a relation candidate by identity. Old
+    Every previous executed patch QK edge remains a relation candidate by identity. Old
     attention is used only to distribute salience *within its previous canonical
     region*. The absolute current scale comes from the CURRENT coarse region
     probability. Thus no previous probability is transferred across layers.
