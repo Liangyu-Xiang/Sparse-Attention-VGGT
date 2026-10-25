@@ -3,6 +3,7 @@ import torch
 from saf3r.patch.reuse_residual_exploration import (ReuseExploreConfig,ReuseExploreState,
     ReuseResidualExploration,canonical_layout,budget_states,compact_history_bank,
     history_relation_items,exploration_operating_points,joint_operating_points,
+    conditioned_exploration_at_price,conditioned_budget_states,pack_conditioned_support,
     physical_joint_operating_points,pack_support_physical,reference_attention)
 from saf3r.patch.region_history_attention import prepare_qkv
 from saf3r.models.official_vggt.layers.attention import Attention
@@ -60,6 +61,97 @@ def test_history_filter_uses_current_region_persistence_and_old_relative_salienc
     torch.testing.assert_close(gain[0,:2],torch.tensor([.48,.12]))
     # Region 1 is filtered by low current importance and low persistence.
     torch.testing.assert_close(gain[0,2],torch.tensor(.025))
+
+def test_conditioned_exploration_history_is_not_removed_by_value_redundancy():
+    # Two identical Value directions in one cluster.  Key 1 is a strong History
+    # edge while key 0 is the nominal representative.  Because the History
+    # decision is relation-only, Value redundancy must suppress the *new Rep*,
+    # never the retained History edge.
+    hgain=torch.tensor([[.8]])
+    hvalid=torch.tensor([[True]])
+    hids=torch.tensor([[1]])
+    price=torch.tensor([.1])
+    pi=torch.tensor([[.5]])
+    rep_dist=torch.tensor([0.])
+    pop=torch.tensor([2.])
+    allowed=torch.tensor([[False]])
+    labels=torch.tensor([0,0])
+    reps=torch.tensor([0])
+    unit=torch.tensor([[1.,0.],[1.,0.]])
+    mean=torch.tensor([[1.,0.]])
+    hkeep,estate,total,errors,costs,hdist,hcount,rep_in_history=conditioned_exploration_at_price(
+        hgain,hvalid,hids,price,pi,rep_dist,pop,allowed,labels,reps,unit,mean)
+    assert hkeep.tolist()==[[True]]
+    assert estate.tolist()==[[0]]  # History-only: adding the redundant Rep has no gain.
+    assert total.item()==1
+    torch.testing.assert_close(hdist,torch.zeros_like(hdist))
+    assert hcount.item()==1 and not rep_in_history.item()
+
+
+def test_conditioned_exploration_reuses_history_representative_at_zero_incremental_cost():
+    hgain=torch.tensor([[.8]])
+    hvalid=torch.tensor([[True]])
+    hids=torch.tensor([[0]])
+    price=torch.tensor([.1])
+    pi=torch.tensor([[.5]])
+    rep_dist=torch.tensor([0.])
+    pop=torch.tensor([3.])
+    allowed=torch.tensor([[False]])
+    labels=torch.tensor([0,0,0])
+    reps=torch.tensor([0])
+    unit=torch.tensor([[1.,0.],[1.,0.],[1.,0.]])
+    mean=torch.tensor([[1.,0.]])
+    hkeep,estate,total,*_=conditioned_exploration_at_price(
+        hgain,hvalid,hids,price,pi,rep_dist,pop,allowed,labels,reps,unit,mean)
+    # The same physical History key can take the population-representative role
+    # for free; no second QK edge is introduced.
+    assert hkeep.tolist()==[[True]] and estate.tolist()==[[1]]
+    assert total.item()==1
+    ids,pops,_,record=pack_conditioned_support(
+        hkeep,estate,hids,reps,labels,pop,1)
+    assert ids.tolist()==[[0]]
+    torch.testing.assert_close(pops,torch.tensor([[3.]]))
+    assert record['reuse_edges'].item()==1
+    assert record['representatives'].item()==0
+    assert record['population_representative_clusters'].item()==1
+
+
+def test_conditioned_exploration_exact_costs_only_uncovered_members():
+    hkeep=torch.tensor([[True,False]])
+    estate=torch.tensor([[2]])
+    hids=torch.tensor([[0,1]])
+    reps=torch.tensor([0])
+    labels=torch.tensor([0,0,0,0])
+    pop=torch.tensor([4.])
+    ids,pops,_,record=pack_conditioned_support(
+        hkeep,estate,hids,reps,labels,pop,4)
+    valid=ids[0]>=0
+    assert set(ids[0][valid].tolist())=={0,1,2,3}
+    assert record['reuse_edges'].item()==1
+    assert record['exact_edges'].item()==3
+    assert record['counts'].item()==4
+
+
+def test_conditioned_budget_no_history_reduces_to_drop_rep_exact_geometry():
+    hgain=torch.empty((1,0))
+    hvalid=torch.empty((1,0),dtype=torch.bool)
+    hids=torch.empty((1,0),dtype=torch.long)
+    pi=torch.tensor([[.8,.2]])
+    rep_dist=torch.tensor([.25,.5])
+    pop=torch.tensor([3.,2.])
+    allowed=torch.tensor([[False,True]])
+    labels=torch.tensor([0,0,0,1,1])
+    reps=torch.tensor([0,3])
+    unit=torch.tensor([[1.,0.],[1.,0.],[1.,0.],[0.,1.],[0.,1.]])
+    mean=torch.tensor([[1.,0.],[0.,1.]])
+    state=conditioned_budget_states(
+        hgain,hvalid,hids,pi,rep_dist,pop,allowed,labels,reps,unit,mean,budget=2,iterations=20)
+    hkeep,estate,total,errors,costs=state[:5]
+    assert hkeep.numel()==0 and total<=2
+    torch.testing.assert_close(errors[0,:,0],pi[0])
+    torch.testing.assert_close(errors[0,:,1],torch.tensor([.2,.1]))
+    assert torch.isinf(errors[0,0,2]) and errors[0,1,2]==0
+
 
 def test_physical_history_rep_overlap_costs_one_slot_and_preserves_both_roles():
     hgain=torch.tensor([[.40]])
