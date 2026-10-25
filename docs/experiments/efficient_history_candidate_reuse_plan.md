@@ -1,234 +1,205 @@
-# Efficient History Reuse: Fixed Candidate Slots with Adaptive Fresh QK
+
+# Efficient History Reuse: History Relations + Representative + Exact Fallback
 
 ## Goal
 
-The current joint History/Exploration selector has the right optimization structure,
-but it still has two efficiency problems:
+The selector must exploit History without introducing a second current-layer
+fine-QK search.
 
-1. a cluster may generate many History-prefix operating points;
-2. History does not directly reduce the amount of current-layer QK exploration.
+The key rule is:
 
-The implementation goal is therefore:
+    Concrete QK relations can come only from History.
 
-```
-more reusable History
-        ->
-fewer fresh QK probes
-        ->
-lower selector cost
-```
+For the current layer, a Fine Value cluster has only three information sources:
 
-while keeping **one joint optimization objective**.  History is NOT selected first
-as a final decision.
+1. History relations: concrete QK edges that were actually executed in the
+   previous layer and are reused as candidate relations;
+2. Value representative: one current cluster representative that approximates
+   the residual members;
+3. Exact expansion: if History + representative are still insufficient, expand
+   the whole cluster.
 
----
+There is no fresh per-cluster QK discovery.
 
-## Core idea
-
-Give every current Value cluster a small fixed number `K` of **concrete relation
-candidate slots**.
-
-Without History, all `K` slots must be filled by fresh current-layer QK
-exploration.
-
-With History, reliable previous-layer relations occupy some of these slots for
-free.  Only the remaining slots trigger fresh QK probing.
-
-For cluster `C`:
-
-```
-K = relation_candidate_slots
-
-K_H(C) = number of slots supplied by History
-K_F(C) = K - K_H(C)
-```
-
-Only `K_F(C)` fresh candidates are discovered in the current layer.
-
-This is a candidate-generation rule only.  The final support is still chosen by
-the same global operating-point optimizer.
+The final decision remains one joint global operating-point optimization. There
+is no sequential "select History first, then select Exploration" solver.
 
 ---
 
-## Step 1: compute reusable History coverage
+## Core difference from a no-History method
 
-The current code already produces History relation gains:
+Without History, this method does NOT try to discover several specific current
+QK edges inside every cluster. The no-History compressed choices are only:
 
-```
-G_h = current coarse importance
-      x cross-layer persistence
-      x previous within-region salience
-```
+    Drop
+    Rep
+    Exact
 
-After mapping History edges to the current Fine Value cluster, define cluster
-History coverage:
+With History, previously executed QK edges become the only source of concrete
+relations:
 
-```
-coverage_H(C) = clamp(
-    sum_{h in H_C} G_h / (pi_C + eps),
-    0,
-    1
-)
-```
+    previous executed QK
+            ->
+    History relation candidates
 
-This quantity is used only to decide how much **new candidate acquisition** is
-needed.  It does not directly decide the final sparse support.
+If History relations plus one Value representative can preserve the cluster, the
+cluster remains compressed.
 
----
+If they cannot, the method does not search for additional specific QK edges:
 
-## Step 2: convert History coverage into candidate slots
+    History + Rep insufficient
+            ->
+    Exact cluster expansion
 
-Use a fixed small `K`, initially proposed as:
-
-```
-relation_candidate_slots = 4
-```
-
-For each cluster:
-
-```
-K_H = round(K * coverage_H)
-K_F = K - K_H
-```
-
-Then:
-
-- keep the top `K_H` History candidates by History gain;
-- discover only `K_F` fresh current-layer relations.
-
-Examples for `K=4`:
-
-| History coverage | History candidates | Fresh candidates |
-|---:|---:|---:|
-| 0.00 | 0 | 4 |
-| 0.25 | 1 | 3 |
-| 0.50 | 2 | 2 |
-| 0.75 | 3 | 1 |
-| 1.00 | 4 | 0 |
-
-This is **not a fixed History retention ratio**.  It is only a bounded candidate
-construction rule.
-
-The final optimizer can still choose:
-
-- no concrete relation;
-- one or more History/Fresh relations;
-- the Value representative;
-- concrete relations + representative;
-- Exact.
+This gives History a clear role and keeps the selector cheap.
 
 ---
 
-## Step 3: fresh QK exploration only fills missing slots
+## Per-cluster joint operating states
 
-Fresh exploration must have cost proportional to `K_F`.
+For a current Fine cluster C, map all available History relations into the
+cluster and rank them by the existing History reliability score G_h.
 
-Do not compute QK against every member of every cluster.
+Let H_t denote the top-t reusable History relations in C.
 
-For a cluster with `K_F > 0`:
+The joint state family is:
 
-1. exclude the retained History candidate keys;
-2. select a small deterministic pre-candidate set of size
+    Drop
+    Rep
+    H_1
+    H_1 + Rep
+    H_2
+    H_2 + Rep
+    ...
+    H_t
+    H_t + Rep
+    ...
+    Exact
 
-```
-M_F = min(cluster residual size, fresh_oversample * K_F)
-```
+All states are compared inside the SAME budget_states() optimization.
 
-with proposed initial:
+Important:
 
-```
-fresh_oversample = 4
-```
-
-3. use spatially/uniformly distributed residual members for this pre-candidate
-   set;
-4. compute current QK only for these `M_F` keys using the existing 4 query
-   probes of the 32-query group;
-5. keep the top `K_F` fresh relations.
-
-Therefore fresh selector QK cost is approximately:
-
-```
-fresh_probe_qk
-    = 4 * sum_C M_F(C)
-    ~ O(sum_C K_F(C))
-```
-
-and naturally decreases when History coverage increases.
-
-The initial implementation should use uniform/spatial residual sampling because
-it is cheap and does not introduce another expensive learned/search stage.
+- H_t is not selected in a separate first-stage solver;
+- there is no current-layer fine-QK search to create new concrete edges;
+- Exact is the only fallback when compressed states are insufficient.
 
 ---
 
-## Step 4: put History and Fresh relations on one comparable current scale
+## What History is allowed to do
 
-History candidates already have `G_h`.
+History provides two things.
 
-For fresh candidates, compute current probe logits and normalize them inside the
-fresh candidate set.  Assign the residual current importance:
+### 1. Concrete relation preservation
 
-```
-residual_mass_C = pi_C * (1 - coverage_H(C))
-```
+A retained History edge is a real previous-layer QK relation. Its usefulness is
+estimated from:
 
-Then:
+    current coarse importance
+    x cross-layer persistence
+    x previous measured relation salience
 
-```
-G_f = residual_mass_C * softmax(fresh_probe_logits)
-```
+Current Value similarity must not invalidate a reliable History relation.
 
-Thus both candidate types have the same interpretation:
+### 2. Reduce the need for Exact expansion
 
-```
-G = current-layer relation utility mass
-```
+History should make the compressed state more expressive.
 
-- History: inferred cheaply from previous real QK evidence + current persistence;
-- Fresh: measured from current QK only where History is insufficient.
+For example, Rep alone may be insufficient for a difficult cluster, while:
 
-Merge the two candidate sets and sort them by `G`.
+    History_1 + History_2 + Rep
+
+may preserve enough information to avoid:
+
+    Exact(C)
+
+The computational benefit of History therefore comes primarily from replacing a
+large Exact state with a small number of reused relations plus one
+representative.
 
 ---
 
-## Step 5: use a bounded number of joint operating points
+## Efficiency target
 
-After merging, each cluster has at most `K` concrete relation candidates.
+The desired property is NOT:
 
-For sorted candidates
+    more History -> fewer fresh QK probes
 
-```
-e_1, e_2, ..., e_K
-```
+because fresh per-cluster QK probing does not exist in this design.
 
-construct only:
+The desired property is:
 
-```
-Drop
-Rep
-EdgePrefix(1)
-EdgePrefix(1) + Rep
-...
-EdgePrefix(K)
-EdgePrefix(K) + Rep
-Exact
-```
+    more useful reusable History
+            ->
+    more clusters remain compressible
+            ->
+    fewer clusters choose Exact
+            ->
+    fewer physical QK edges are executed
 
-Maximum state count:
+For a cluster of size |C|:
 
-```
-2K + 3
-```
+    History_t + Rep cost ~= t + 1
+    Exact cost            = |C|
 
-For `K=4`, this is only 11 states per cluster.
+When t + 1 is much smaller than |C|, useful History avoids an expensive Exact
+expansion.
 
-This replaces the current unbounded state count caused by enumerating every
-available History edge.
+Therefore the key efficiency metric is the reduction in Exact expansion and
+physical support.
 
-The existing `budget_states()` solver remains unchanged and chooses all cluster
-states together under one global budget.
+---
 
-There is no sequential “select History first, then select Exploration” decision.
+## Controlling the number of operating points
+
+The current implementation can still become expensive if every available History
+prefix creates a separate operating point.
+
+Do NOT solve this by adding fresh-QK candidates.
+
+Instead, compress only the History prefix levels.
+
+Initial proposal:
+
+    history_operating_levels = 4
+
+For each cluster, compute cumulative History gain:
+
+    S_t = sum_{i=1..t} G_{h_i}
+
+and retain at most four representative prefix lengths corresponding to roughly:
+
+    25%, 50%, 75%, 100%
+
+of the total reusable History gain in that cluster.
+
+Example:
+
+If 17 History edges exist, the retained prefix lengths might be:
+
+    t = [1, 3, 7, 17]
+
+depending on the cumulative gain distribution.
+
+The prefix lengths are adaptive, but the number of operating levels is fixed.
+
+Then the maximum state count becomes:
+
+    Drop
+    Rep
+    4 x (History-prefix, History-prefix + Rep)
+    Exact
+
+so at most:
+
+    2 * history_operating_levels + 3
+
+states per cluster.
+
+With four levels, this is at most 11 states per cluster, independent of how many
+History edges are available.
+
+This is the main selector-efficiency improvement.
 
 ---
 
@@ -236,248 +207,164 @@ There is no sequential “select History first, then select Exploration” decis
 
 Primary file:
 
-`saf3r/patch/reuse_residual_exploration.py`
+    saf3r/patch/reuse_residual_exploration.py
 
 ## Config
 
 Add:
 
-```python
-relation_candidate_slots: int = 4
-fresh_oversample: int = 4
-```
+    history_operating_levels: int = 4
 
-Remove the current assumption that all History candidates become prefix states.
+Do NOT add:
 
-## Replace `history_cluster_prefixes()`
+- fresh relation slots;
+- fresh oversampling;
+- per-cluster current-QK probes.
 
-Replace it with:
+## Compress History prefix enumeration
 
-```python
-def build_relation_candidate_slots(
-    history_ids,
-    history_gain,
-    history_valid,
-    labels,
-    pi,
-    q_probe,
-    k,
-    patches,
-    slots,
-    oversample,
-):
-    ...
-```
+history_cluster_prefixes() should still:
 
-Outputs per query-group / Fine cluster:
+1. map History edges to current Fine clusters;
+2. sort them by History reliability;
+3. compute cumulative History gain.
 
-```
-candidate_ids      # [G, F, K]
-candidate_gain     # [G, F, K]
-candidate_source   # HISTORY / FRESH / INVALID
-candidate_valid
-history_coverage
-fresh_probe_pairs
-```
+But it should additionally return only a small number of prefix checkpoints:
 
-Responsibilities:
+    prefix_lengths      # [G, F, L]
+    prefix_gain         # cumulative gain at each checkpoint
+    prefix_valid
 
-1. map History to current Fine clusters;
-2. compute `coverage_H`;
-3. allocate `K_H / K_F`;
-4. retain top `K_H` History candidates;
-5. probe only enough current QK to fill `K_F`;
-6. merge and sort the final K concrete candidates.
+where:
 
-## Replace `joint_history_exploration_operating_points()`
+    L <= history_operating_levels
 
-Rename to:
+The checkpoints are selected from cumulative History gain.
 
-```python
-def relation_operating_points(...):
-    ...
-```
+## Joint operating points
 
-It no longer needs an arbitrary History width.
+joint_history_exploration_operating_points() should use only those checkpoint
+prefixes.
 
-It receives exactly `K` concrete candidates and creates at most `2K+3`
-states.
+For every retained prefix H_t, create:
 
-The final solver is still:
+    H_t
+    H_t + Rep
 
-```python
-selected, count = budget_states(
-    errors,
-    costs,
-    budget,
-    dual_iterations,
-)
-```
+plus:
 
-## Packing
+    Drop
+    Rep
+    Exact
 
-Replace the History-specific packing logic with candidate-source-aware packing:
+All states go into the same budget_states() call.
 
-```python
-pack_relation_support(...)
-```
+There is no separate History optimization stage.
 
-A concrete candidate is one physical QK key regardless of whether its source is:
+## Exact fallback
 
-- HISTORY;
-- FRESH.
+If no compressed state is good enough under the shared loss/cost objective, the
+optimizer can choose Exact.
 
-Population compensation remains unchanged for the representative role.
-
----
-
-# Important distinction: acquisition cost vs final support cost
-
-Two costs must be recorded separately.
-
-### Final sparse-attention cost
-
-Every selected concrete relation costs one physical QK edge:
-
-```
-support_qk_cost = selected sparse keys
-```
-
-This remains the global budget optimized by `budget_states()`.
-
-### Candidate acquisition cost
-
-History candidate:
-
-```
-acquisition_qk = 0
-```
-
-because the relation was already computed in the previous layer.
-
-Fresh candidate:
-
-```
-acquisition_qk > 0
-```
-
-because current QK probing is required.
-
-Do NOT add acquisition QK to the final support budget.  Record it separately as
-selector overhead.
-
-This separation is essential to demonstrate the computational value of History.
+Exact executes every member of the cluster and therefore needs no additional
+specific relation search.
 
 ---
 
 # Required diagnostics
 
-Add layer metrics:
+Add:
 
-```
-history_candidate_slots_mean
-fresh_candidate_slots_mean
-history_candidate_fraction_mean
-fresh_probe_qk_per_head
-fresh_probe_clusters_mean
-zero_fresh_probe_clusters_mean
-relation_states_per_cluster_mean
-```
+    history_candidates_mean
+    history_prefix_levels_mean
+    history_selected_mean
+    history_plus_rep_clusters_mean
+    exact_clusters_mean
+    exact_edges_mean
+    physical_budget_utilization_mean
+    actual_unique_density
 
-The central efficiency test is:
+Also record:
 
-```
-History candidate fraction increases
-        ->
-fresh candidate slots decrease
-        ->
-fresh_probe_qk_per_head decreases
-```
+    mean_cluster_size_when_exact
+    mean_history_count_when_exact
+    mean_history_count_when_compressed
 
-This relationship must be measured directly.
+The central stage-level relationship to verify is:
+
+    reusable History utility increases
+            ->
+    History + Rep states are selected more often
+            ->
+    Exact clusters / Exact edges decrease
 
 ---
 
-# Required ablations
+# Clean no-History baseline
 
-Use the same joint optimizer and the same `K`.
+The correct no-History baseline is NOT fresh concrete-QK discovery.
 
-## A. No-History fresh baseline
+Disable History and give each cluster only:
 
-```
-K_H = 0
-K_F = K
-```
+    Drop
+    Rep
+    Exact
 
-Every cluster discovers all concrete relation candidates from current QK.
+This answers the causal question:
 
-This is the clean baseline for answering:
-
-> What does History save compared with directly finding several concrete QK
-> edges in every current cluster?
-
-## B. History reuse
-
-Adaptive `K_H / K_F` from History coverage.
+Does previously computed History allow more clusters to avoid Exact expansion
+than Value representation alone?
 
 Compare:
 
 - quality;
-- final sparse support density;
-- selector QK pairs;
+- Exact cluster ratio;
+- Exact QK edges;
+- final physical support;
 - selector latency;
 - total latency.
-
-## C. History-only candidate acquisition diagnostic
-
-Do not add fresh probes.  This is only to measure the quality ceiling/failure
-mode of History candidates, not the final method.
 
 ---
 
 # Acceptance criteria
 
-The implementation is useful only if all three hold:
+The redesign is useful only if:
 
-1. **Quality:** History reuse does not materially degrade the joint method.
-2. **Bounded states:** operating points per cluster are bounded by `2K+3`.
-3. **Real computation reduction:** compared with the no-History fresh baseline,
-
-```
-fresh_probe_qk_per_head
-```
-
-must decrease as reusable History increases.
+1. operating-point count is bounded by a small constant per cluster;
+2. no new per-cluster QK discovery is introduced;
+3. History + Rep reduces Exact expansion compared with the no-History
+   Drop/Rep/Exact baseline;
+4. quality is maintained or improved;
+5. selected physical support decreases when useful History can replace Exact.
 
 The intended behavior is:
 
-```
-more reusable History
-        ->
-more candidate slots filled for free
-        ->
-fewer current QK probes
-        ->
-fewer selector FLOPs
-```
+    History provides concrete relations
+            +
+    Value representative covers the residual
+            ->
+    keep cluster compressed
 
-If History fraction rises but fresh QK probing does not fall, the implementation
-has failed its main efficiency objective.
+    otherwise
+            ->
+    Exact expansion
+
+This is the implementation invariant for the next revision.
 
 ---
 
 # Implementation order
 
-1. Add config and diagnostics.
-2. Implement fixed K History/Fresh candidate allocation.
-3. Implement residual uniform pre-candidate sampling.
-4. Implement current QK probing only for `K_F > 0`.
-5. Replace unbounded History-prefix operating points with bounded `2K+3`
-   relation states.
-6. Keep `budget_states()` unchanged.
-7. Add the no-History fresh baseline.
-8. Run two-frame correctness first.
-9. Only then run 128-frame quality/runtime.
+1. Add history_operating_levels.
+2. Compress arbitrary History prefixes into at most L cumulative-gain
+   checkpoints.
+3. Keep only Drop / Rep / H_t / H_t+Rep / Exact states.
+4. Keep the existing single global budget_states() solver.
+5. Add a no-History Drop / Rep / Exact control.
+6. Add Exact-rate and physical-support diagnostics.
+7. Run two-frame correctness first.
+8. Then run 128-frame quality/runtime.
 
-Do not change query-group size, History evidence granularity, Value clustering,
-canonical grid, or total retention in this experiment.
+Do not change query-group size, History evidence granularity, current Value
+clustering, canonical grid, total retention, or attention execution kernel in
+this experiment.
