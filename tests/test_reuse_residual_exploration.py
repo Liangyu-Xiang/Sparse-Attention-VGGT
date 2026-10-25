@@ -2,7 +2,8 @@ import pytest
 import torch
 from saf3r.patch.reuse_residual_exploration import (ReuseExploreConfig,ReuseExploreState,
     ReuseResidualExploration,canonical_layout,budget_states,compact_history_bank,
-    history_relation_items,exploration_operating_points,joint_operating_points,reference_attention)
+    history_relation_items,exploration_operating_points,joint_operating_points,
+    physical_joint_operating_points,pack_support_physical,reference_attention)
 from saf3r.patch.region_history_attention import prepare_qkv
 from saf3r.models.official_vggt.layers.attention import Attention
 
@@ -59,6 +60,32 @@ def test_history_filter_uses_current_region_persistence_and_old_relative_salienc
     torch.testing.assert_close(gain[0,:2],torch.tensor([.48,.12]))
     # Region 1 is filtered by low current importance and low persistence.
     torch.testing.assert_close(gain[0,2],torch.tensor(.025))
+
+def test_physical_history_rep_overlap_costs_one_slot_and_preserves_both_roles():
+    hgain=torch.tensor([[.40]])
+    hvalid=torch.tensor([[True]])
+    hids=torch.tensor([[1]])
+    reps=torch.tensor([1])
+    pi=torch.tensor([[.30]])
+    rep_dist=torch.tensor([.5])
+    pop=torch.tensor([4.])
+    allowed=torch.tensor([[False]])
+    ee,ec=exploration_operating_points(pi,rep_dist,pop,allowed)
+    errors,costs,overlap,_,matched=physical_joint_operating_points(
+        hgain,hvalid,hids,reps,ee,ec,num_patches=4)
+    assert overlap.tolist()==[[True]] and matched.tolist()==[[True]]
+    chosen,count=budget_states(errors,costs,1,20)
+    # Standalone History is disabled; the overlapping cluster chooses merged Rep.
+    assert chosen.tolist()==[[0,2]] and count.item()==1
+    ids,pops,_,record=pack_support_physical(
+        chosen,hids,reps,torch.tensor([0,0,0,0]),pop,1,overlap)
+    assert ids.tolist()==[[1]]
+    torch.testing.assert_close(pops,torch.tensor([[4.]]))
+    assert record['reuse_edges'].item()==1
+    assert record['representatives'].item()==0
+    assert record['population_representative_clusters'].item()==1
+    assert record['counts'].item()==1
+
 
 def test_history_and_exploration_compete_in_one_budget_without_value_testing_history():
     hgain=torch.tensor([[.40,.01]])
@@ -146,6 +173,7 @@ def test_all24_weighted_support_population_no_duplicates_history_and_reset(devic
         record=s.records[-1]
         torch.testing.assert_close(record['reuse_edges_mean']+record['representatives_mean']+record['exact_edges_mean'],
                                    record['counts_mean'])
+        assert record['counts_mean']<=s.budget
         for g,h in enumerate(s.history_ids):
             wi=g//c.window_groups;row=g%c.window_groups
             window=s.captured[layer]['windows'][wi]
