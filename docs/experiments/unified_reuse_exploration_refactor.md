@@ -276,3 +276,15 @@ method family.
 The executable diagnostic package and Codex handoff for the next round are in
 `docs/experiments/unified_next_round_handoff.md`.  Run those diagnostics before
 making another production-selector revision.
+
+## Physical History–Rep budget accounting
+
+The all-executed-edge experiment exposed a large optimizer/packing mismatch: a
+physical key that was both previous History and the current Value representative
+was charged twice by the independent state solver and deduplicated only after
+selection.  The current branch contains a causal accounting ablation that merges
+those roles before optimization while leaving History scoring and Rep/Exact
+semantics unchanged.
+
+Execution handoff:
+`docs/experiments/physical_history_rep_budget_handoff.md`.
