@@ -1,0 +1,77 @@
+{
+  "shape": {
+    "tokens": 133248,
+    "budget": 26009,
+    "fine_items": 26009,
+    "query_groups": 4164,
+    "window_groups": 8
+  },
+  "rows": [
+    {
+      "reuse_ratio": 0.0,
+      "history_items": 0,
+      "fine_items": 26009,
+      "window_groups": 8,
+      "total_query_groups": 4164,
+      "exploration_ms_window": 0.13977599889039993,
+      "solver_ms_window": 2.0448800325393677,
+      "total_ms_window": 2.1846560314297676,
+      "projected_all_windows_ms": 1137.113464359194,
+      "peak_allocated_mib": 13.10107421875,
+      "desired_remaining_exploration_fraction": 1.0
+    },
+    {
+      "reuse_ratio": 0.25,
+      "history_items": 6502,
+      "fine_items": 26009,
+      "window_groups": 8,
+      "total_query_groups": 4164,
+      "exploration_ms_window": 0.13363199681043625,
+      "solver_ms_window": 2.2481919527053833,
+      "total_ms_window": 2.3818239495158195,
+      "projected_all_windows_ms": 1239.739365722984,
+      "peak_allocated_mib": 21.08837890625,
+      "desired_remaining_exploration_fraction": 0.75
+    },
+    {
+      "reuse_ratio": 0.5,
+      "history_items": 13004,
+      "fine_items": 26009,
+      "window_groups": 8,
+      "total_query_groups": 4164,
+      "exploration_ms_window": 0.13312000036239624,
+      "solver_ms_window": 2.2507519721984863,
+      "total_ms_window": 2.3838719725608826,
+      "projected_all_windows_ms": 1240.8053617179394,
+      "peak_allocated_mib": 23.12255859375,
+      "desired_remaining_exploration_fraction": 0.5
+    },
+    {
+      "reuse_ratio": 0.75,
+      "history_items": 19507,
+      "fine_items": 26009,
+      "window_groups": 8,
+      "total_query_groups": 4164,
+      "exploration_ms_window": 0.130048006772995,
+      "solver_ms_window": 2.236928105354309,
+      "total_ms_window": 2.366976112127304,
+      "projected_all_windows_ms": 1232.0110663622618,
+      "peak_allocated_mib": 26.7451171875,
+      "desired_remaining_exploration_fraction": 0.25
+    },
+    {
+      "reuse_ratio": 0.8,
+      "history_items": 20807,
+      "fine_items": 26009,
+      "window_groups": 8,
+      "total_query_groups": 4164,
+      "exploration_ms_window": 0.131071999669075,
+      "solver_ms_window": 2.248703956604004,
+      "total_ms_window": 2.379775956273079,
+      "projected_all_windows_ms": 1238.6733852401376,
+      "peak_allocated_mib": 27.70654296875,
+      "desired_remaining_exploration_fraction": 0.19999999999999996
+    }
+  ],
+  "interpretation": "Current code constructs all Fine exploration states for every ratio, then appends History to the dual solver. Therefore increasing History is not expected to reduce exploration_ms; an optimized reuse design should make exploration work shrink with the unresolved budget/information."
+}

@@ -1,0 +1,67 @@
+.........F                                                               [100%]
+=================================== FAILURES ===================================
+_ test_all24_weighted_support_population_no_duplicates_history_and_reset[cuda] _
+
+device = 'cuda'
+
+    @pytest.mark.parametrize('device',['cpu','cuda'])
+    def test_all24_weighted_support_population_no_duplicates_history_and_reset(device):
+        if device=='cuda' and not torch.cuda.is_available():pytest.skip('CUDA absent')
+        torch.manual_seed(5)
+        c=ReuseExploreConfig(capture=True,source_width=4,window_groups=2)
+        s=ReuseExploreState(c);s.reset(1,8,16,device);grid=s.grid.clone()
+        for layer in range(24):
+            original=Attention(dim=32,num_heads=2).to(device).eval()
+            wrapper=ReuseResidualExploration(original,s,layer).eval()
+            x=torch.randn(1,133,32,device=device)
+            with torch.inference_mode(),torch.autocast(device,enabled=device=='cuda',dtype=torch.bfloat16):
+>               actual=wrapper(x)
+
+tests/test_reuse_residual_exploration.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py:1532: in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py:1541: in _call_impl
+    return forward_call(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ReuseResidualExploration(
+  (original): Attention(
+    (qkv): Linear(in_features=32, out_features=96, bias=True)
+    (...se)
+    (proj): Linear(in_features=32, out_features=32, bias=True)
+    (proj_drop): Dropout(p=0.0, inplace=False)
+  )
+)
+x = tensor([[[ 0.3097,  1.2164,  0.7741,  ..., -0.5798,  1.9398,  0.3659],
+         [ 1.4529,  0.7350, -0.0850,  ...,  1.3...76,  2.2698,  0.3646],
+         [ 1.8278,  0.3339,  0.7984,  ..., -0.4915, -0.5217,  0.5282]]],
+       device='cuda:0')
+pos = None
+
+    def forward(self,x,pos=None):
+        o,s=self.original,self.state;c=s.config
+        if self.training or len(x)!=1 or self.layer!=s.previous_layer+1:raise ValueError('Batch-one ordered inference required')
+        q,k,v=prepare_qkv(o,x,pos);q=q.to(v.dtype).contiguous();k=k.to(v.dtype).contiguous()
+        with stage(s,'value_update'),torch.autocast(x.device.type,enabled=False):
+            features=v.mean(0,dtype=torch.float32)[s.patches]
+            s.fine.update(features,self.layer)
+        with stage(s,'pooling'),torch.autocast(x.device.type,enabled=False):
+            population,unit_features,mean_unit,rep_dist,pooled,overlap=s.prepare(k,features)
+        output=torch.empty_like(v);history=[];weights=[];grids=[];coverages=[];stats=[];capture=[]
+        exact_count=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
+        for start in range(0,s.groups,c.window_groups):
+            g=min(c.window_groups,s.groups-start);first=start*32;end=min(s.n,(start+g)*32)
+            probe=(torch.arange(start,start+g,device=x.device)[:,None]*32+
+                   torch.tensor([4,12,20,28],device=x.device)).clamp_max(s.n-1)
+            pq=q[:,probe]
+            with stage(s,'coarse_observation'):
+                z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+s.grid_sizes.log()
+                probability=z.softmax(-1).mean((0,2))
+>               pi=torch.sparse.mm(overlap,probability.T).T.contiguous()
+E               RuntimeError: "addmm_sparse_cuda" not implemented for 'BFloat16'
+
+saf3r/patch/reuse_residual_exploration.py:292: RuntimeError
+=========================== short test summary info ============================
+FAILED tests/test_reuse_residual_exploration.py::test_all24_weighted_support_population_no_duplicates_history_and_reset[cuda]
+1 failed, 9 passed in 4.81s
