@@ -443,6 +443,12 @@ Create:
 
 `outputs/physical_overlap_accounting/analysis.md`
 
+Use:
+
+`docs/experiments/physical_history_rep_budget_analysis_template.md`
+
+as the required report structure.
+
 Answer the following.
 
 ## A. Was the budget-accounting hypothesis correct?
