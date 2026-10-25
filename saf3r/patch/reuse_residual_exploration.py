@@ -628,7 +628,12 @@ class ReuseResidualExploration(nn.Module):
                     optimizer_cost=torch.full((g,),s.budget,device=x.device),
                     conditioned_history_distortion=torch.ones(g,device=x.device),
                     history_selected_cluster_coverage=torch.zeros(g,device=x.device),
-                    shadow_price=torch.zeros(g,device=x.device))
+                    shadow_price=torch.zeros(g,device=x.device),
+                    missed_history_gain=torch.zeros(g,device=x.device),
+                    history_conditioned_clusters=torch.zeros(g,device=x.device),
+                    history_only_clusters=torch.zeros(g,device=x.device),
+                    history_plus_rep_clusters=torch.zeros(g,device=x.device),
+                    history_plus_exact_clusters=torch.zeros(g,device=x.device))
             else:
                 with stage(s,'reuse_prior'):
                     previous=s.previous_grid[start:start+g].float()
@@ -673,7 +678,20 @@ class ReuseResidualExploration(nn.Module):
                     record['history_rep_candidate_overlap']=history_rep_candidate_overlap
                     record['optimizer_cost']=count
                     record['proxy_drop_error']=errors[:,:,0].masked_fill(torch.isinf(errors[:,:,0]),0).sum(1)
-                    record['proxy_selected_error']=errors.gather(2,estate[:,:,None] if c.history_conditioned_exploration else selected[:,:,None]).squeeze(-1).sum(1)
+                    record['proxy_selected_error']=errors.gather(
+                        2,estate[:,:,None] if c.history_conditioned_exploration else selected[:,:,None]).squeeze(-1).sum(1)
+                    if c.history_conditioned_exploration:
+                        record['missed_history_gain']=(hgain*(hvalid&~hkeep)).sum(1)
+                        record['history_conditioned_clusters']=(hcount>0).sum(1)
+                        record['history_only_clusters']=((hcount>0)&(estate==0)).sum(1)
+                        record['history_plus_rep_clusters']=((hcount>0)&(estate==1)).sum(1)
+                        record['history_plus_exact_clusters']=((hcount>0)&(estate==2)).sum(1)
+                    else:
+                        record['missed_history_gain']=torch.zeros(g,device=x.device)
+                        record['history_conditioned_clusters']=torch.zeros(g,device=x.device)
+                        record['history_only_clusters']=torch.zeros(g,device=x.device)
+                        record['history_plus_rep_clusters']=torch.zeros(g,device=x.device)
+                        record['history_plus_exact_clusters']=torch.zeros(g,device=x.device)
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
