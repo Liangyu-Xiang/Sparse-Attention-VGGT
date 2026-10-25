@@ -7,7 +7,9 @@ import numpy as np
 METRICS=("value_rel_l2","value_cosine_dist","key_rel_l2","key_cosine_dist","qk_logit_std","rep_affinity_error")
 
 def rank(x):
-    order=np.argsort(x,kind="stable");r=np.empty(len(x),dtype=float);r[order]=np.arange(len(x));return r
+    # Spearman ranks must average ties, rather than using input row order.
+    from scipy.stats import rankdata
+    return rankdata(x,method='average')
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument("inputs",type=Path,nargs="+");p.add_argument("--output",type=Path,required=True);p.add_argument("--positive-fraction",type=float,default=.2);a=p.parse_args()

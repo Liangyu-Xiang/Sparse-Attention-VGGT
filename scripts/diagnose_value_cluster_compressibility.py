@@ -12,6 +12,11 @@ references:
 Population compensation is intentionally not evaluated here.
 """
 from __future__ import annotations
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from scripts.unified_diagnostic_runtime import install
+install()
 import argparse,csv,json
 from dataclasses import replace
 from pathlib import Path

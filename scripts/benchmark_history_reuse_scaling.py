@@ -7,6 +7,11 @@ History pool is varied. If runtime does not decrease with reuse ratio, the
 current implementation does not yet realize the intended efficiency property.
 """
 from __future__ import annotations
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from scripts.unified_diagnostic_runtime import install
+install()
 import argparse,csv,json,math
 from pathlib import Path
 import numpy as np

@@ -7,6 +7,11 @@ attention probabilities over all heads and over query groups of size
 head/query's current Top-rho keys and current attention-mass coverage.
 """
 from __future__ import annotations
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from scripts.unified_diagnostic_runtime import install
+install()
 import argparse,csv,json,math
 from pathlib import Path
 import torch

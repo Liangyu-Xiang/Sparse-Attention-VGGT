@@ -6,6 +6,11 @@ an unmodified Dense VGGT trajectory. The target is the current layer's Top-rho
 support. Candidate sets come only from the previous layer's Top-r support.
 """
 from __future__ import annotations
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from scripts.unified_diagnostic_runtime import install
+install()
 import argparse, csv, json
 from pathlib import Path
 import numpy as np

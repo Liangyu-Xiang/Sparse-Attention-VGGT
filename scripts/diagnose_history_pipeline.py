@@ -14,6 +14,11 @@ supports against the current per-head/per-query Dense Top-rho target:
 This script does not alter the selector and should not be used as an accelerator.
 """
 from __future__ import annotations
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from scripts.unified_diagnostic_runtime import install
+install()
 import argparse, csv, json
 from dataclasses import replace
 from pathlib import Path
@@ -92,7 +97,7 @@ def main():
         final_support=concatenate_windows(current,"ids",groups)
         accum={name:[] for name in ("previous_full","history_candidates","history_selected","final_support")}
         for h in range(q.shape[0]):
-            logits=qp[h].T@kp[h]*(q.shape[-1]**-.5);probs=logits.softmax(-1);target=logits.topk(keep,dim=-1,sorted=False).indices
+            logits=qp[h]@kp[h].T*(q.shape[-1]**-.5);probs=logits.softmax(-1);target=logits.topk(keep,dim=-1,sorted=False).indices
             for name,cand in (("previous_full",prev_full),("history_candidates",hist_candidates),("history_selected",hist_selected),("final_support",final_support)):
                 accum[name].append(support_metrics(probs[None],target[None],cand,query_abs.to(a.device),patch_abs.to(a.device)))
         for name,vals in accum.items():
