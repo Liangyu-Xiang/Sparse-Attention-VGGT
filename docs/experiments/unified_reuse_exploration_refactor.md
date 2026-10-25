@@ -1,195 +1,254 @@
 # Unified History Reuse + Current-Layer Value Exploration Refactor
 
-## Motivation
+## Goal
 
-This branch refactors the high-quality `reuse_residual_exploration` prototype
-rather than starting from a new sparse-attention method. The objective is to
-preserve components that already worked empirically while correcting the parts
-whose semantics conflict with the current design principles.
+This branch refactors the empirically stronger `reuse_residual_exploration`
+prototype instead of introducing a new sparse-attention method from scratch.
+The final sparse mask is still obtained under one shared QK budget, but History
+reuse and current-layer exploration now have deliberately different roles.
 
-The final sparse-support problem is viewed as one shared budget allocation:
-reliable old relations and current-layer Value representatives compete jointly.
-History is not hard-kept by a fixed fraction or threshold, and exploration is
-not a second stage executed after History.
+History is a cheap relation-reuse mechanism. Exploration is a current-layer
+representation mechanism. They compete for the same budget; neither receives a
+preset fraction.
 
-## Principles
+## Core principles
 
-1. The inaccessible ideal target is the Dense attention output. We do not invent
+1. The unavailable ideal target is the Dense attention output. Do not fabricate
    a per-cluster output target such as `pi * mean(V)`.
-2. Previous-layer attention probabilities are valid only in the previous layer.
-   They may rank old genuine edges by historical salience, but are never treated
-   as predicted current-layer attention mass.
-3. Cross-layer coarse attention is used to judge persistence of the old relation
-   prior. The same canonical estimator must be compared across adjacent layers.
-4. Current coarse attention answers **where current information matters**.
-5. Current Value geometry answers **which keys can represent redundant current
-   information**.
-6. History and exploration share one budget. The number of retained History
-   edges is an output of the selector, not a preset ratio.
-7. Once a History key is selected, its current-layer Value is also an anchor and
-   therefore changes the value of further exploration.
-8. No explicit residual of the form
-   `current coarse mass - old edge probability` is constructed.
-9. Support construction must stay much cheaper than the final sparse attention.
+2. Previous-layer attention probability is valid only in that layer. It can
+   provide relative salience among already-computed historical relations, but
+   it is never interpreted as the current-layer edge probability.
+3. Current coarse attention supplies current-layer importance.
+4. Current Value geometry supplies current-layer redundancy for exploration.
+5. A historical edge must be reusable directly by identity. It should not first
+   be remapped into a Fine cluster and then re-evaluated as if it were another
+   local Value candidate.
+6. History and exploration share one budget. The final History count is an
+   optimization outcome rather than a threshold or fixed percentage.
+7. No explicit residual of the form
+   `current coarse mass - previous edge probability` is constructed.
+8. Mask construction must stay substantially cheaper than the final sparse
+   attention.
 
-## What was wrong in the previous prototype
+## Problems in the original high-quality prototype
 
 ### Artificial cluster-output target
 
-The previous operating-point loss used
+The previous selector used
 
 ```
 target_C = pi_C * mean_V_C
 ```
 
-and evaluated Drop / Rep / History / History+Rep / Exact by their distance to
-this artificial vector target. This makes the representative artificially
-favored and, more importantly, lets a History edge be retained because it
-happens to approximate the current cluster mean. That is not the intended
-semantics of History.
+and judged Drop / Rep / History / History+Rep / Exact states by their distance
+to this fabricated target. This can retain a History edge because its Value
+happens to resemble the cluster mean, which is not the reason History exists.
+
+### History was made cluster-local again
+
+The previous implementation remapped every old History ID into the *current*
+Fine Value partition, sorted History inside each Fine cluster, kept at most
+`history_per_cluster=4`, and then enumerated History prefixes as cluster-local
+operating points.
+
+That largely defeats the purpose of History reuse. A previously computed QK
+relation should be cheap because its identity and old salience are already
+known. Treating it as "a few more local candidates to test inside every Value
+cluster" makes History behave too much like another exploration mechanism.
+
+The refactor removes this remapping/cap from History selection entirely.
 
 ### Cross-layer probability transfer
 
-The previous History utility was numerically reused as a predicted current
-contribution. Old attention probability can rank old edges, but its absolute
-value is not a current-layer probability because Q/K, support, and the softmax
-denominator all change.
+Old attention values are no longer used as a prediction of current attention
+mass. They are only historical salience evidence.
 
-### Residual subtraction
+### Residual subtraction and Fine QK probing
 
-The previous coarse demand used
+The old residual
 
 ```
-q = [p_current - beta * previous_genuine_mass]+
+[p_current - beta * previous_genuine_mass]+
 ```
 
-which subtracts quantities that do not live in the same current-layer
-probability space. This residual is removed.
+and the subsequent top-25% Fine representative QK probe are removed.
 
-### Fine representative QK probing
+### Mismatched coarse estimators
 
-The top 25% residual Fine clusters previously received extra representative QK
-probes to estimate `pi_hat`. This adds mask-construction cost and couples the
-selector to another fine-grained attention search. The refactor removes this
-entire branch.
-
-### Mismatched cross-layer coarse estimators
-
-Current `p` came from pooled canonical QK while the saved previous
-distribution came from the executed sparse support aggregated by key location.
-The refactor stores the same canonical coarse estimator every layer, so
-persistence compares like with like.
+Adjacent-layer persistence now compares the same canonical pooled-QK estimator
+on both layers, instead of comparing current pooled-QK probability against a
+previous sparse-support aggregation.
 
 ### Full repeated evidence QK
 
-The previous implementation recomputed QK on all selected patch keys after the
-final sparse attention in order to obtain outgoing History salience. The
-refactor replaces this with a 4/32-query probe evidence pass. It remains an
-explicit approximation, but its QK cost is one eighth of the previous evidence
-pass and it is used only for next-layer relative salience.
+The original reference implementation recomputed almost the complete selected
+sparse QK support after attention solely to recover next-layer History weights.
+The refactor estimates outgoing relation salience on the same four probes used
+by coarse routing, reducing this evidence QK from 32/32 queries to 4/32 queries.
 
-## What is preserved
+## Preserved components
 
-The following components are intentionally retained:
+The following parts of the high-quality prototype remain:
 
-- FullCoverageValue and its cross-layer local Value updates.
-- Current real-token representatives.
-- Fixed canonical low-resolution observation.
-- Query groups of 32 with four probe queries.
-- Population compensation for Value representatives.
-- Genuine-edge-only History bookkeeping.
-- The operating-point representation
-  (Drop / Rep / History prefix / History+Rep / Exact).
-- The shared Lagrangian budget solver, so History/Rep/Exact ratios remain
-  adaptive outcomes rather than scheduled hyperparameters.
-- One unified sparse softmax/AV execution.
+- FullCoverageValue and its local cross-layer Value update;
+- real-token Fine representatives;
+- fixed low-resolution canonical observation;
+- 32-query groups with four probes;
+- population compensation;
+- one final unified sparse softmax/AV;
+- current Value Drop / Rep / Exact operating points;
+- the Lagrangian budget search.
 
-This keeps the empirically successful architecture around the selector while
-changing the semantics of the selector itself.
+The point is to replace the selector semantics while preserving the parts that
+already produced strong reconstruction quality.
 
-## Refactored common-scale objective
+## Direct History relation pool
 
-For Fine cluster C, current coarse attention is mapped to a current importance
+Assume a previous genuine History edge e belongs to canonical region r.
 
-```
-pi_C
-```
-
-with no subtraction of History.
-
-Current Values are unit-normalized. For a selected anchor s, the Value
-representation distortion of cluster C is the mean cosine distance
+The previous edge weight is **not** moved into the current layer. Instead, old
+weights are used only to form relative salience inside the old region:
 
 ```
-D_C(s) = mean_{j in C} (1 - cos(V_j, V_s)) / 2
+s_e = old_weight_e / sum_{j in H_r} old_weight_j
 ```
 
-which is available cheaply from the mean of unit-normalized member Values. The
-real cluster representative has a precomputed `D_rep`. A selected History
-edge is evaluated with its **current** Value, so it can also act as an anchor.
+The current layer supplies its own coarse region importance `p_r`, and the
+adjacent-layer canonical comparison supplies persistence `beta_r`.
 
-For genuine History edge e, the reuse prior is
-
-```
-r_e = previous_salience_e * persistence_region(e)
-```
-
-where `previous_salience_e` is used only as a previous-layer ranking signal
-and `persistence` comes from adjacent-layer canonical coarse distributions.
-The product is a reuse prior, not a current attention probability.
-
-For a History prefix, relation survival uses diminishing returns
+The History relation gain is
 
 ```
-R = 1 - product_e (1 - r_e)
-```
-
-and the common bounded cluster loss is
-
-```
-L_C = pi_C * D_C * (1 - R)
+G_H(e) = p_r(current) * beta_r * s_e
 ```
 
 Interpretation:
 
-- Drop: `D=1, R=0`.
-- Rep: reduces current Value distortion only.
-- History: receives an independent relation-persistence benefit and its current
-  Value becomes an anchor.
-- History+Rep: combines both roles.
-- Exact: zero representation loss, but keeps its full QK cost.
+- `s_e`: among the already-computed old relations in this region, which were
+  more important;
+- `beta_r`: how trustworthy reuse remains across the adjacent layers;
+- `p_r(current)`: how important this region is in the current layer.
 
-All operating points are therefore compared in the same current-importance
-scale without constructing a fake output vector or predicting current edge
-probability from an old one.
+The previous absolute probability is therefore never treated as a current
+probability. The gains of all old edges in one region sum to at most
+`p_r * beta_r`, which also provides natural diminishing return.
 
-## Exact-state eligibility
+Crucially, History IDs are not remapped into Fine clusters before selection.
+There is no `history_per_cluster`, no History Top-K per cluster, and no current
+Fine-QK test of those edges.
 
-Exact expansion is still retained because it was important to the quality of
-the previous prototype. It is no longer enabled by residual Fine-QK probes.
-Instead only the top `candidate_fraction` clusters by **current coarse
-importance** are eligible for Exact. The field name is retained for config
-compatibility; it no longer controls any fine-level QK probing.
+Each History edge is simply a two-state global item:
 
-## Expected computational changes
+```
+drop : cost 0, loss G_H(e)
+keep : cost 1, loss 0
+```
 
-Removed per layer:
+This is the intended cheap History reuse mechanism.
 
-- residual Fine-cluster mapping and residual top-k;
-- QK probes on 25% of Fine representatives;
-- representative-mass estimation and `pi_hat`;
-- full second selected-QK evidence pass;
-- previous genuine-grid residual state.
+## Current-layer exploration
 
-Still present:
+Fine cluster C receives current importance `pi_C` by mapping the current
+canonical distribution through cluster/canonical overlap.
 
-- one tiny canonical coarse QK observation;
-- Value update / clustering;
-- History candidate ranking;
-- operating-point construction and dual budget search;
-- final sparse attention;
-- 4/32-query probe evidence for next-layer historical salience.
+The current implementation retains the cosine-Value distortion used by the
+first refactor:
 
-The refactor is intended as a direct replacement candidate for the current
-high-quality prototype, not a new method family. History80 and the original
-prototype remain available from earlier commits for controlled comparison.
+```
+D_rep(C) = mean_{j in C} (1 - cos(V_j, V_rep(C))) / 2
+```
+
+This metric choice is intentionally treated as an ablation-level detail rather
+than a core principle. Raw-L2 or norm-aware alternatives can be evaluated
+without changing the overall selector.
+
+Exploration has only current-layer states:
+
+```
+Drop : error pi_C, cost 0
+Rep  : error pi_C * D_rep(C), cost 1
+Exact: error 0, cost |C|
+```
+
+Exact remains restricted to the top `candidate_fraction` clusters by current
+coarse importance to preserve the high-quality prototype's expressive range
+without reintroducing Fine-QK probing.
+
+## Shared budget competition
+
+History relation items and Fine Value exploration items are concatenated into
+one state table and passed to the same Lagrangian budget solver.
+
+Therefore the final mask can automatically contain:
+
+- many History edges when old relations remain valuable;
+- more new representatives when current Value coverage matters more;
+- Exact expansions for a small number of current high-importance clusters.
+
+There is still no History-first fixed allocation and no fixed History ratio.
+The distinction is that History enters this competition *directly as relations*,
+not as cluster-local Value candidates.
+
+## Population accounting after selection
+
+Only after a History edge has been selected is its token mapped to the current
+Fine label for packing/population accounting.
+
+This mapping is not used to decide whether the History edge is valuable.
+
+If a selected History key happens to equal the current Fine representative, the
+two physical roles are merged into one sparse key and their represented
+population is combined. Exact expansion suppresses duplicate History members.
+
+For a merged History+representative key, outgoing next-layer relation salience
+uses `selected_mass / population` as a per-member approximation, preventing
+aggregate population mass from being mistaken for genuine edge probability.
+
+## Compact History state
+
+The original prototype stored every query group with the full patch-budget
+History width, producing a large padded History bank.
+
+The refactor compacts all genuine relations once at the end of each layer and
+stores only the maximum genuine count needed by any query group. No sorting or
+Fine-cluster regrouping is required.
+
+This directly reduces:
+
+- History memory;
+- invalid padded candidates scanned by the next-layer budget solver;
+- the computational cost of making History an independent relation pool.
+
+## Computational path removed
+
+The refactored selector no longer performs:
+
+- previous/current probability residual subtraction;
+- residual top-k Fine localization;
+- Fine representative QK probes;
+- `pi_hat` representative-mass estimation;
+- per-Fine-cluster History sorting and cap;
+- full repeated selected-QK evidence.
+
+The intended mask-construction path is now:
+
+```
+current canonical QK
+        |
+        +--> current Fine importance + current Value exploration states
+        |
+previous compact History bank
+        +--> direct relation gains
+        |
+        v
+shared dual budget
+        |
+        v
+population-aware sparse support
+        |
+        v
+one sparse attention
+```
+
+This is still a refactor of the existing high-quality prototype, not a separate
+method family.
