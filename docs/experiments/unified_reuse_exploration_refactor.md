@@ -288,3 +288,25 @@ semantics unchanged.
 
 Execution handoff:
 `docs/experiments/physical_history_rep_budget_handoff.md`.
+
+## History-conditioned Exploration follow-up
+
+The independent unified selector is retained as an ablation, but it is no longer
+the intended structural endpoint.  The follow-up branch restores the directional
+coupling
+
+```
+reliable History selection -> residual Exploration conditioned on retained History
+```
+
+without restoring the old artificial `pi*mean(V)` target or explicit
+current-minus-previous probability subtraction.
+
+A retained History key may be promoted to the population representative of its
+current Value cluster at zero additional QK cost.  Therefore Value redundancy
+suppresses a redundant *new representative* rather than invalidating a reliable
+historical relation.
+
+See:
+
+`docs/experiments/history_conditioned_exploration_handoff.md`
