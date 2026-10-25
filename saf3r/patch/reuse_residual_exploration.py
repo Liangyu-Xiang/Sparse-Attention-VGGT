@@ -257,6 +257,8 @@ def pack_support_physical(selected,history_ids,reps,labels,population,budget,ove
     out.scatter_(1,slots,raw);out_pop.scatter_(1,slots,pop);real.scatter_(1,slots,relation)
     out=out[:,:-1].contiguous();out_pop=out_pop[:,:-1].contiguous();real=real[:,:-1].contiguous()
 
+    main_cluster=labels[history_ids.clamp_min(0)]
+    history_exact_overlap_selected=(hkeep & exact.gather(1,main_cluster)).sum(1)
     return out,out_pop,real,dict(
         reuse_edges=hvalid.sum(1),
         representatives=(rep_ids>=0).sum(1),
@@ -264,6 +266,7 @@ def pack_support_physical(selected,history_ids,reps,labels,population,budget,ove
         dropped_clusters=dropped.sum(1),
         counts=valid.sum(1),
         history_rep_merges=overlap_rep.sum(1),
+        history_exact_overlap_selected=history_exact_overlap_selected,
         population_representative_clusters=(nonoverlap_rep|overlap_rep).sum(1))
 
 
@@ -434,6 +437,7 @@ class ReuseResidualExploration(nn.Module):
                     counts=torch.full((g,),s.budget,device=x.device),history_rep_merges=torch.zeros(g,device=x.device),
                     history_candidates=torch.zeros(g,device=x.device),
                     history_rep_candidate_overlap=torch.zeros(g,device=x.device),
+                    history_exact_overlap_selected=torch.zeros(g,device=x.device),
                     population_representative_clusters=torch.full((g,),s.budget,device=x.device))
             else:
                 with stage(s,'reuse_prior'):
@@ -460,6 +464,7 @@ class ReuseResidualExploration(nn.Module):
                         selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
                         ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
                         record['population_representative_clusters']=record['representatives']
+                        record['history_exact_overlap_selected']=torch.zeros_like(record['reuse_edges'])
                     record['history_candidates']=hvalid.sum(1)
                     record['history_rep_candidate_overlap']=history_rep_candidate_overlap
                     record['proxy_drop_error']=errors[:,:,0].masked_fill(torch.isinf(errors[:,:,0]),0).sum(1)
