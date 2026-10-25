@@ -15,6 +15,7 @@ set -euo pipefail
 PYTHON="${PYTHON:-python}"
 OUT_ROOT="${OUT_ROOT:-outputs/unified_next_round}"
 SCENES="${SCENES:-chess fire redkitchen}"
+GRANULARITY_SCENE="${GRANULARITY_SCENE:-chess}"
 
 run_fresh () {
   local out="$1"; shift
@@ -36,6 +37,13 @@ for scene in $SCENES; do
 
   run_fresh "$OUT_ROOT/compressibility/$scene"     "$PYTHON" scripts/diagnose_value_cluster_compressibility.py     --scene "$scene" --num-frames 2 --first-frame 0 --frame-gap 20     --layer-start 10 --layer-end 15 --top-clusters 64     --output-dir "$OUT_ROOT/compressibility/$scene"
 done
+
+run_fresh "$OUT_ROOT/query_granularity/$GRANULARITY_SCENE" \
+  "$PYTHON" scripts/diagnose_query_group_granularity.py \
+  --scene "$GRANULARITY_SCENE" --num-frames 2 --first-frame 0 --frame-gap 20 \
+  --retention 0.20 --group-sizes 32 16 8 4 1 \
+  --layer-start 9 --layer-end 15 \
+  --output-dir "$OUT_ROOT/query_granularity/$GRANULARITY_SCENE"
 
 inputs=()
 for scene in $SCENES; do
