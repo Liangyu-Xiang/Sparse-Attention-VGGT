@@ -1,3 +1,5 @@
+> **Completed and superseded for the next ablation.** Results are archived under `outputs/all_edge_history_no_coverage/`. The current experiment is `docs/experiments/physical_history_rep_budget_handoff.md`.
+
 # All-Executed-Edge History + No-Coverage Ablation Handoff
 
 ## Purpose
