@@ -1,3 +1,5 @@
+> **Superseded for the current production ablation.** Stage-1 diagnostics from this handoff have already been completed and archived under `outputs/unified_next_round/`. For the current all-executed-edge History + no-coverage experiment, follow `docs/experiments/all_edge_history_no_coverage_handoff.md` instead.
+
 # Unified Reuse: Next-Round Diagnostic Handoff
 
 ## Scope
