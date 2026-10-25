@@ -1,0 +1,86 @@
+diff --git a/saf3r/patch/reuse_residual_exploration.py b/saf3r/patch/reuse_residual_exploration.py
+index 1cf93e5..5c18db9 100644
+--- a/saf3r/patch/reuse_residual_exploration.py
++++ b/saf3r/patch/reuse_residual_exploration.py
+@@ -225,7 +225,11 @@ class ReuseResidualExploration(nn.Module):
+             with stage(s,'coarse_observation'):
+                 z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+s.grid_sizes.log()
+                 probability=z.softmax(-1).mean((0,2))
+-                pi=torch.sparse.mm(overlap,probability.T).T.contiguous()
++                # CUDA sparse addmm has no BF16 implementation in the pinned
++                # environment. The canonical probability/overlap are FP32;
++                # do not let the outer model autocast downcast this mapping.
++                with torch.autocast(x.device.type,enabled=False):
++                    pi=torch.sparse.mm(overlap,probability.float().T).T.contiguous()
+             if self.layer==0:
+                 ids=s.fine.reps[None].expand(g,-1).contiguous()
+                 pops=population[None].expand(g,-1).contiguous();real=torch.zeros_like(ids,dtype=torch.bool)
+diff --git a/saf3r/triton/reuse_explore_av.py b/saf3r/triton/reuse_explore_av.py
+index 6ecca62..3c9e17f 100644
+--- a/saf3r/triton/reuse_explore_av.py
++++ b/saf3r/triton/reuse_explore_av.py
+@@ -79,16 +79,18 @@ def _probe_mass(Q,K,IDS,BIAS,LSE,M,
+                 QH:tl.constexpr,KH:tl.constexpr,SCALE:tl.constexpr,BD:tl.constexpr):
+     """Approximate group-mean selected-key mass on the same four probes used by routing."""
+     group,head,tile=tl.program_id(0),tl.program_id(1),tl.program_id(2)
+-    pp=tl.arange(0,4);rr=tl.minimum(group*32+4+pp*8,R-1)
++    # Tensor Core dot requires M>=16. Pad the tile, but only the four
++    # configured probes contribute; do not silently use 16 query probes.
++    pp=tl.arange(0,16);rr=tl.minimum(group*32+4+pp*8,R-1)
+     col=tile*64+tl.arange(0,64);dd=tl.arange(0,BD)
+     ids=tl.load(IDS+group*A+col,col<A,-1);valid=(col<A)&(ids>=0)
+-    q=tl.load(Q+head*QH+rr[:,None]*D+dd[None,:],dd[None,:]<D,0)
++    q=tl.load(Q+head*QH+rr[:,None]*D+dd[None,:],(pp[:,None]<4)&(dd[None,:]<D),0)
+     k=tl.load(K+head*KH+tl.maximum(ids,0)[None,:]*D+dd[:,None],
+               valid[None,:]&(dd[:,None]<D),0)
+     bias=tl.load(BIAS+group*A+col,col<A,-float('inf'))
+     lse=tl.load(LSE+head*R+rr)
+     z=tl.dot(q,k)*SCALE+bias[None,:]
+-    p=tl.where(valid[None,:],tl.exp(z-lse[:,None]),0.)
++    p=tl.where((pp[:,None]<4)&valid[None,:],tl.exp(z-lse[:,None]),0.)
+     mass=tl.sum(p,0)/(H*4)
+     tl.atomic_add(M+group*A+col,mass,valid,sem='relaxed')
+ 
+diff --git a/scripts/evaluate_reuse_exploration.py b/scripts/evaluate_reuse_exploration.py
+index 488e53e..5e1854a 100644
+--- a/scripts/evaluate_reuse_exploration.py
++++ b/scripts/evaluate_reuse_exploration.py
+@@ -38,7 +38,7 @@ def run(args):
+     dataset=MV_REGISTRY.get('7scenes')()
+     positions,scene=sample_frames(dataset.get_data(args.scene),args.scene,args.frames,sample_mode='uniform',seed=0)
+     cfg=Dict(yaml.safe_load((ROOT/'configs/evaluation/eval_saf3r_vggt.yaml').read_text())['model'])
+-    cfg.ckpt_path=str(ROOT/'checkpoints/vggt/model_tracker_fixed_e20.pt')
++    cfg.ckpt_path=str(getattr(args,'checkpoint',None) or ROOT/'checkpoints/vggt/model_tracker_fixed_e20.pt')
+     cfg.sparse_config_path=str(ROOT/cfg.sparse_config_path)
+     saf3r_settings=dict(profile=cfg.sparse_config_path,topk=cfg.patch_module.topk,
+         topk_source='lazy first-correspondence head, NOT paper DINO feature Top-K',
+@@ -60,6 +60,11 @@ def run(args):
+         if saf3r_settings['topk']!=4 or not saf3r_settings['lazy_dino_topk']:raise ValueError('Frozen SAF3R configuration changed')
+         update_args_per_forward(model,'vggt',*images.shape[-2:])
+     canonical=dict(image_paths=scene.image_files,frame_indices=positions,shape=list(images.shape),checkpoint=cfg.ckpt_path)
++    if getattr(args,'expected_input',None):
++        # Exact historical inputs, not merely the same nominal frame count.
++        expected=json.loads(args.expected_input.read_text())
++        if json.loads(json.dumps(canonical,default=lambda x:x.tolist()))!=expected:
++            raise ValueError('Exact historical checkpoint/frame/preprocessing input mismatch')
+     save(out/'input.json',canonical)
+     save(out/'config.json',dict(method=args.method,config=None if config is None else asdict(config),
+         model=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,seed=0))
+@@ -109,7 +114,7 @@ def run(args):
+             cd_definition='(ACC+Comp)/2 unsquared metres',reconstruction='unposed'))
+     save(out/'forward.json',common)
+     if args.diagnostic:
+-        q=quality_record({},'Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated')
++        q=quality_record({},'Explicit implementation diagnostic; pose/recon_unposed and valid paired speedup not evaluated')
+         write_quality(out,q);save(out/'diagnostic.json',dict(common,quality=q))
+         save(out/'status.json',dict(stage='diagnostic_complete'));return
+     ext,intr=pose_encoding_to_extri_intri(raw['pose_enc'],images.shape[-2:])
+@@ -150,6 +155,8 @@ if __name__=='__main__':
+     p.add_argument('--method',choices=['dense','saf3r','history80','reuse_explore'],required=True)
+     p.add_argument('--scene',required=True);p.add_argument('--frames',type=int,default=128)
+     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
++    p.add_argument('--checkpoint',type=Path,help='Original absolute checkpoint path for isolated-checkout comparison')
++    p.add_argument('--expected-input',type=Path,help='Require exact equality to frozen historical input.json')
+     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')
+     p.add_argument('--warmup',type=int,default=1);p.add_argument('--repeats',type=int,default=3)
+     p.add_argument('--capture',action='store_true');p.add_argument('--diagnostic',action='store_true')

@@ -1,0 +1,313 @@
+"""Unified History-reuse + current-layer Value exploration.
+
+History is a relation prior, never a predicted current-layer attention
+probability. Current coarse attention supplies current-layer importance; current
+V supplies representation redundancy. History and Value states compete under one
+global budget through a common bounded loss.
+
+The old artificial target pi*mean(V), residual subtraction, and fine
+representative QK probes are deliberately removed.
+"""
+from dataclasses import dataclass
+import math
+import torch
+from torch import nn
+from .fused_shared_av import FullCoverageValue,stage
+from .region_history_attention import prepare_qkv
+from .value_evolving_attention import token_layout
+
+
+@dataclass(frozen=True)
+class ReuseExploreConfig:
+    retention:float=.2
+    grid_y:int=2
+    grid_x:int=2
+    source_width:int=32
+    local_iterations:int=2
+    window_groups:int=8
+    history_per_cluster:int=4
+    candidate_fraction:float=.25  # current-importance fraction eligible for exact expansion; no QK probe
+    dual_iterations:int=16
+    capture:bool=False
+
+    def __post_init__(self):
+        if not math.isfinite(self.retention) or not .05<=self.retention<=.2:raise ValueError('Retention must be5–20%')
+        if min(self.grid_y,self.grid_x,self.source_width,self.local_iterations,self.window_groups,self.dual_iterations)<1:
+            raise ValueError('Positive grid/window/iteration sizes required')
+        if not 1<=self.history_per_cluster<=8 or not 0<self.candidate_fraction<=1:
+            raise ValueError('Invalid history cap/candidate fraction')
+
+
+def canonical_layout(frames,height,width,gy,gx,device):
+    gy=min(gy,height);gx=min(gx,width)
+    spatial=(torch.arange(height,device=device)[:,None]*gy//height)*gx+torch.arange(width,device=device)[None]*gx//width
+    labels=(spatial.flatten()[None]+torch.arange(frames,device=device)[:,None]*gy*gx).flatten()
+    return labels,frames*gy*gx
+
+
+def budget_states(errors,costs,budget,iterations=16):
+    """Independent region operating points; feasible <=B, no fixed split.
+
+    Exact knapsack optimum is not claimed. Costs must be nonnegative; first
+    state is drop with zero cost. Integer regions can leave unused budget.
+    """
+    lo=torch.zeros(len(errors),device=errors.device)
+    hi=errors[:,:,0].amax(1)+1e-12
+    for _ in range(iterations):
+        mid=(lo+hi)*.5
+        selected=(errors+mid[:,None,None]*costs).argmin(-1)
+        count=costs.gather(2,selected[:,:,None]).squeeze(-1).sum(1)
+        over=count>budget
+        lo=torch.where(over,mid,lo);hi=torch.where(over,hi,mid)
+    selected=(errors+hi[:,None,None]*costs).argmin(-1)
+    return selected,costs.gather(2,selected[:,:,None]).squeeze(-1).sum(1)
+
+
+def top_history(ids,weights,beta,grid,labels,reps,limit):
+    """Build History candidates from old salience and cross-layer persistence.
+
+    weights is used only as PREVIOUS-layer salience among old genuine edges.
+    beta modulates how trustworthy that old ordering remains. The returned score
+    is a reuse PRIOR; it is never interpreted as current-layer attention mass.
+    """
+    g=beta.shape[0];f=len(reps);device=beta.device
+    if ids is None:
+        return (torch.full((g,f,limit),-1,device=device,dtype=torch.long),
+                torch.zeros((g,f,limit),device=device),torch.zeros(g,device=device))
+    valid=ids>=0;safe=ids.long().clamp_min(0);fine=labels[safe]
+    valid &= safe!=reps[fine]
+    prior=weights.float().clamp(0,1)*beta.gather(1,grid[safe])
+    valid &= prior>0
+    order=prior.masked_fill(~valid,-1).argsort(dim=1,descending=True,stable=True)
+    label=fine.gather(1,order).masked_fill(~valid.gather(1,order),f)
+    group_order=label.argsort(dim=1,stable=True)
+    order=order.gather(1,group_order);label=label.gather(1,group_order)
+    pos=torch.arange(ids.shape[1],device=device)[None].expand(g,-1)
+    first=torch.ones_like(label,dtype=torch.bool);first[:,1:]=label[:,1:]!=label[:,:-1]
+    begin=torch.where(first,pos,0).cummax(1).values
+    rank=pos-begin;keep=(label<f)&(rank<limit)
+    slot=torch.where(keep,label*limit+rank,f*limit)
+    out=torch.full((g,f*limit+1),-1,device=device,dtype=torch.long)
+    score=torch.zeros((g,f*limit+1),device=device)
+    out.scatter_(1,slot,ids.long().gather(1,order).masked_fill(~keep,-1))
+    score.scatter_(1,slot,prior.gather(1,order).masked_fill(~keep,0))
+    discarded=valid.sum(1)-keep.sum(1)
+    return out[:,:-1].reshape(g,f,limit),score[:,:-1].reshape(g,f,limit),discarded
+
+
+def unified_operating_points(pi,mean_unit,rep_dist,population,hids,hprior,unit_features,exact_allowed):
+    """Common-scale states without a fabricated cluster output target.
+
+    pi_C is CURRENT coarse-attention importance. Value loss is the actual mean
+    cosine distortion from all cluster members to the best selected single
+    anchor. History contributes independently through a previous-layer reuse
+    prior. For Value distortion D and selected priors r_e, relation survival is
+    R=1-prod(1-r_e), and the unexplained loss is pi_C*D*(1-R).
+
+    Thus History is rewarded for relation persistence rather than for resembling
+    a cluster mean, while a selected History key also becomes a current-V anchor.
+    """
+    g,f=pi.shape;limit=hids.shape[-1]
+    safe=hids.clamp_min(0)
+    hunit=unit_features[safe]
+    hdist=((1-(hunit*mean_unit[None,:,None]).sum(-1)).clamp(0,2)*.5).masked_fill(hids<0,1)
+    best_hist=hdist.cummin(-1).values
+    relation=1-(1-hprior.clamp(0,1)).cumprod(-1)
+
+    error=[pi,pi*rep_dist[None]]
+    cost=[torch.zeros_like(pi),torch.ones_like(pi)]
+    for t in range(1,limit+1):
+        feasible=hids[:,:,t-1]>=0
+        error.append((pi*best_hist[:,:,t-1]*(1-relation[:,:,t-1])).masked_fill(~feasible,torch.inf))
+        cost.append(torch.full_like(pi,t))
+    for t in range(1,limit+1):
+        feasible=(hids[:,:,t-1]>=0)&(population[None]>t)
+        d=torch.minimum(best_hist[:,:,t-1],rep_dist[None])
+        error.append((pi*d*(1-relation[:,:,t-1])).masked_fill(~feasible,torch.inf))
+        cost.append(torch.full_like(pi,t+1))
+    error.append(torch.zeros_like(pi).masked_fill(~exact_allowed,torch.inf))
+    cost.append(population[None].expand(g,-1).float())
+    return torch.stack(error,-1),torch.stack(cost,-1)
+
+def pack_support(selected,hids,reps,labels,population,budget):
+    g,f=selected.shape;limit=hids.shape[-1];device=selected.device
+    exact=selected==2*limit+2
+    rep=(selected==1)|((selected>=limit+2)&(selected<=2*limit+1))
+    t=torch.where((selected>=2)&(selected<=limit+1),selected-1,
+                  torch.where((selected>=limit+2)&(selected<=2*limit+1),selected-limit-1,0))
+    hvalid=(torch.arange(limit,device=device)[None,None]<t[:,:,None])&(hids>=0)
+    hist=hids.masked_fill(~hvalid,-1).reshape(g,-1)
+    rep_ids=reps[None].expand(g,-1).masked_fill(~rep,-1)
+    member=torch.arange(len(labels),device=device)[None].expand(g,-1)
+    member=member.masked_fill(~exact[:,labels],-1)
+    raw=torch.cat((hist,rep_ids,member),1)
+    weights=torch.cat((hvalid.reshape(g,-1).float(),
+                       (population[None]-t).float()*rep,(member>=0).float()),1)
+    genuine=torch.cat((hvalid.reshape(g,-1),torch.zeros_like(rep),(member>=0)),1)
+    valid=raw>=0;pos=valid.long().cumsum(1)-1
+    slots=pos.masked_fill(~valid,budget)
+    out=torch.full((g,budget+1),-1,device=device,dtype=torch.long)
+    pop=torch.zeros((g,budget+1),device=device)
+    real=torch.zeros((g,budget+1),device=device,dtype=torch.bool)
+    out.scatter_(1,slots,raw);pop.scatter_(1,slots,weights);real.scatter_(1,slots,genuine)
+    return out[:,:-1].contiguous(),pop[:,:-1].contiguous(),real[:,:-1].contiguous(),dict(
+        reuse_edges=hvalid.sum((1,2)),representatives=rep.sum(1),exact_edges=(member>=0).sum(1),
+        dropped_clusters=(selected==0).sum(1),counts=valid.sum(1))
+
+
+def reference_attention(q,k,v,ids,log_weights,specials,scale):
+    output=torch.empty_like(q);mass=torch.zeros(ids.shape,device=q.device)
+    for group,row in enumerate(ids):
+        start=group*32;end=min(q.shape[1],start+32)
+        all_ids=torch.cat((specials,row.long()));valid=all_ids>=0
+        bias=torch.cat((torch.zeros(len(specials),device=q.device),log_weights[group]))
+        z=q[:,start:end].float()@k[:,all_ids.clamp_min(0)].float().transpose(-1,-2)*scale+bias
+        p=z.masked_fill(~valid[None,None],-torch.inf).softmax(-1)
+        output[:,start:end]=(p@v[:,all_ids.clamp_min(0)].float()).to(q.dtype)
+        mass[group]=p[:,:,len(specials):].mean((0,1))
+    return output,mass
+
+
+class ReuseExploreState:
+    def __init__(self,config):self.config=config;self.profiling=False
+
+    def reset(self,frames,height,width,device):
+        c=self.config;self.frames,self.height,self.width=frames,height,width
+        self.patches,self.specials=token_layout(frames,height*width,5,device)
+        self.n=frames*(height*width+5);self.groups=math.ceil(self.n/32)
+        self.budget=math.floor(c.retention*self.n)-len(self.specials)
+        if self.budget<frames:raise ValueError('Budget must accommodate one fine cluster per frame')
+        self.fine=FullCoverageValue(frames,height*width,self.budget,device,c.source_width,c.local_iterations)
+        self.grid,self.regions=canonical_layout(frames,height,width,c.grid_y,c.grid_x,device)
+        self.grid_sizes=torch.bincount(self.grid,minlength=self.regions).float()
+        self.history_ids=None;self.history_weights=None;self.previous_grid=None
+        self.previous_layer=-1;self.records=[];self.captured={};self.profile_events=[]
+
+    def prepare(self,k,features):
+        f=self.fine.base_count;r=self.regions
+        population=torch.bincount(self.fine.labels,minlength=f).float()
+        unit=features.float()/features.float().norm(dim=-1,keepdim=True).clamp_min(1e-12)
+        mean_unit=torch.zeros((f,unit.shape[-1]),device=k.device).index_add_(0,self.fine.labels,unit)
+        mean_unit/=population[:,None]
+        rep_unit=unit[self.fine.reps]
+        rep_dist=((1-(mean_unit*rep_unit).sum(-1)).clamp(0,2)*.5)
+        pooled=torch.zeros((len(k),r,k.shape[-1]),device=k.device)
+        pooled.index_add_(1,self.grid,k[:,self.patches].float())
+        pooled=(pooled/self.grid_sizes[None,:,None]).to(k.dtype).contiguous()
+        pair=self.fine.labels*r+self.grid
+        unique,count=torch.unique(pair,sorted=True,return_counts=True)
+        overlap=torch.sparse_coo_tensor(torch.stack((unique//r,unique%r)),
+            count.float()/self.grid_sizes[unique%r],size=(f,r),device=k.device).coalesce()
+        return population,unit,mean_unit,rep_dist,pooled,overlap
+
+
+
+class ReuseResidualExploration(nn.Module):
+    def __init__(self,original,state,layer):
+        super().__init__();self.original,self.state,self.layer=original,state,layer
+
+    def forward(self,x,pos=None):
+        o,s=self.original,self.state;c=s.config
+        if self.training or len(x)!=1 or self.layer!=s.previous_layer+1:raise ValueError('Batch-one ordered inference required')
+        q,k,v=prepare_qkv(o,x,pos);q=q.to(v.dtype).contiguous();k=k.to(v.dtype).contiguous()
+        with stage(s,'value_update'),torch.autocast(x.device.type,enabled=False):
+            features=v.mean(0,dtype=torch.float32)[s.patches]
+            s.fine.update(features,self.layer)
+        with stage(s,'pooling'),torch.autocast(x.device.type,enabled=False):
+            population,unit_features,mean_unit,rep_dist,pooled,overlap=s.prepare(k,features)
+        output=torch.empty_like(v);history=[];weights=[];grids=[];stats=[];capture=[]
+        exact_count=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
+        for start in range(0,s.groups,c.window_groups):
+            g=min(c.window_groups,s.groups-start);first=start*32;end=min(s.n,(start+g)*32)
+            probe=(torch.arange(start,start+g,device=x.device)[:,None]*32+
+                   torch.tensor([4,12,20,28],device=x.device)).clamp_max(s.n-1)
+            pq=q[:,probe]
+            with stage(s,'coarse_observation'):
+                z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+s.grid_sizes.log()
+                probability=z.softmax(-1).mean((0,2))
+                # CUDA sparse addmm has no BF16 implementation in the pinned
+                # environment. The canonical probability/overlap are FP32;
+                # do not let the outer model autocast downcast this mapping.
+                with torch.autocast(x.device.type,enabled=False):
+                    pi=torch.sparse.mm(overlap,probability.float().T).T.contiguous()
+            if self.layer==0:
+                ids=s.fine.reps[None].expand(g,-1).contiguous()
+                pops=population[None].expand(g,-1).contiguous();real=torch.zeros_like(ids,dtype=torch.bool)
+                record=dict(reuse_edges=torch.zeros(g,device=x.device),representatives=torch.full((g,),s.budget,device=x.device),
+                    exact_edges=torch.zeros(g,device=x.device),dropped_clusters=torch.zeros(g,device=x.device),
+                    counts=torch.full((g,),s.budget,device=x.device),history_cap_discarded=torch.zeros(g,device=x.device))
+            else:
+                with stage(s,'reuse_prior'):
+                    previous=s.previous_grid[start:start+g].float()
+                    beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
+                    candidate=pi.topk(exact_count,dim=1).indices
+                    allowed=torch.zeros_like(pi,dtype=torch.bool).scatter_(1,candidate,True)
+                with stage(s,'reuse_and_budget'),torch.autocast(x.device.type,enabled=False):
+                    old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
+                    old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
+                    hids,hprior,discarded=top_history(old_ids,old_weights,beta,s.grid,s.fine.labels,s.fine.reps,c.history_per_cluster)
+                    errors,costs=unified_operating_points(pi,mean_unit,rep_dist,population,
+                                                         hids,hprior,unit_features,allowed)
+                    selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
+                    ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
+                    record['history_cap_discarded']=discarded
+                    record['proxy_drop_error']=(errors[:,:,0]).sum(1)
+                    record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).sum((1,2))
+            actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
+            bias=pops.log().contiguous()
+            with stage(s,'execution_and_evidence'):
+                if q.is_cuda:
+                    from saf3r.triton.reuse_explore_av import weighted_attention_probe_mass
+                    result,mass=weighted_attention_probe_mass(q[:,first:end],k,v,actual,bias,s.specials,o.scale)
+                else:result,mass=reference_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale)
+            output[:,first:end]=result
+            with stage(s,'history_summary'):
+                # Evidence is used only to rank genuine old relations next layer.
+                # Cross-layer persistence uses the SAME canonical estimator on
+                # both layers, stored independently below.
+                mass=mass/mass.sum(1,keepdim=True).clamp_min(1e-30)
+                history.append(ids.masked_fill(~real,-1).int());weights.append((mass*real).half())
+                grids.append(probability.half())
+            stats.append(record)
+            if c.capture:capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
+                                             mass=mass.clone(),reuse=record['reuse_edges'].clone()))
+        s.history_ids=torch.cat(history);s.history_weights=torch.cat(weights)
+        s.previous_grid=torch.cat(grids)
+        s.previous_layer=self.layer
+        joined={key:torch.cat([r[key] for r in stats]) for key in stats[0]}
+        rows=(s.n-torch.arange(s.groups,device=x.device)*32).clamp_max(32)
+        s.records.append(dict(layer=self.layer,patch_budget=s.budget,special_keys=len(s.specials),
+            fine_clusters=s.fine.base_count,canonical_regions=s.regions,
+            **{key+'_mean':val.float().mean() for key,val in joined.items()},
+            actual_unique_density=((joined['counts']+len(s.specials))*rows).sum()/s.n**2,
+            unused_budget_mean=(s.budget-joined['counts']).float().mean(),
+            canonical_qk_per_head=4*s.groups*s.regions,
+            fine_probe_qk_per_head=0,
+            final_unique_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),
+            evidence_extra_qk_per_head=(joined['counts']*torch.minimum(rows,torch.full_like(rows,4))).sum(),
+            stored_history_bytes=s.history_ids.numel()*4+s.history_weights.numel()*2,
+            stored_grid_bytes=s.previous_grid.numel()*2,
+            population_compensation=True,head_aware=False,
+            selector='current coarse importance x Value distortion with independent History reuse prior; discrete dual budget search',
+            history='previous-layer salience is a reuse prior only; no cross-layer probability transfer or fixed retention ratio',
+            evidence='4/32-query probe evidence for next-layer salience; full repeated selected-QK evidence removed'))
+        if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
+            canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
+        return o.proj_drop(o.proj(output.transpose(0,1).reshape(1,s.n,-1)))
+
+
+def install_reuse_residual_exploration(model,config=None):
+    if any(hasattr(model,name) for name in ('value_region_av_state','fused_shared_av_state','attention_first_residual_value_state','reuse_explore_state')):
+        raise ValueError('Install only on a fresh unpatched model')
+    config=ReuseExploreConfig() if config is None else config
+    if len(model.aggregator.global_blocks)!=24:raise ValueError('24 global layers required')
+    state=ReuseExploreState(config)
+    for layer,block in enumerate(model.aggregator.global_blocks):
+        block.attn=ReuseResidualExploration(block.attn,state,layer).eval()
+    def reset(module,inputs):
+        images=inputs[0]
+        if images.ndim!=5 or len(images)!=1:raise ValueError('Batch-one sequences required')
+        state.reset(images.shape[1],images.shape[-2]//14,images.shape[-1]//14,images.device)
+    state.reset_handle=model.aggregator.register_forward_pre_hook(reset)
+    model.reuse_explore_state=state
+    return state

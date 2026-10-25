@@ -1,0 +1,2958 @@
+{
+  "per_run": [
+    {
+      "scene": "heads",
+      "method": "dense",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/heads/dense/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.5162811679790026,
+          "auc30": 0.9400713582677167,
+          "acc": 0.034072848986114936,
+          "comp": 0.0308128366970682,
+          "cd": 0.03244284284159157,
+          "f1": 0.8519571326560871
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.0,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 17.43719142396003,
+        "samples": [
+          {
+            "seconds": 17.33768055215478,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 17.43719142396003,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 24.112182333599776,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 18.02669129287824,
+            "peak_allocated_gib": 14.358635902404785,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "heads",
+      "method": "saf3r",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/heads/saf3r/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.5097194881889764,
+          "auc30": 0.9385006561679791,
+          "acc": 0.03249710651225511,
+          "comp": 0.030045505785198823,
+          "cd": 0.03127130614872697,
+          "f1": 0.8509013800413006
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.950469019102603,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 8.939999176189303,
+        "samples": [
+          {
+            "seconds": 8.939999176189303,
+            "peak_allocated_gib": 14.61215877532959,
+            "peak_reserved_gib": 17.58203125
+          },
+          {
+            "seconds": 8.982942690141499,
+            "peak_allocated_gib": 14.612236976623535,
+            "peak_reserved_gib": 17.556640625
+          },
+          {
+            "seconds": 8.930480740964413,
+            "peak_allocated_gib": 14.612481117248535,
+            "peak_reserved_gib": 18.025390625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 13.424715338740498,
+            "peak_allocated_gib": 14.612542152404785,
+            "peak_reserved_gib": 18.064453125
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": {
+        "profile": "/data_NVME1/mmc_lyxiang/3D/SAF3R/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+        "topk": 4,
+        "topk_source": "lazy first-correspondence head, NOT paper DINO feature Top-K",
+        "lazy_dino_topk": true
+      },
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "heads",
+      "method": "history80",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/heads/history80/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.47108759842519693,
+          "auc30": 0.9354863845144359,
+          "acc": 0.035155820073698336,
+          "comp": 0.033054532351230334,
+          "cd": 0.03410517621246434,
+          "f1": 0.8157346461372037
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.379155315455575,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 12.643384851980954,
+        "samples": [
+          {
+            "seconds": 12.567134395707399,
+            "peak_allocated_gib": 14.944954872131348,
+            "peak_reserved_gib": 19.59765625
+          },
+          {
+            "seconds": 12.643384851980954,
+            "peak_allocated_gib": 14.947800636291504,
+            "peak_reserved_gib": 19.087890625
+          },
+          {
+            "seconds": 12.767931404989213,
+            "peak_allocated_gib": 14.946349620819092,
+            "peak_reserved_gib": 19.59765625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 19.233302657026798,
+            "peak_allocated_gib": 14.945607662200928,
+            "peak_reserved_gib": 18.072265625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "heads",
+      "method": "reuse_explore",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/heads/reuse_explore/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.42843667979002625,
+          "auc30": 0.9259555446194228,
+          "acc": 0.03657038034891411,
+          "comp": 0.03314435363753951,
+          "cd": 0.03485736699322681,
+          "f1": 0.8206291056051829
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 0.14813302636771034,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 117.71305732103065,
+        "samples": [
+          {
+            "seconds": 117.96995240217075,
+            "peak_allocated_gib": 15.493094444274902,
+            "peak_reserved_gib": 20.00390625
+          },
+          {
+            "seconds": 117.71305732103065,
+            "peak_allocated_gib": 15.493552684783936,
+            "peak_reserved_gib": 20.26953125
+          },
+          {
+            "seconds": 117.65221907105297,
+            "peak_allocated_gib": 15.4951171875,
+            "peak_reserved_gib": 20.26953125
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 125.19117435300723,
+            "peak_allocated_gib": 15.493638515472412,
+            "peak_reserved_gib": 20.255859375
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "heads",
+      "method": "unified",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/unified_refactor_46bd65b/quality128/heads/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.48170931758530183,
+          "auc30": 0.936466535433071,
+          "acc": 0.03537317842473555,
+          "comp": 0.03244885597549409,
+          "cd": 0.033911017200114815,
+          "f1": 0.8277740956846192
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "User requested no Dense rerun; historical timings are not contemporaneous/same-UUID paired timings",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 71.41684662000625,
+        "samples": [
+          {
+            "seconds": 71.09561788500287,
+            "peak_allocated_gib": 15.701479434967041,
+            "peak_reserved_gib": 18.95703125
+          },
+          {
+            "seconds": 71.69261827500304,
+            "peak_allocated_gib": 15.700531959533691,
+            "peak_reserved_gib": 18.96484375
+          },
+          {
+            "seconds": 71.41684662000625,
+            "peak_allocated_gib": 15.700666904449463,
+            "peak_reserved_gib": 18.7109375
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 74.67731741600437,
+            "peak_allocated_gib": 15.701435089111328,
+            "peak_reserved_gib": 19.46875
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "new branch evaluation"
+    },
+    {
+      "scene": "chess",
+      "method": "dense",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/chess/dense/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.20427329396325458,
+          "auc30": 0.8846620734908137,
+          "acc": 0.1420713321724825,
+          "comp": 0.08831339409738839,
+          "cd": 0.11519236313493544,
+          "f1": 0.35292428164067563
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.0,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 17.071696168277413,
+        "samples": [
+          {
+            "seconds": 16.858864794950932,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 17.071696168277413,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 21.97651790175587,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 17.515991436783224,
+            "peak_allocated_gib": 14.358635902404785,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "chess",
+      "method": "saf3r",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/chess/saf3r/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.2016486220472441,
+          "auc30": 0.8837926509186352,
+          "acc": 0.14415293561685757,
+          "comp": 0.08073876334465584,
+          "cd": 0.1124458494807567,
+          "f1": 0.377565092452472
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.95355738520849,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 8.738773837685585,
+        "samples": [
+          {
+            "seconds": 8.878408091608435,
+            "peak_allocated_gib": 14.61215877532959,
+            "peak_reserved_gib": 17.58203125
+          },
+          {
+            "seconds": 8.738773837685585,
+            "peak_allocated_gib": 14.612236976623535,
+            "peak_reserved_gib": 17.556640625
+          },
+          {
+            "seconds": 8.484288948122412,
+            "peak_allocated_gib": 14.612481117248535,
+            "peak_reserved_gib": 18.025390625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 13.372298219241202,
+            "peak_allocated_gib": 14.612542152404785,
+            "peak_reserved_gib": 18.064453125
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": {
+        "profile": "/data_NVME1/mmc_lyxiang/3D/SAF3R/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+        "topk": 4,
+        "topk_source": "lazy first-correspondence head, NOT paper DINO feature Top-K",
+        "lazy_dino_topk": true
+      },
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "chess",
+      "method": "history80",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/chess/history80/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.21128608923884515,
+          "auc30": 0.887381069553806,
+          "acc": 0.11367955503783703,
+          "comp": 0.07917890253384659,
+          "cd": 0.09642922878584181,
+          "f1": 0.47428383885873
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.3745768774972649,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 12.41960085881874,
+        "samples": [
+          {
+            "seconds": 12.34730701521039,
+            "peak_allocated_gib": 14.944954872131348,
+            "peak_reserved_gib": 19.59765625
+          },
+          {
+            "seconds": 12.41960085881874,
+            "peak_allocated_gib": 14.947800636291504,
+            "peak_reserved_gib": 19.087890625
+          },
+          {
+            "seconds": 12.523744805250317,
+            "peak_allocated_gib": 14.946349620819092,
+            "peak_reserved_gib": 19.59765625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 19.135468541644514,
+            "peak_allocated_gib": 14.945607662200928,
+            "peak_reserved_gib": 18.072265625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "chess",
+      "method": "reuse_explore",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/chess/reuse_explore/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.22522965879265092,
+          "auc30": 0.8913180774278217,
+          "acc": 0.13315174909244426,
+          "comp": 0.08636590281562696,
+          "cd": 0.1097588259540356,
+          "f1": 0.3709495632961186
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 0.14742189051272309,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 115.80163643881679,
+        "samples": [
+          {
+            "seconds": 115.80163643881679,
+            "peak_allocated_gib": 15.49435567855835,
+            "peak_reserved_gib": 20.2734375
+          },
+          {
+            "seconds": 115.87778465077281,
+            "peak_allocated_gib": 15.494117259979248,
+            "peak_reserved_gib": 20.2734375
+          },
+          {
+            "seconds": 115.11913109896705,
+            "peak_allocated_gib": 15.49452257156372,
+            "peak_reserved_gib": 20.267578125
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 119.70509570278227,
+            "peak_allocated_gib": 15.4954195022583,
+            "peak_reserved_gib": 19.75
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "chess",
+      "method": "unified",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/unified_refactor_46bd65b/quality128/chess/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.2078412073490814,
+          "auc30": 0.8857242454068243,
+          "acc": 0.11704167523457527,
+          "comp": 0.08391595345092483,
+          "cd": 0.10047881434275005,
+          "f1": 0.42516617225578507
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "User requested no Dense rerun; historical timings are not contemporaneous/same-UUID paired timings",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 70.41196250298526,
+        "samples": [
+          {
+            "seconds": 70.74377637900761,
+            "peak_allocated_gib": 15.698907375335693,
+            "peak_reserved_gib": 18.91796875
+          },
+          {
+            "seconds": 70.41196250298526,
+            "peak_allocated_gib": 15.699163913726807,
+            "peak_reserved_gib": 18.65625
+          },
+          {
+            "seconds": 70.20696956300526,
+            "peak_allocated_gib": 15.69788646697998,
+            "peak_reserved_gib": 18.658203125
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 73.9452554640011,
+            "peak_allocated_gib": 15.700948715209961,
+            "peak_reserved_gib": 18.962890625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "new branch evaluation"
+    },
+    {
+      "scene": "stairs",
+      "method": "dense",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/stairs/dense/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.04818733595800525,
+          "auc30": 0.8094160104986879,
+          "acc": 0.22003461889724354,
+          "comp": 0.48108584664643494,
+          "cd": 0.35056023277183923,
+          "f1": 0.15157680461289044
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.0,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 17.22422577580437,
+        "samples": [
+          {
+            "seconds": 17.197664638981223,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 17.22422577580437,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 17.258381779771298,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 17.979153664782643,
+            "peak_allocated_gib": 14.358635902404785,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "stairs",
+      "method": "saf3r",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/stairs/saf3r/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.08526082677165353,
+          "auc30": 0.8355191929133858,
+          "acc": 0.19683298762787887,
+          "comp": 0.4862057336367176,
+          "cd": 0.34151936063229826,
+          "f1": 0.16458672425204107
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.943704499323262,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 8.861545457039028,
+        "samples": [
+          {
+            "seconds": 8.861545457039028,
+            "peak_allocated_gib": 14.61215877532959,
+            "peak_reserved_gib": 17.58203125
+          },
+          {
+            "seconds": 8.92102161096409,
+            "peak_allocated_gib": 14.612236976623535,
+            "peak_reserved_gib": 17.556640625
+          },
+          {
+            "seconds": 8.75089349085465,
+            "peak_allocated_gib": 14.612481117248535,
+            "peak_reserved_gib": 18.025390625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 13.379786059260368,
+            "peak_allocated_gib": 14.612542152404785,
+            "peak_reserved_gib": 18.064453125
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": {
+        "profile": "/data_NVME1/mmc_lyxiang/3D/SAF3R/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+        "topk": 4,
+        "topk_source": "lazy first-correspondence head, NOT paper DINO feature Top-K",
+        "lazy_dino_topk": true
+      },
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "stairs",
+      "method": "history80",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/stairs/history80/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.04314304461942257,
+          "auc30": 0.7906865157480314,
+          "acc": 0.2546394065708638,
+          "comp": 0.49418593499000024,
+          "cd": 0.37441267078043206,
+          "f1": 0.11272002058751544
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.3716539271518613,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 12.557267860975116,
+        "samples": [
+          {
+            "seconds": 12.52663320209831,
+            "peak_allocated_gib": 14.944954872131348,
+            "peak_reserved_gib": 19.59765625
+          },
+          {
+            "seconds": 12.557267860975116,
+            "peak_allocated_gib": 14.946513175964355,
+            "peak_reserved_gib": 19.087890625
+          },
+          {
+            "seconds": 12.707796340342611,
+            "peak_allocated_gib": 14.946349620819092,
+            "peak_reserved_gib": 19.59765625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 19.171456797979772,
+            "peak_allocated_gib": 14.945607662200928,
+            "peak_reserved_gib": 18.072265625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "stairs",
+      "method": "reuse_explore",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/stairs/reuse_explore/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.05573326771653544,
+          "auc30": 0.7693733595800526,
+          "acc": 0.22319768587499425,
+          "comp": 0.43404801270000914,
+          "cd": 0.3286228492875017,
+          "f1": 0.15077840286998317
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 0.14654683335231325,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 117.53393356781453,
+        "samples": [
+          {
+            "seconds": 117.68958896119148,
+            "peak_allocated_gib": 15.496716022491455,
+            "peak_reserved_gib": 20.267578125
+          },
+          {
+            "seconds": 117.53393356781453,
+            "peak_allocated_gib": 15.498312950134277,
+            "peak_reserved_gib": 20.267578125
+          },
+          {
+            "seconds": 117.236382342875,
+            "peak_allocated_gib": 15.498312950134277,
+            "peak_reserved_gib": 20.267578125
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 121.91639828914776,
+            "peak_allocated_gib": 15.492364406585693,
+            "peak_reserved_gib": 20.259765625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "stairs",
+      "method": "unified",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/unified_refactor_46bd65b/quality128/stairs/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.06594488188976377,
+          "auc30": 0.8152436023622049,
+          "acc": 0.22737006701951837,
+          "comp": 0.4879190239926685,
+          "cd": 0.3576445455060934,
+          "f1": 0.14703015994508056
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "User requested no Dense rerun; historical timings are not contemporaneous/same-UUID paired timings",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 69.54623695800547,
+        "samples": [
+          {
+            "seconds": 69.68728962697787,
+            "peak_allocated_gib": 15.699970722198486,
+            "peak_reserved_gib": 19.47265625
+          },
+          {
+            "seconds": 69.54623695800547,
+            "peak_allocated_gib": 15.699897289276123,
+            "peak_reserved_gib": 19.6796875
+          },
+          {
+            "seconds": 68.80091714501032,
+            "peak_allocated_gib": 15.705358505249023,
+            "peak_reserved_gib": 19.634765625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 72.74657150698476,
+            "peak_allocated_gib": 15.701546669006348,
+            "peak_reserved_gib": 19.7265625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "new branch evaluation"
+    },
+    {
+      "scene": "fire",
+      "method": "dense",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/fire/dense/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.5511811023622047,
+          "auc30": 0.9452304790026248,
+          "acc": 0.04902011580747381,
+          "comp": 0.05124837332512201,
+          "cd": 0.05013424456629791,
+          "f1": 0.6659086059067848
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.0,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 17.05542729096487,
+        "samples": [
+          {
+            "seconds": 17.05542729096487,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 17.001877009868622,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 17.12080057617277,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 17.618952984921634,
+            "peak_allocated_gib": 14.358635902404785,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "fire",
+      "method": "saf3r",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/fire/saf3r/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.5649606299212598,
+          "auc30": 0.9458374343832022,
+          "acc": 0.049233424113436904,
+          "comp": 0.05481528287994188,
+          "cd": 0.05202435349668939,
+          "f1": 0.6702756414526534
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.9597457356042025,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 8.702877613715827,
+        "samples": [
+          {
+            "seconds": 8.740527181886137,
+            "peak_allocated_gib": 14.61215877532959,
+            "peak_reserved_gib": 17.58203125
+          },
+          {
+            "seconds": 8.702877613715827,
+            "peak_allocated_gib": 14.612236976623535,
+            "peak_reserved_gib": 17.556640625
+          },
+          {
+            "seconds": 8.495354320853949,
+            "peak_allocated_gib": 14.612481117248535,
+            "peak_reserved_gib": 18.025390625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 13.304017300717533,
+            "peak_allocated_gib": 14.612542152404785,
+            "peak_reserved_gib": 18.064453125
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": {
+        "profile": "/data_NVME1/mmc_lyxiang/3D/SAF3R/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+        "topk": 4,
+        "topk_source": "lazy first-correspondence head, NOT paper DINO feature Top-K",
+        "lazy_dino_topk": true
+      },
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "fire",
+      "method": "history80",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/fire/history80/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.5225967847769027,
+          "auc30": 0.9399401246719159,
+          "acc": 0.05049555498841053,
+          "comp": 0.05206716420604531,
+          "cd": 0.05128135959722792,
+          "f1": 0.6534757837154419
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.3738848211646546,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 12.41401537321508,
+        "samples": [
+          {
+            "seconds": 12.378156440798193,
+            "peak_allocated_gib": 14.944954872131348,
+            "peak_reserved_gib": 19.59765625
+          },
+          {
+            "seconds": 12.445830132812262,
+            "peak_allocated_gib": 14.947800636291504,
+            "peak_reserved_gib": 19.087890625
+          },
+          {
+            "seconds": 12.41401537321508,
+            "peak_allocated_gib": 14.946349620819092,
+            "peak_reserved_gib": 19.59765625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 19.20862735901028,
+            "peak_allocated_gib": 14.945607662200928,
+            "peak_reserved_gib": 18.072265625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "fire",
+      "method": "reuse_explore",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/fire/reuse_explore/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.5298146325459318,
+          "auc30": 0.936605971128609,
+          "acc": 0.04094587627052087,
+          "comp": 0.04871168197263886,
+          "cd": 0.04482877912157986,
+          "f1": 0.7298486220822918
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 0.14600536911371897,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 116.81369934882969,
+        "samples": [
+          {
+            "seconds": 116.90779467578977,
+            "peak_allocated_gib": 15.494936466217041,
+            "peak_reserved_gib": 20.00390625
+          },
+          {
+            "seconds": 116.81369934882969,
+            "peak_allocated_gib": 15.495648860931396,
+            "peak_reserved_gib": 20.26953125
+          },
+          {
+            "seconds": 116.63657803693786,
+            "peak_allocated_gib": 15.492264747619629,
+            "peak_reserved_gib": 20.26953125
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 119.87468757713214,
+            "peak_allocated_gib": 15.493638515472412,
+            "peak_reserved_gib": 20.255859375
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "fire",
+      "method": "unified",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/unified_refactor_46bd65b/quality128/fire/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.526492782152231,
+          "auc30": 0.9407685367454068,
+          "acc": 0.049428143477861654,
+          "comp": 0.05316157745575158,
+          "cd": 0.05129486046680662,
+          "f1": 0.6513064129712517
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "User requested no Dense rerun; historical timings are not contemporaneous/same-UUID paired timings",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 70.38219611198292,
+        "samples": [
+          {
+            "seconds": 70.38219611198292,
+            "peak_allocated_gib": 15.699550151824951,
+            "peak_reserved_gib": 19.470703125
+          },
+          {
+            "seconds": 70.41134851498646,
+            "peak_allocated_gib": 15.701787948608398,
+            "peak_reserved_gib": 19.169921875
+          },
+          {
+            "seconds": 70.11603845300851,
+            "peak_allocated_gib": 15.702136039733887,
+            "peak_reserved_gib": 19.173828125
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 73.32559694099473,
+            "peak_allocated_gib": 15.702910423278809,
+            "peak_reserved_gib": 18.966796875
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "new branch evaluation"
+    },
+    {
+      "scene": "office",
+      "method": "dense",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/office/dense/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.14152723097112863,
+          "auc30": 0.7713418635170605,
+          "acc": 0.04718306772878223,
+          "comp": 0.05241921704534653,
+          "cd": 0.04980114238706438,
+          "f1": 0.609704055833036
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.0,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 16.95241272682324,
+        "samples": [
+          {
+            "seconds": 16.91205086419359,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 16.95241272682324,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 16.98104535602033,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 17.45546262199059,
+            "peak_allocated_gib": 14.358635902404785,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "office",
+      "method": "saf3r",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/office/saf3r/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.13439140419947507,
+          "auc30": 0.7583251312335958,
+          "acc": 0.04782217006141681,
+          "comp": 0.056873253505461414,
+          "cd": 0.05234771178343911,
+          "f1": 0.5848454841637895
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.9399544233904271,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 8.738562371581793,
+        "samples": [
+          {
+            "seconds": 8.861436542123556,
+            "peak_allocated_gib": 14.61215877532959,
+            "peak_reserved_gib": 17.58203125
+          },
+          {
+            "seconds": 8.738562371581793,
+            "peak_allocated_gib": 14.612236976623535,
+            "peak_reserved_gib": 17.556640625
+          },
+          {
+            "seconds": 8.461358384229243,
+            "peak_allocated_gib": 14.612481117248535,
+            "peak_reserved_gib": 18.025390625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 13.35848059784621,
+            "peak_allocated_gib": 14.612542152404785,
+            "peak_reserved_gib": 18.064453125
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": {
+        "profile": "/data_NVME1/mmc_lyxiang/3D/SAF3R/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+        "topk": 4,
+        "topk_source": "lazy first-correspondence head, NOT paper DINO feature Top-K",
+        "lazy_dino_topk": true
+      },
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "office",
+      "method": "history80",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/office/history80/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.12405675853018372,
+          "auc30": 0.7737655839895015,
+          "acc": 0.05164511859519396,
+          "comp": 0.05947244099251957,
+          "cd": 0.05555877979385676,
+          "f1": 0.5747687559370845
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.3536774328163639,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 12.523229179903865,
+        "samples": [
+          {
+            "seconds": 12.48645610595122,
+            "peak_allocated_gib": 14.944954872131348,
+            "peak_reserved_gib": 19.59765625
+          },
+          {
+            "seconds": 12.716786827892065,
+            "peak_allocated_gib": 14.947800636291504,
+            "peak_reserved_gib": 19.087890625
+          },
+          {
+            "seconds": 12.523229179903865,
+            "peak_allocated_gib": 14.946349620819092,
+            "peak_reserved_gib": 19.59765625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 18.901597266085446,
+            "peak_allocated_gib": 14.945607662200928,
+            "peak_reserved_gib": 18.072265625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "office",
+      "method": "reuse_explore",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/office/reuse_explore/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.14534120734908137,
+          "auc30": 0.7807865813648294,
+          "acc": 0.05439366547962614,
+          "comp": 0.05557598286721645,
+          "cd": 0.05498482417342129,
+          "f1": 0.5409282555091799
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 0.14594716859881898,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 116.1544474591501,
+        "samples": [
+          {
+            "seconds": 116.68803890002891,
+            "peak_allocated_gib": 15.493593215942383,
+            "peak_reserved_gib": 20.00390625
+          },
+          {
+            "seconds": 116.1544474591501,
+            "peak_allocated_gib": 15.494290351867676,
+            "peak_reserved_gib": 20.267578125
+          },
+          {
+            "seconds": 115.92888375930488,
+            "peak_allocated_gib": 15.49452257156372,
+            "peak_reserved_gib": 20.26953125
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 121.20556380832568,
+            "peak_allocated_gib": 15.493638515472412,
+            "peak_reserved_gib": 20.2578125
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "office",
+      "method": "unified",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/unified_refactor_46bd65b/quality128/office/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.1312746062992126,
+          "auc30": 0.7737573818897638,
+          "acc": 0.054887490965064054,
+          "comp": 0.06034957989770205,
+          "cd": 0.05761853543138305,
+          "f1": 0.5126295050169515
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "User requested no Dense rerun; historical timings are not contemporaneous/same-UUID paired timings",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 71.6771095909935,
+        "samples": [
+          {
+            "seconds": 71.51417921899701,
+            "peak_allocated_gib": 15.703948497772217,
+            "peak_reserved_gib": 19.974609375
+          },
+          {
+            "seconds": 72.04995180497644,
+            "peak_allocated_gib": 15.70009183883667,
+            "peak_reserved_gib": 18.7109375
+          },
+          {
+            "seconds": 71.6771095909935,
+            "peak_allocated_gib": 15.701580047607422,
+            "peak_reserved_gib": 18.7109375
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 74.84065389999887,
+            "peak_allocated_gib": 15.701780796051025,
+            "peak_reserved_gib": 18.9609375
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "new branch evaluation"
+    },
+    {
+      "scene": "pumpkin",
+      "method": "dense",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/pumpkin/dense/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.06705216535433071,
+          "auc30": 0.7520833333333333,
+          "acc": 0.4639243277127309,
+          "comp": 0.08467085791395755,
+          "cd": 0.2742975928133442,
+          "f1": 0.26390641855109265
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.0,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 17.28462526202202,
+        "samples": [
+          {
+            "seconds": 17.28462526202202,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 17.153851269744337,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 17.379852510988712,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 17.82206861395389,
+            "peak_allocated_gib": 14.358635902404785,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "pumpkin",
+      "method": "saf3r",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/pumpkin/saf3r/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.07119422572178478,
+          "auc30": 0.7473466207349081,
+          "acc": 0.3576509249439858,
+          "comp": 0.075215197656186,
+          "cd": 0.2164330613000859,
+          "f1": 0.37031537068866416
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.984326075489034,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 8.71057709492743,
+        "samples": [
+          {
+            "seconds": 8.769307929091156,
+            "peak_allocated_gib": 14.61215877532959,
+            "peak_reserved_gib": 17.58203125
+          },
+          {
+            "seconds": 8.71057709492743,
+            "peak_allocated_gib": 14.612236976623535,
+            "peak_reserved_gib": 17.556640625
+          },
+          {
+            "seconds": 8.70405290927738,
+            "peak_allocated_gib": 14.612481117248535,
+            "peak_reserved_gib": 18.025390625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 13.376775566954166,
+            "peak_allocated_gib": 14.612542152404785,
+            "peak_reserved_gib": 18.064453125
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": {
+        "profile": "/data_NVME1/mmc_lyxiang/3D/SAF3R/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+        "topk": 4,
+        "topk_source": "lazy first-correspondence head, NOT paper DINO feature Top-K",
+        "lazy_dino_topk": true
+      },
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "pumpkin",
+      "method": "history80",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/pumpkin/history80/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.05917814960629922,
+          "auc30": 0.7421136811023623,
+          "acc": 0.35936607948204835,
+          "comp": 0.08192677422068372,
+          "cd": 0.22064642685136604,
+          "f1": 0.3276154325002643
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.3879446016964965,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 12.453397088684142,
+        "samples": [
+          {
+            "seconds": 12.784545677248389,
+            "peak_allocated_gib": 14.944954872131348,
+            "peak_reserved_gib": 19.59765625
+          },
+          {
+            "seconds": 12.453397088684142,
+            "peak_allocated_gib": 14.946513175964355,
+            "peak_reserved_gib": 19.087890625
+          },
+          {
+            "seconds": 12.412069771904498,
+            "peak_allocated_gib": 14.946349620819092,
+            "peak_reserved_gib": 19.59765625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 19.158885553944856,
+            "peak_allocated_gib": 14.945607662200928,
+            "peak_reserved_gib": 18.072265625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "pumpkin",
+      "method": "reuse_explore",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/pumpkin/reuse_explore/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.058686023622047244,
+          "auc30": 0.7450582349081364,
+          "acc": 0.2942931196342189,
+          "comp": 0.07621371718738887,
+          "cd": 0.1852534184108039,
+          "f1": 0.31286262348211397
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 0.14848389835030568,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 116.40740480320528,
+        "samples": [
+          {
+            "seconds": 116.40740480320528,
+            "peak_allocated_gib": 15.496034145355225,
+            "peak_reserved_gib": 20.26953125
+          },
+          {
+            "seconds": 115.9912826763466,
+            "peak_allocated_gib": 15.495917797088623,
+            "peak_reserved_gib": 20.27734375
+          },
+          {
+            "seconds": 117.7030230043456,
+            "peak_allocated_gib": 15.499316692352295,
+            "peak_reserved_gib": 20.28125
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 120.19151776796207,
+            "peak_allocated_gib": 15.494146347045898,
+            "peak_reserved_gib": 19.751953125
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "pumpkin",
+      "method": "unified",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/unified_refactor_46bd65b/quality128/pumpkin/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.0650016404199475,
+          "auc30": 0.7538590879265091,
+          "acc": 0.36680676699954956,
+          "comp": 0.08345467841878143,
+          "cd": 0.2251307227091655,
+          "f1": 0.2768967762497154
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "User requested no Dense rerun; historical timings are not contemporaneous/same-UUID paired timings",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 70.47616525401827,
+        "samples": [
+          {
+            "seconds": 70.81776625299244,
+            "peak_allocated_gib": 15.707895755767822,
+            "peak_reserved_gib": 19.474609375
+          },
+          {
+            "seconds": 70.47616525401827,
+            "peak_allocated_gib": 15.711924076080322,
+            "peak_reserved_gib": 19.169921875
+          },
+          {
+            "seconds": 70.09508549599559,
+            "peak_allocated_gib": 15.711292266845703,
+            "peak_reserved_gib": 19.171875
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 73.35312500901637,
+            "peak_allocated_gib": 15.708030700683594,
+            "peak_reserved_gib": 19.47265625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "new branch evaluation"
+    },
+    {
+      "scene": "redkitchen",
+      "method": "dense",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/redkitchen/dense/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.08444061679790027,
+          "auc30": 0.7976829068241469,
+          "acc": 0.07995330515764969,
+          "comp": 0.08195259289409991,
+          "cd": 0.0809529490258748,
+          "f1": 0.4677843182797207
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.0,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 16.798148165922612,
+        "samples": [
+          {
+            "seconds": 16.798148165922612,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 16.71955595118925,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          },
+          {
+            "seconds": 16.9675271701999,
+            "peak_allocated_gib": 14.358574867248535,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 17.63025583093986,
+            "peak_allocated_gib": 14.358635902404785,
+            "peak_reserved_gib": 17.5546875
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "redkitchen",
+      "method": "saf3r",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/redkitchen/saf3r/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.08501476377952756,
+          "auc30": 0.8008530183727033,
+          "acc": 0.0801384131765657,
+          "comp": 0.08598207517021728,
+          "cd": 0.08306024417339149,
+          "f1": 0.4231568655544113
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.9425785654726528,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 8.647345576900989,
+        "samples": [
+          {
+            "seconds": 8.723295048810542,
+            "peak_allocated_gib": 14.61215877532959,
+            "peak_reserved_gib": 17.58203125
+          },
+          {
+            "seconds": 8.647345576900989,
+            "peak_allocated_gib": 14.612236976623535,
+            "peak_reserved_gib": 17.556640625
+          },
+          {
+            "seconds": 8.611895935144275,
+            "peak_allocated_gib": 14.612481117248535,
+            "peak_reserved_gib": 18.025390625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 12.895614821929485,
+            "peak_allocated_gib": 14.612542152404785,
+            "peak_reserved_gib": 18.064453125
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": {
+        "profile": "/data_NVME1/mmc_lyxiang/3D/SAF3R/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+        "topk": 4,
+        "topk_source": "lazy first-correspondence head, NOT paper DINO feature Top-K",
+        "lazy_dino_topk": true
+      },
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "redkitchen",
+      "method": "history80",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/redkitchen/history80/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.08448162729658792,
+          "auc30": 0.79817093175853,
+          "acc": 0.07150771668954434,
+          "comp": 0.07188260160296028,
+          "cd": 0.07169515914625231,
+          "f1": 0.5045830485474931
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.352886264834954,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 12.416526505257934,
+        "samples": [
+          {
+            "seconds": 12.264190235175192,
+            "peak_allocated_gib": 14.944954872131348,
+            "peak_reserved_gib": 19.59765625
+          },
+          {
+            "seconds": 12.416526505257934,
+            "peak_allocated_gib": 14.947800636291504,
+            "peak_reserved_gib": 19.087890625
+          },
+          {
+            "seconds": 12.427449628245085,
+            "peak_allocated_gib": 14.946349620819092,
+            "peak_reserved_gib": 19.59765625
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 19.067891956306994,
+            "peak_allocated_gib": 14.945607662200928,
+            "peak_reserved_gib": 18.072265625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "redkitchen",
+      "method": "reuse_explore",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/reuse_explore_20261021/quality128/redkitchen/reuse_explore/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.11117946194225721,
+          "auc30": 0.8190001640419947,
+          "acc": 0.0702593415068179,
+          "comp": 0.05634677515221627,
+          "cd": 0.06330305832951708,
+          "f1": 0.6049892920437427
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 0.1438572695132068,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 116.76954680681229,
+        "samples": [
+          {
+            "seconds": 117.14511098712683,
+            "peak_allocated_gib": 15.495488166809082,
+            "peak_reserved_gib": 20.00390625
+          },
+          {
+            "seconds": 116.76954680681229,
+            "peak_allocated_gib": 15.495978355407715,
+            "peak_reserved_gib": 20.26953125
+          },
+          {
+            "seconds": 116.07522138627246,
+            "peak_allocated_gib": 15.49505615234375,
+            "peak_reserved_gib": 20.271484375
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 120.74972451571375,
+            "peak_allocated_gib": 15.493638515472412,
+            "peak_reserved_gib": 20.259765625
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "historical frozen evaluation"
+    },
+    {
+      "scene": "redkitchen",
+      "method": "unified",
+      "source": "/data_NVME1/mmc_lyxiang/3D/SAF3R/outputs/global_attention/unified_refactor_46bd65b/quality128/redkitchen/result.json",
+      "quality": {
+        "values": {
+          "auc03": 0.08329232283464567,
+          "auc30": 0.7966576443569553,
+          "acc": 0.07925610472841665,
+          "comp": 0.0873170056006958,
+          "cd": 0.08328655516455623,
+          "f1": 0.44779553068487965
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "User requested no Dense rerun; historical timings are not contemporaneous/same-UUID paired timings",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "timing": {
+        "median_seconds": 69.45480746700196,
+        "samples": [
+          {
+            "seconds": 70.08518424499198,
+            "peak_allocated_gib": 15.704181671142578,
+            "peak_reserved_gib": 19.939453125
+          },
+          {
+            "seconds": 69.45480746700196,
+            "peak_allocated_gib": 15.701273918151855,
+            "peak_reserved_gib": 19.677734375
+          },
+          {
+            "seconds": 68.79255422999267,
+            "peak_allocated_gib": 15.700570583343506,
+            "peak_reserved_gib": 19.673828125
+          }
+        ],
+        "cold_samples": [
+          {
+            "seconds": 84.97268701400026,
+            "peak_allocated_gib": 15.702471256256104,
+            "peak_reserved_gib": 20.240234375
+          }
+        ],
+        "warmup": 1,
+        "repeats": 3,
+        "capture": false,
+        "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+      },
+      "saf3r": null,
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "torch": "2.3.1+cu121",
+        "cuda": "12.1"
+      },
+      "quality_protocol": {
+        "tasks": [
+          "pose",
+          "recon_unposed"
+        ],
+        "sampling": "uniform",
+        "seed": 0,
+        "f1_threshold_m": 0.05,
+        "downsample_m": 0.0078125,
+        "cd_definition": "(ACC+Comp)/2 unsquared metres",
+        "reconstruction": "unposed"
+      },
+      "phase": "new branch evaluation"
+    }
+  ],
+  "macro": [
+    {
+      "method": "dense",
+      "complete": 7,
+      "required": 7,
+      "quality": {
+        "values": {
+          "auc03": 0.23042041619797526,
+          "auc30": 0.8429268607049119,
+          "acc": 0.14803708806606822,
+          "comp": 0.12435758837420252,
+          "cd": 0.13619733822013536,
+          "f1": 0.48053737392575535
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.0,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "mean_scene_median_seconds": 17.11767525911065,
+      "delta_vs_local_dense": {
+        "auc03": 0.0,
+        "auc30": 0.0,
+        "acc": 0.0,
+        "comp": 0.0,
+        "cd": 0.0,
+        "f1": 0.0
+      }
+    },
+    {
+      "method": "saf3r",
+      "complete": 7,
+      "required": 7,
+      "quality": {
+        "values": {
+          "auc03": 0.2360271372328459,
+          "auc30": 0.8443106721034871,
+          "acc": 0.1297611374360567,
+          "comp": 0.12426797313976841,
+          "cd": 0.12701455528791256,
+          "f1": 0.4916637940864761
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.953445544714448,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "mean_scene_median_seconds": 8.762811589719993,
+      "delta_vs_local_dense": {
+        "auc03": 0.5606721034870643,
+        "auc30": 0.1383811398575241,
+        "acc": -0.018275950630011528,
+        "comp": -8.961523443411223e-05,
+        "cd": -0.0091827829322228,
+        "f1": 1.112642016072074
+      }
+    },
+    {
+      "method": "history80",
+      "complete": 7,
+      "required": 7,
+      "quality": {
+        "values": {
+          "auc03": 0.21654715035620548,
+          "auc30": 0.838220613048369,
+          "acc": 0.13378417877679946,
+          "comp": 0.12453833584246943,
+          "cd": 0.1291612573096345,
+          "f1": 0.49474021804053336
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 1.3705508461535598,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "mean_scene_median_seconds": 12.489631674119405,
+      "delta_vs_local_dense": {
+        "auc03": -1.3873265841769788,
+        "auc30": -0.4706247656542817,
+        "acc": -0.014252909289268756,
+        "comp": 0.00018074746826690635,
+        "cd": -0.007036080910500869,
+        "f1": 1.4202844114778013
+      }
+    },
+    {
+      "method": "reuse_explore",
+      "complete": 7,
+      "required": 7,
+      "quality": {
+        "values": {
+          "auc03": 0.22206013310836145,
+          "auc30": 0.8382997047244096,
+          "acc": 0.12183025974393379,
+          "comp": 0.11291520376180517,
+          "cd": 0.11737273175286947,
+          "f1": 0.5044265521269448
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": 0.1466283000453042,
+        "speedup_unavailable": null,
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "mean_scene_median_seconds": 116.74196082080847,
+      "delta_vs_local_dense": {
+        "auc03": -0.8360283089613813,
+        "auc30": -0.4627155980502229,
+        "acc": -0.02620682832213443,
+        "comp": -0.011442384612397355,
+        "cd": -0.018824606467265886,
+        "f1": 2.388917820118941
+      }
+    },
+    {
+      "method": "unified",
+      "complete": 7,
+      "required": 7,
+      "quality": {
+        "values": {
+          "auc03": 0.22307953693288338,
+          "auc30": 0.8432110048743907,
+          "acc": 0.13288048954996018,
+          "comp": 0.12693809639885975,
+          "cd": 0.12990929297440995,
+          "f1": 0.46979980754404044
+        },
+        "complete": true,
+        "unavailable": {},
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "No fresh matched Dense per user instruction; historical timings not contemporaneous",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "mean_scene_median_seconds": 70.48076064357052,
+      "delta_vs_local_dense": {
+        "auc03": -0.7340879265091887,
+        "auc30": 0.028414416947886156,
+        "acc": -0.015156598516108039,
+        "comp": 0.00258050802465723,
+        "cd": -0.006288045245725404,
+        "f1": -1.0737566381714914
+      }
+    }
+  ],
+  "pinned_upstream": "46bd65b5af355ba6d383947e6f12c93fd847e62d",
+  "all_seven_required": true
+}

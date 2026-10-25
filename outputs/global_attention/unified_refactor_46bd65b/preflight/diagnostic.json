@@ -1,0 +1,124 @@
+{
+  "method": "reuse_explore",
+  "scene": "heads",
+  "dataset": "7scenes",
+  "frames": 2,
+  "input": {
+    "image_paths": [
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000999.color.png"
+    ],
+    "frame_indices": [
+      0,
+      999
+    ],
+    "shape": [
+      2,
+      3,
+      392,
+      518
+    ],
+    "checkpoint": "/data_NVME1/mmc_lyxiang/3D/SAF3R/checkpoints/vggt/model_tracker_fixed_e20.pt"
+  },
+  "config": {
+    "retention": 0.2,
+    "grid_y": 2,
+    "grid_x": 2,
+    "source_width": 32,
+    "local_iterations": 2,
+    "window_groups": 8,
+    "candidate_fraction": 0.25,
+    "dual_iterations": 16,
+    "capture": false
+  },
+  "model_config": {
+    "name": "VGGT",
+    "dpt_only": true,
+    "ckpt_path": "/data_NVME1/mmc_lyxiang/3D/SAF3R/checkpoints/vggt/model_tracker_fixed_e20.pt"
+  },
+  "saf3r": null,
+  "source_sha256": {
+    "saf3r/patch/reuse_residual_exploration.py": "d68f93a05312579fca888176648f502008439282e0a69b66409107c40ee03e59",
+    "saf3r/triton/reuse_explore_av.py": "6c5bd2a8db5c885b448f94bb63cb2c09182fe89346c62e23fe8fd7412a91509f",
+    "saf3r/patch/fused_shared_av.py": "18812393e72d273a8c52e7a5d63f42d31fca86740b47e4ad307cb048c29b8554",
+    "saf3r/patch/value_clustering_gpu.py": "caa604347c6b2dfdf18f09295c3618ae0dcfa8098163c69fdcdd233ec2fd2fcc",
+    "saf3r/patch/region_history_attention.py": "f3a97e3c46582528b511c841d26a8e828598d352267ccd54269aab9a90ec8f26",
+    "saf3r/patch/value_evolving_attention.py": "b804d63a6aef940fb20754331f17d21f2f70e32743ee47d8896443cfbd509962",
+    "saf3r/patch/value_region_av.py": "334a1cddb4d32a2438f7a2469bb4ad32f16ca7524be3693c1d29841ab065b16e",
+    "saf3r/patch/patch_vggt.py": "b77a7ea3e562e4e1975d357c2e364b3140f83de19f136dd73eb2c55f3ea6093a",
+    "saf3r/triton/fused_shared_av.py": "2a3426aec363718fbaf458b01a2c43267cf17cad1142de4be2bb08147bdfbd49",
+    "saf3r/triton/value_region_selection.py": "b2e0e3527b6d1153a9b1f81d68f8203cfb437664a3c62be160b3e6f2f399d878",
+    "scripts/evaluate_reuse_exploration.py": "cfd84da9008ac0e44c6677b22cc827c343b97db13f41ff2ff19a04d4d4ca31ad",
+    "scripts/quality_metrics.py": "d20b85e2e3e8bf6a61d58239bd51d880c2f5551440703b34d1f566fd407df4e6",
+    "configs/evaluation/reuse_residual_exploration.json": "63946f087f5a3fba16be07a399d02e81fc968d9895bafed8260d404912861888",
+    "configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json": "d1c348fa2a5933e0d0789515026d478dc0eb21c4a82375ad090ffc164317bfe2"
+  },
+  "timing": {
+    "median_seconds": 2.108350018010242,
+    "samples": [
+      {
+        "seconds": 2.108350018010242,
+        "peak_allocated_gib": 6.997647285461426,
+        "peak_reserved_gib": 7.265625
+      }
+    ],
+    "cold_samples": [
+      {
+        "seconds": 5.565589281002758,
+        "peak_allocated_gib": 6.998325347900391,
+        "peak_reserved_gib": 7.287109375
+      }
+    ],
+    "warmup": 1,
+    "repeats": 1,
+    "capture": false,
+    "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "torch": "2.3.1+cu121",
+    "cuda": "12.1"
+  },
+  "quality_protocol": {
+    "tasks": [
+      "pose",
+      "recon_unposed"
+    ],
+    "sampling": "uniform",
+    "seed": 0,
+    "f1_threshold_m": 0.05,
+    "downsample_m": 0.0078125,
+    "cd_definition": "(ACC+Comp)/2 unsquared metres",
+    "reconstruction": "unposed"
+  },
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Explicit implementation diagnostic; pose/recon_unposed and valid paired speedup not evaluated",
+      "auc30": "Explicit implementation diagnostic; pose/recon_unposed and valid paired speedup not evaluated",
+      "acc": "Explicit implementation diagnostic; pose/recon_unposed and valid paired speedup not evaluated",
+      "comp": "Explicit implementation diagnostic; pose/recon_unposed and valid paired speedup not evaluated",
+      "cd": "Explicit implementation diagnostic; pose/recon_unposed and valid paired speedup not evaluated",
+      "f1": "Explicit implementation diagnostic; pose/recon_unposed and valid paired speedup not evaluated"
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  }
+}
