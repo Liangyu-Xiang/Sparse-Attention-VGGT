@@ -269,3 +269,9 @@ one sparse attention
 
 This is still a refactor of the existing high-quality prototype, not a separate
 method family.
+
+## Next diagnostic round
+
+The executable diagnostic package and Codex handoff for the next round are in
+`docs/experiments/unified_next_round_handoff.md`.  Run those diagnostics before
+making another production-selector revision.
