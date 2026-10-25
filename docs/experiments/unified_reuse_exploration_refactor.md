@@ -288,3 +288,15 @@ semantics unchanged.
 
 Execution handoff:
 `docs/experiments/physical_history_rep_budget_handoff.md`.
+
+## Efficient History candidate reuse follow-up
+
+The next implementation step is documented in:
+
+`docs/experiments/efficient_history_candidate_reuse_plan.md`
+
+The key change is to cap each Fine cluster at a small fixed number of concrete
+relation candidate slots.  Reusable History fills those slots without current
+QK probing; only the remaining slots trigger fresh current-layer QK discovery.
+The final History/Fresh/Rep/Exact decision remains one joint global budget
+optimization.
