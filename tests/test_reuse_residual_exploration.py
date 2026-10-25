@@ -1,8 +1,8 @@
 import pytest
 import torch
 from saf3r.patch.reuse_residual_exploration import (ReuseExploreConfig,ReuseExploreState,
-    ReuseResidualExploration,canonical_layout,budget_states,history_relation_items,
-    exploration_operating_points,joint_operating_points,reference_attention)
+    ReuseResidualExploration,canonical_layout,budget_states,compact_history_bank,
+    history_relation_items,exploration_operating_points,joint_operating_points,reference_attention)
 from saf3r.patch.region_history_attention import prepare_qkv
 from saf3r.models.official_vggt.layers.attention import Attention
 
@@ -22,6 +22,15 @@ def test_budget_prefers_low_error_and_is_feasible_without_fixed_history_ratio():
     chosen,count=budget_states(torch.zeros_like(errors),costs,4,20)
     assert count==0 and chosen.tolist()==[[0,0]]
 
+
+
+def test_history_bank_compaction_preserves_all_relations_without_budget_width_padding():
+    ids=torch.tensor([[1,-1,3,-1,-1],[2,4,-1,-1,-1]],dtype=torch.int32)
+    w=torch.tensor([[.4,0,.1,0,0],[.3,.2,0,0,0]],dtype=torch.float16)
+    compact,score=compact_history_bank(ids,w)
+    assert compact.shape==(2,2)
+    assert compact.tolist()==[[1,3],[2,4]]
+    torch.testing.assert_close(score.float(),torch.tensor([[.4,.1],[.3,.2]]),atol=2e-4,rtol=2e-4)
 
 def test_history_is_a_direct_relation_pool_not_cluster_local_candidates():
     ids=torch.tensor([[0,1,2,3]],dtype=torch.int32)
