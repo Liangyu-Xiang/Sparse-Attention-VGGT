@@ -61,10 +61,17 @@ def support_metrics(probs,target,candidate_abs,query_abs,patch_abs):
     group=(query_abs//32).long(); q_cand=local[group];q_valid=valid[group]
     counts=torch.zeros((len(query_abs),npatch),device=device,dtype=torch.int32)
     safe=q_cand.clamp_min(0);counts.scatter_add_(1,safe,q_valid.int());mask=counts>0
-    recall=mask[None].expand(probs.shape[0],-1,-1).gather(2,target).float().mean(2)
+    hit=mask[None].expand(probs.shape[0],-1,-1).gather(2,target).float().sum(2)
+    recall=hit/target.shape[-1]
+    unique_keys=mask.sum(1).clamp_min(1)
+    precision=hit/unique_keys[None]
     mass=(probs*mask[None]).sum(2)
-    density=q_valid.float().sum(1)/npatch
-    return dict(recall=float(recall.mean()),mass=float(mass.mean()),density=float(density.mean()),keys=float(q_valid.float().sum(1).mean()))
+    density=mask.float().mean(1)
+    target_density=target.shape[-1]/npatch
+    enrichment=precision/target_density
+    return dict(recall=float(recall.mean()),precision=float(precision.mean()),
+        enrichment=float(enrichment.mean()),mass=float(mass.mean()),
+        density=float(density.mean()),keys=float(unique_keys.float().mean()))
 
 
 def main():
@@ -102,7 +109,9 @@ def main():
                 accum[name].append(support_metrics(probs[None],target[None],cand,query_abs.to(a.device),patch_abs.to(a.device)))
         for name,vals in accum.items():
             rows.append(dict(layer=layer,source=f"L{layer-1}",support=name,
-                recall=float(np.mean([v["recall"] for v in vals])),attention_mass_coverage=float(np.mean([v["mass"] for v in vals])),
+                recall=float(np.mean([v["recall"] for v in vals])),precision=float(np.mean([v["precision"] for v in vals])),
+                enrichment=float(np.mean([v["enrichment"] for v in vals])),
+                attention_mass_coverage=float(np.mean([v["mass"] for v in vals])),
                 candidate_density=float(np.mean([v["density"] for v in vals])),candidate_keys=float(np.mean([v["keys"] for v in vals]))))
         del q,k,qp,kp;torch.cuda.empty_cache()
     with (out/"pipeline.csv").open("w",newline="") as f:
@@ -112,6 +121,7 @@ def main():
             "If previous_full recall is high but history_candidates collapses, candidate-bank construction is the bottleneck.",
             "If history_candidates recall is high but history_selected collapses, the shared budget objective is the bottleneck.",
             "If previous_full itself is low, current sparse support failed to bootstrap useful relations in the preceding layer.",
+            "Use precision/enrichment to test implicit filtering: selected History may have modest recall at low density but should become more concentrated on current Top-K edges.",
             "Compare recall jointly with candidate_density; a larger pool is not free."],
         "trajectory":"Current unified sparse trajectory; target uses diagnostic full patch QK at each current layer."}
     (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n")
