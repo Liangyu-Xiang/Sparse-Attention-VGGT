@@ -498,6 +498,14 @@ class ReuseResidualExploration(nn.Module):
                     history_candidates=s.patches[hids.clamp_min(0)].masked_fill(~hvalid,-1).int()
                     hkeep=(selected[:,:hids.shape[1]]==1)&hvalid
                     history_selected=s.patches[hids.clamp_min(0)].masked_fill(~hkeep,-1).int()
+                    if c.physical_overlap_accounting:
+                        # Merged History-only/History+Rep states disable the
+                        # standalone History item, but still retain its relation.
+                        # Capture must include these physical History keys too.
+                        estate=selected[:,hids.shape[1]:]
+                        merged=overlap_valid & ((estate==1)|(estate==2))
+                        merged_ids=s.patches[s.fine.reps][None].expand(g,-1).masked_fill(~merged,-1).int()
+                        history_selected=torch.cat((history_selected,merged_ids),1)
                 capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
                     all_executed_history=(ids>=0).clone(),mass=mass.clone(),reuse=record['reuse_edges'].clone(),
                     history_candidates=history_candidates.clone(),

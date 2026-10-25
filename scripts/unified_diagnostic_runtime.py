@@ -39,6 +39,6 @@ def report():
     q=quality_record({},'Stage1 diagnostic/microbenchmark only: pose and recon_unposed not evaluated; no paired Dense timing')
     write_quality(out,q)
     (out/'diagnostic_provenance.json').write_text(json.dumps(dict(
-        upstream='1a7bb41d955da284eded195a2e0b11faf49c2ec3',argv=sys.argv,
+        upstream='1c8019197547c74c2e357748198f5d9246536150',argv=sys.argv,
         compatibility='Diagnostic-only FP32 sparse.mm and archived four-effective-probe padded kernel; production files unchanged',
         quality_evaluation=False,speedup_vs_dense=None),indent=2)+'\n')

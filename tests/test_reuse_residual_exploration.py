@@ -155,6 +155,8 @@ def test_all24_weighted_support_population_no_duplicates_history_and_reset(devic
                 expected,mass=reference_attention(q[:,first:end],k,v,ids,pop.log(),s.specials,original.scale)
                 parts.append(expected)
                 for row in range(len(ids)):
+                    selected_history=window['history_selected'][row]
+                    assert int((selected_history>=0).sum())==int(window['reuse'][row])
                     valid=ids[row]>=0;selected=ids[row][valid].long()
                     assert len(selected.unique())==len(selected) and len(selected)<=s.budget
                     hc=window['history_candidates'][row];hs=window['history_selected'][row]
