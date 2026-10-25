@@ -130,6 +130,8 @@ def test_all24_weighted_support_population_no_duplicates_history_and_reset(devic
                 for row in range(len(ids)):
                     valid=ids[row]>=0;selected=ids[row][valid].long()
                     assert len(selected.unique())==len(selected) and len(selected)<=s.budget
+                    hc=window['history_candidates'][row];hs=window['history_selected'][row]
+                    assert set(hs[hs>=0].tolist()).issubset(set(hc[hc>=0].tolist()))
                     assert (pop[row][valid]>=1).all()
                     for rep_id,weight in zip(ids[row][~real[row]&valid],pop[row][~real[row]&valid]):
                         labels=s.fine.labels
