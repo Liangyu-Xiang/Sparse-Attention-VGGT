@@ -38,14 +38,27 @@ def test_history_is_a_direct_relation_pool_not_cluster_local_candidates():
     grid=torch.tensor([0,0,1,1])
     current=torch.tensor([[.6,.4]])
     beta=torch.tensor([[1.,.5]])
-    h,gain,valid=history_relation_items(ids,old,beta,current,grid)
+    coverage=torch.tensor([[.5,.8]])
+    h,gain,valid=history_relation_items(ids,old,beta,coverage,current,grid)
     assert torch.equal(h,ids.long()) and valid.all()
     # Old weights are used only as relative salience inside each canonical
     # region; current coarse importance sets the current-layer scale.
-    torch.testing.assert_close(gain,torch.tensor([[.45,.15,.10,.10]]))
-    torch.testing.assert_close(gain[:,:2].sum(),current[0,0]*beta[0,0])
-    torch.testing.assert_close(gain[:,2:].sum(),current[0,1]*beta[0,1])
+    torch.testing.assert_close(gain,torch.tensor([[.225,.075,.08,.08]]))
+    torch.testing.assert_close(gain[:,:2].sum(),current[0,0]*beta[0,0]*coverage[0,0])
+    torch.testing.assert_close(gain[:,2:].sum(),current[0,1]*beta[0,1]*coverage[0,1])
 
+
+
+def test_history_coverage_suppresses_premature_reuse_and_grows_with_sharpening():
+    ids=torch.tensor([[0,1]],dtype=torch.int32)
+    old=torch.tensor([[.8,.2]])
+    grid=torch.tensor([0,0])
+    current=torch.tensor([[.6]])
+    beta=torch.tensor([[1.]])
+    _,early,_=history_relation_items(ids,old,beta,torch.tensor([[.2]]),current,grid)
+    _,late,_=history_relation_items(ids,old,beta,torch.tensor([[.9]]),current,grid)
+    torch.testing.assert_close(late,early*4.5)
+    assert late[0,0] > early[0,0]
 
 def test_history_and_exploration_compete_in_one_budget_without_value_testing_history():
     hgain=torch.tensor([[.40,.01]])
@@ -138,4 +151,4 @@ def test_all24_weighted_support_population_no_duplicates_history_and_reset(devic
             assert set((h[h>=0]+5).tolist()).issubset(set(allowed.tolist()))
         assert (s.previous_grid.sum(1).float()-1).abs().max()<.01
     s.reset(1,8,16,device)
-    assert s.previous_grid is None and s.history_ids is None and s.previous_layer==-1 and not s.records
+    assert s.previous_grid is None and s.previous_coverage is None and s.history_ids is None and s.previous_layer==-1 and not s.records
