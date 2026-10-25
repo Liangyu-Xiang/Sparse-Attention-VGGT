@@ -62,6 +62,21 @@ def budget_states(errors,costs,budget,iterations=16):
     return selected,costs.gather(2,selected[:,:,None]).squeeze(-1).sum(1)
 
 
+def compact_history_bank(ids,weights):
+    """Remove per-group padding once per layer; preserve all genuine relations."""
+    valid=ids>=0
+    if not valid.any():
+        return ids[:,:0].contiguous(),weights[:,:0].contiguous()
+    width=int(valid.sum(1).max().item())
+    pos=valid.long().cumsum(1)-1
+    slot=pos.masked_fill(~valid,width)
+    out=torch.full((len(ids),width+1),-1,device=ids.device,dtype=ids.dtype)
+    score=torch.zeros((len(ids),width+1),device=weights.device,dtype=weights.dtype)
+    out.scatter_(1,slot,ids)
+    score.scatter_(1,slot,weights)
+    return out[:,:width].contiguous(),score[:,:width].contiguous()
+
+
 def history_relation_items(ids,weights,beta,current_region,grid):
     """Cheap query-group History candidates, without Fine-cluster remapping.
 
@@ -308,7 +323,8 @@ class ReuseResidualExploration(nn.Module):
             stats.append(record)
             if c.capture:capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
                                              mass=mass.clone(),reuse=record['reuse_edges'].clone()))
-        s.history_ids=torch.cat(history);s.history_weights=torch.cat(weights)
+        full_history=torch.cat(history);full_weights=torch.cat(weights)
+        s.history_ids,s.history_weights=compact_history_bank(full_history,full_weights)
         s.previous_grid=torch.cat(grids)
         s.previous_layer=self.layer
         joined={key:torch.cat([r[key] for r in stats]) for key in stats[0]}
