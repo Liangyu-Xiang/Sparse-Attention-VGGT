@@ -25,7 +25,6 @@ class ReuseExploreConfig:
     source_width:int=32
     local_iterations:int=2
     window_groups:int=8
-    history_per_cluster:int=4
     candidate_fraction:float=.25  # current-importance fraction eligible for exact expansion; no QK probe
     dual_iterations:int=16
     capture:bool=False
@@ -34,8 +33,8 @@ class ReuseExploreConfig:
         if not math.isfinite(self.retention) or not .05<=self.retention<=.2:raise ValueError('Retention must be5–20%')
         if min(self.grid_y,self.grid_x,self.source_width,self.local_iterations,self.window_groups,self.dual_iterations)<1:
             raise ValueError('Positive grid/window/iteration sizes required')
-        if not 1<=self.history_per_cluster<=8 or not 0<self.candidate_fraction<=1:
-            raise ValueError('Invalid history cap/candidate fraction')
+        if not 0<self.candidate_fraction<=1:
+            raise ValueError('Invalid candidate fraction')
 
 
 def canonical_layout(frames,height,width,gy,gx,device):
@@ -63,97 +62,139 @@ def budget_states(errors,costs,budget,iterations=16):
     return selected,costs.gather(2,selected[:,:,None]).squeeze(-1).sum(1)
 
 
-def top_history(ids,weights,beta,grid,labels,reps,limit):
-    """Build History candidates from old salience and cross-layer persistence.
+def history_relation_items(ids,weights,beta,current_region,grid):
+    """Cheap query-group History candidates, without Fine-cluster remapping.
 
-    weights is used only as PREVIOUS-layer salience among old genuine edges.
-    beta modulates how trustworthy that old ordering remains. The returned score
-    is a reuse PRIOR; it is never interpreted as current-layer attention mass.
+    A previous genuine QK edge remains a relation candidate by identity. Old
+    attention is used only to distribute salience *within its previous canonical
+    region*. The absolute current scale comes from the CURRENT coarse region
+    probability. Thus no previous probability is transferred across layers.
+
+        conditional_salience_e = old_weight_e / sum_{j in H_r} old_weight_j
+        gain_e = p_r^current * beta_r * conditional_salience_e
+
+    The gains of all old edges in a region are bounded by its current coarse
+    importance (times persistence), giving natural saturation without a fixed
+    History ratio, threshold, or per-cluster History cap.
     """
-    g=beta.shape[0];f=len(reps);device=beta.device
+    g=beta.shape[0];device=beta.device
     if ids is None:
-        return (torch.full((g,f,limit),-1,device=device,dtype=torch.long),
-                torch.zeros((g,f,limit),device=device),torch.zeros(g,device=device))
-    valid=ids>=0;safe=ids.long().clamp_min(0);fine=labels[safe]
-    valid &= safe!=reps[fine]
-    prior=weights.float().clamp(0,1)*beta.gather(1,grid[safe])
-    valid &= prior>0
-    order=prior.masked_fill(~valid,-1).argsort(dim=1,descending=True,stable=True)
-    label=fine.gather(1,order).masked_fill(~valid.gather(1,order),f)
-    group_order=label.argsort(dim=1,stable=True)
-    order=order.gather(1,group_order);label=label.gather(1,group_order)
-    pos=torch.arange(ids.shape[1],device=device)[None].expand(g,-1)
-    first=torch.ones_like(label,dtype=torch.bool);first[:,1:]=label[:,1:]!=label[:,:-1]
-    begin=torch.where(first,pos,0).cummax(1).values
-    rank=pos-begin;keep=(label<f)&(rank<limit)
-    slot=torch.where(keep,label*limit+rank,f*limit)
-    out=torch.full((g,f*limit+1),-1,device=device,dtype=torch.long)
-    score=torch.zeros((g,f*limit+1),device=device)
-    out.scatter_(1,slot,ids.long().gather(1,order).masked_fill(~keep,-1))
-    score.scatter_(1,slot,prior.gather(1,order).masked_fill(~keep,0))
-    discarded=valid.sum(1)-keep.sum(1)
-    return out[:,:-1].reshape(g,f,limit),score[:,:-1].reshape(g,f,limit),discarded
+        return (torch.empty((g,0),device=device,dtype=torch.long),
+                torch.empty((g,0),device=device),
+                torch.empty((g,0),device=device,dtype=torch.bool))
+    valid=ids>=0
+    safe=ids.long().clamp_min(0)
+    region=grid[safe]
+    old=weights.float().clamp_min(0)*valid
+    totals=torch.zeros_like(current_region).scatter_add_(1,region,old)
+    conditional=old/totals.gather(1,region).clamp_min(1e-30)
+    gain=current_region.gather(1,region)*beta.gather(1,region)*conditional
+    gain=gain.masked_fill(~valid,0)
+    return ids.long(),gain,valid
 
 
-def unified_operating_points(pi,mean_unit,rep_dist,population,hids,hprior,unit_features,exact_allowed):
-    """Common-scale states without a fabricated cluster output target.
+def exploration_operating_points(pi,rep_dist,population,exact_allowed):
+    """Current-layer Value exploration only.
 
-    pi_C is CURRENT coarse-attention importance. Value loss is the actual mean
-    cosine distortion from all cluster members to the best selected single
-    anchor. History contributes independently through a previous-layer reuse
-    prior. For Value distortion D and selected priors r_e, relation survival is
-    R=1-prod(1-r_e), and the unexplained loss is pi_C*D*(1-R).
-
-    Thus History is rewarded for relation persistence rather than for resembling
-    a cluster mean, while a selected History key also becomes a current-V anchor.
+    Coarse attention supplies current importance; current V supplies redundancy.
+    History is deliberately absent from these states. History and exploration
+    meet only in the shared global budget allocator.
     """
-    g,f=pi.shape;limit=hids.shape[-1]
-    safe=hids.clamp_min(0)
-    hunit=unit_features[safe]
-    hdist=((1-(hunit*mean_unit[None,:,None]).sum(-1)).clamp(0,2)*.5).masked_fill(hids<0,1)
-    best_hist=hdist.cummin(-1).values
-    relation=1-(1-hprior.clamp(0,1)).cumprod(-1)
+    drop=pi
+    rep=pi*rep_dist[None]
+    exact=torch.zeros_like(pi).masked_fill(~exact_allowed,torch.inf)
+    errors=torch.stack((drop,rep,exact),-1)
+    costs=torch.stack((torch.zeros_like(pi),torch.ones_like(pi),
+                       population[None].expand_as(pi)), -1)
+    return errors,costs
 
-    error=[pi,pi*rep_dist[None]]
-    cost=[torch.zeros_like(pi),torch.ones_like(pi)]
-    for t in range(1,limit+1):
-        feasible=hids[:,:,t-1]>=0
-        error.append((pi*best_hist[:,:,t-1]*(1-relation[:,:,t-1])).masked_fill(~feasible,torch.inf))
-        cost.append(torch.full_like(pi,t))
-    for t in range(1,limit+1):
-        feasible=(hids[:,:,t-1]>=0)&(population[None]>t)
-        d=torch.minimum(best_hist[:,:,t-1],rep_dist[None])
-        error.append((pi*d*(1-relation[:,:,t-1])).masked_fill(~feasible,torch.inf))
-        cost.append(torch.full_like(pi,t+1))
-    error.append(torch.zeros_like(pi).masked_fill(~exact_allowed,torch.inf))
-    cost.append(population[None].expand(g,-1).float())
-    return torch.stack(error,-1),torch.stack(cost,-1)
 
-def pack_support(selected,hids,reps,labels,population,budget):
-    g,f=selected.shape;limit=hids.shape[-1];device=selected.device
-    exact=selected==2*limit+2
-    rep=(selected==1)|((selected>=limit+2)&(selected<=2*limit+1))
-    t=torch.where((selected>=2)&(selected<=limit+1),selected-1,
-                  torch.where((selected>=limit+2)&(selected<=2*limit+1),selected-limit-1,0))
-    hvalid=(torch.arange(limit,device=device)[None,None]<t[:,:,None])&(hids>=0)
-    hist=hids.masked_fill(~hvalid,-1).reshape(g,-1)
-    rep_ids=reps[None].expand(g,-1).masked_fill(~rep,-1)
+def joint_operating_points(history_gain,history_valid,explore_errors,explore_costs):
+    """Put relation reuse and Value exploration on one shared budget.
+
+    Each History edge is a two-state item: drop incurs its missed relation gain,
+    keep costs one QK edge and removes that loss. Each Fine cluster keeps its
+    Drop/Rep/Exact Value states. No History candidate is evaluated by current
+    Value representativeness before it can compete for budget.
+    """
+    if history_gain.shape[1]:
+        inf=torch.full_like(history_gain,torch.inf)
+        h_errors=torch.stack((history_gain,torch.zeros_like(history_gain),inf),-1)
+        h_errors[:,:,1]=h_errors[:,:,1].masked_fill(~history_valid,torch.inf)
+        h_costs=torch.stack((torch.zeros_like(history_gain),torch.ones_like(history_gain),
+                             torch.zeros_like(history_gain)),-1)
+        return (torch.cat((h_errors,explore_errors),1),
+                torch.cat((h_costs,explore_costs),1))
+    return explore_errors,explore_costs
+
+
+def pack_support(selected,history_ids,reps,labels,population,budget):
+    """Pack independently selected History relations and Value states.
+
+    History is selected globally at query-group level. Only AFTER selection do
+    we map retained History IDs to current Fine labels for population accounting.
+    This mapping does not participate in deciding whether the History edge is
+    valuable.
+
+    If the current Value representative is itself a retained History key, the
+    two roles are merged into one physical key and their populations are summed.
+    Exact expansion suppresses duplicate retained History members.
+    """
+    g=selected.shape[0];h=history_ids.shape[1];f=len(reps);device=selected.device
+    hkeep=(selected[:,:h]==1)&(history_ids>=0)
+    estate=selected[:,h:]
+    rep=estate==1;exact=estate==2
+
+    safe=history_ids.clamp_min(0)
+    hcluster=labels[safe]
+    hcount=torch.zeros((g,f),device=device)
+    hcount.scatter_add_(1,hcluster,hkeep.float())
+
+    # Selected History keys are explicit unit-population relations by default.
+    hist=history_ids.masked_fill(~hkeep,-1)
+    hist_pop=hkeep.float()
+
+    # A representative covers only members not already explicit History edges.
+    residual=(population[None]-hcount).clamp_min(0)
+    rep_selected=rep & (residual>0)
+    rep_ids=reps[None].expand(g,-1).masked_fill(~rep_selected,-1)
+    rep_pop=residual*rep_selected
+
+    # If the representative is itself one of the retained History IDs, merge
+    # the residual population into that History slot and suppress duplicate rep.
+    if h:
+        rep_for_hist=reps[hcluster]
+        hist_is_rep=hkeep & rep.gather(1,hcluster) & (history_ids==rep_for_hist)
+        hist_pop=hist_pop + hist_is_rep.float()*residual.gather(1,hcluster)
+        duplicate_rep=torch.zeros((g,f),device=device,dtype=torch.bool)
+        duplicate_rep.scatter_(1,hcluster,hist_is_rep)
+        rep_ids=rep_ids.masked_fill(duplicate_rep,-1)
+        rep_pop=rep_pop.masked_fill(duplicate_rep,0)
+
+    # Exact expansion emits every not-already-retained member of exact clusters.
     member=torch.arange(len(labels),device=device)[None].expand(g,-1)
-    member=member.masked_fill(~exact[:,labels],-1)
+    exact_member=exact[:,labels]
+    if h:
+        selected_map=torch.zeros((g,len(labels)),device=device,dtype=torch.bool)
+        selected_map.scatter_(1,safe,hkeep)
+        exact_member &= ~selected_map
+    member=member.masked_fill(~exact_member,-1)
+
     raw=torch.cat((hist,rep_ids,member),1)
-    weights=torch.cat((hvalid.reshape(g,-1).float(),
-                       (population[None]-t).float()*rep,(member>=0).float()),1)
-    genuine=torch.cat((hvalid.reshape(g,-1),torch.zeros_like(rep),(member>=0)),1)
+    pop=torch.cat((hist_pop,rep_pop,(member>=0).float()),1)
+    relation=torch.cat((hkeep,torch.zeros_like(rep_selected),(member>=0)),1)
+
     valid=raw>=0;pos=valid.long().cumsum(1)-1
     slots=pos.masked_fill(~valid,budget)
     out=torch.full((g,budget+1),-1,device=device,dtype=torch.long)
-    pop=torch.zeros((g,budget+1),device=device)
+    out_pop=torch.zeros((g,budget+1),device=device)
     real=torch.zeros((g,budget+1),device=device,dtype=torch.bool)
-    out.scatter_(1,slots,raw);pop.scatter_(1,slots,weights);real.scatter_(1,slots,genuine)
-    return out[:,:-1].contiguous(),pop[:,:-1].contiguous(),real[:,:-1].contiguous(),dict(
-        reuse_edges=hvalid.sum((1,2)),representatives=rep.sum(1),exact_edges=(member>=0).sum(1),
-        dropped_clusters=(selected==0).sum(1),counts=valid.sum(1))
-
+    out.scatter_(1,slots,raw);out_pop.scatter_(1,slots,pop);real.scatter_(1,slots,relation)
+    out=out[:,:-1].contiguous();out_pop=out_pop[:,:-1].contiguous();real=real[:,:-1].contiguous()
+    return out,out_pop,real,dict(
+        reuse_edges=hkeep.sum(1),representatives=(rep_ids>=0).sum(1),
+        exact_edges=(member>=0).sum(1),dropped_clusters=(estate==0).sum(1),
+        counts=valid.sum(1),history_rep_merges=(hist_pop>1).sum(1))
 
 def reference_attention(q,k,v,ids,log_weights,specials,scale):
     output=torch.empty_like(q);mass=torch.zeros(ids.shape,device=q.device)
@@ -231,7 +272,7 @@ class ReuseResidualExploration(nn.Module):
                 pops=population[None].expand(g,-1).contiguous();real=torch.zeros_like(ids,dtype=torch.bool)
                 record=dict(reuse_edges=torch.zeros(g,device=x.device),representatives=torch.full((g,),s.budget,device=x.device),
                     exact_edges=torch.zeros(g,device=x.device),dropped_clusters=torch.zeros(g,device=x.device),
-                    counts=torch.full((g,),s.budget,device=x.device),history_cap_discarded=torch.zeros(g,device=x.device))
+                    counts=torch.full((g,),s.budget,device=x.device),history_rep_merges=torch.zeros(g,device=x.device))
             else:
                 with stage(s,'reuse_prior'):
                     previous=s.previous_grid[start:start+g].float()
@@ -241,12 +282,13 @@ class ReuseResidualExploration(nn.Module):
                 with stage(s,'reuse_and_budget'),torch.autocast(x.device.type,enabled=False):
                     old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                     old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
-                    hids,hprior,discarded=top_history(old_ids,old_weights,beta,s.grid,s.fine.labels,s.fine.reps,c.history_per_cluster)
-                    errors,costs=unified_operating_points(pi,mean_unit,rep_dist,population,
-                                                         hids,hprior,unit_features,allowed)
+                    hids,hgain,hvalid=history_relation_items(old_ids,old_weights,beta,probability,s.grid)
+                    e_errors,e_costs=exploration_operating_points(pi,rep_dist,population,allowed)
+                    errors,costs=joint_operating_points(hgain,hvalid,e_errors,e_costs)
                     selected,count=budget_states(errors,costs,s.budget,c.dual_iterations)
                     ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
-                    record['history_cap_discarded']=discarded
+                    record['proxy_drop_error']=errors[:,:,0].masked_fill(torch.isinf(errors[:,:,0]),0).sum(1)
+                    record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).squeeze(-1).sum(1)
                     record['proxy_drop_error']=(errors[:,:,0]).sum(1)
                     record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).sum((1,2))
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
@@ -262,7 +304,8 @@ class ReuseResidualExploration(nn.Module):
                 # Cross-layer persistence uses the SAME canonical estimator on
                 # both layers, stored independently below.
                 mass=mass/mass.sum(1,keepdim=True).clamp_min(1e-30)
-                history.append(ids.masked_fill(~real,-1).int());weights.append((mass*real).half())
+                relation_mass=(mass/pops.clamp_min(1))*real
+                history.append(ids.masked_fill(~real,-1).int());weights.append(relation_mass.half())
                 grids.append(probability.half())
             stats.append(record)
             if c.capture:capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
@@ -284,8 +327,8 @@ class ReuseResidualExploration(nn.Module):
             stored_history_bytes=s.history_ids.numel()*4+s.history_weights.numel()*2,
             stored_grid_bytes=s.previous_grid.numel()*2,
             population_compensation=True,head_aware=False,
-            selector='current coarse importance x Value distortion with independent History reuse prior; discrete dual budget search',
-            history='previous-layer salience is a reuse prior only; no cross-layer probability transfer or fixed retention ratio',
+            selector='global History relation items + current Value Drop/Rep/Exact items under one dual budget',
+            history='History IDs compete directly at query-group level; no Fine-cluster remap/cap before selection and no cross-layer probability transfer',
             evidence='4/32-query probe evidence for next-layer salience; full repeated selected-QK evidence removed'))
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
             canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
