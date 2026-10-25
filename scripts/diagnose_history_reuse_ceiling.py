@@ -51,7 +51,7 @@ class Collector:
     def __init__(self,args): self.args=args; self.layer=0; self.previous=None; self.rows=[]; self.patch_count=None
     def __call__(self,module,input_args,input_kwargs,_output):
         layer=self.layer; self.layer+=1
-        if layer<self.args.layer_start-1 or layer>self.args.layer_end: return
+        if layer<self.args.layer_start or layer>self.args.layer_end: return
         q,k,_=qkv_from_module(module,input_args,input_kwargs)
         ids=patch_indices(q.shape[1],self.args.num_frames,q.device); q,k=q[:,ids],k[:,ids]
         n=q.shape[1]; self.patch_count=n
@@ -61,7 +61,7 @@ class Collector:
         for h in range(NUM_HEADS):
             logits=q[h].float()@k[h].float().T*(q.shape[-1]**-.5); probs=logits.softmax(-1)
             rank=logits.topk(max_keep,dim=-1,sorted=True).indices; ranks.append(rank); saliencies.append(probs.mean(0))
-            if self.previous is None or layer<=self.args.layer_start-1: continue
+            if self.previous is None: continue
             target=rank[:,:target_keep]; target_mass=probs.gather(1,target).sum(1)
             prev_rank=self.previous["rank"][h].to(q.device); prev_sal=self.previous["saliency"][h].to(q.device)
             global_order=prev_sal.topk(max_keep,sorted=True).indices
