@@ -1,0 +1,48 @@
+=> Patching model ...
+[Warning] rest tokens=19200 capped at 2048 (first_frame_sampled=0, stride=4, total=2048).
+[Topk=2048] Time of computing top-k indices: 2.727 seconds
+FORWARD scene0593_00 300 saf3r 0 {'seconds': 53.681452198012266, 'peak_allocated_gib': 28.647536754608154, 'peak_reserved_gib': 35.3515625}
+[Warning] rest tokens=19200 capped at 2048 (first_frame_sampled=0, stride=4, total=2048).
+[Topk=2048] Time of computing top-k indices: 2.855 seconds
+Traceback (most recent call last):
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/scripts/evaluate_scannet_paper64.py", line 169, in <module>
+    try:run(a)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/scripts/evaluate_scannet_paper64.py", line 135, in run
+    with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):raw=model(images)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/models/vggt.py", line 65, in forward
+    aggregated_tokens_list, patch_start_idx = self.aggregator(images)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/patch/patch_vggt.py", line 398, in forward
+    tokens, global_idx, global_intermediates = self._process_global_attention(
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/models/aggregator.py", line 317, in _process_global_attention
+    tokens = self.global_blocks[global_idx](tokens, pos=pos)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/block.py", line 105, in forward
+    x = x + attn_residual_func(x, pos=pos)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/block.py", line 83, in attn_residual_func
+    return self.ls1(self.attn(self.norm1(x), pos=pos))
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/patch/patch_vggt.py", line 579, in forward
+    q, k = self.orig_module.q_norm(q), self.orig_module.k_norm(k)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/normalization.py", line 201, in forward
+    return F.layer_norm(
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/functional.py", line 2573, in layer_norm
+    return torch.layer_norm(input, normalized_shape, weight, bias, eps, torch.backends.cudnn.enabled)
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.19 GiB. GPU 

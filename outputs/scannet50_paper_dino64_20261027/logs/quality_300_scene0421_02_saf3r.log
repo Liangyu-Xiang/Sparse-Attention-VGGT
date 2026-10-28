@@ -1,0 +1,61 @@
+=> Patching model ...
+[Warning] rest tokens=19200 capped at 2048 (first_frame_sampled=0, stride=4, total=2048).
+[Topk=2048] Time of computing top-k indices: 2.770 seconds
+Traceback (most recent call last):
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/scripts/evaluate_scannet_paper64.py", line 169, in <module>
+    try:run(a)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/scripts/evaluate_scannet_paper64.py", line 135, in run
+    with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):raw=model(images)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/models/vggt.py", line 65, in forward
+    aggregated_tokens_list, patch_start_idx = self.aggregator(images)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/patch/patch_vggt.py", line 398, in forward
+    tokens, global_idx, global_intermediates = self._process_global_attention(
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/models/aggregator.py", line 317, in _process_global_attention
+    tokens = self.global_blocks[global_idx](tokens, pos=pos)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/block.py", line 105, in forward
+    x = x + attn_residual_func(x, pos=pos)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/block.py", line 83, in attn_residual_func
+    return self.ls1(self.attn(self.norm1(x), pos=pos))
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/patch/patch_vggt.py", line 584, in forward
+    x = self.compute_multihead_attention(q, k, v)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/patch/wrapper.py", line 102, in compute_multihead_attention
+    attn_out = self.sparse_attention(q_h, k_h, v_h, self.head_cfg[h], head_idx=h)  # [B, 1, N, D]
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/patch/wrapper.py", line 89, in sparse_attention
+    return sparse_attention(
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/patch/sparse_attention.py", line 71, in sparse_attention
+    out = dino_topk_attention(q, k, v, spec_idx, img_idx, est_topk_idx, dino_sp2sp_stride)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/patch/sparse_attention.py", line 221, in dino_topk_attention
+    out_img_flat = fused_sparse_topk_attention(q_img, k_img, v_img, est_topk_idx)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/triton/sparse_topk_attention.py", line 154, in fused_sparse_topk_attention
+    _sparse_attn_fwd_kernel[grid](
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/triton/runtime/jit.py", line 167, in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 143, in run
+    timings = {config: self._bench(*args, config=config, **kwargs) for config in pruned_configs}
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 143, in <dictcomp>
+    timings = {config: self._bench(*args, config=config, **kwargs) for config in pruned_configs}
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 122, in _bench
+    return do_bench(kernel_call, warmup=self.warmup, rep=self.rep, quantiles=(0.5, 0.2, 0.8))
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/triton/testing.py", line 102, in do_bench
+    fn()
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/triton/runtime/autotuner.py", line 110, in kernel_call
+    self.fn.run(
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/triton/runtime/jit.py", line 425, in run
+    kernel.run(grid_0, grid_1, grid_2, kernel.num_warps, kernel.num_ctas,  # number of warps/ctas per instance
+RuntimeError: Triton Error [CUDA]: out of memory

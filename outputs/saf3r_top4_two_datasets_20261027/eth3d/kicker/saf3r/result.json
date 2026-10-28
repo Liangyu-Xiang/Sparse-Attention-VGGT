@@ -1,0 +1,207 @@
+{
+  "method": "saf3r",
+  "scene": "kicker",
+  "dataset": "eth3d",
+  "frames": 31,
+  "input": {
+    "image_paths": [
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6511.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6510.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6509.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6508.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6507.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6506.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6505.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6504.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6503.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6502.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6500.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6499.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6487.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6489.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6490.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6491.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6492.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6493.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6494.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6495.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6496.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6497.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6512.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6513.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6514.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6515.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6516.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6517.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6518.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6519.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6520.JPG"
+    ],
+    "frame_indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "shape": [
+      31,
+      3,
+      350,
+      518
+    ],
+    "checkpoint": "/data_NVME1/mmc_lyxiang/3D/SAF3R/checkpoints/vggt/model_tracker_fixed_e20.pt"
+  },
+  "config": null,
+  "model_config": {
+    "name": "VGGT",
+    "dpt_only": true,
+    "ckpt_path": "/data_NVME1/mmc_lyxiang/3D/SAF3R/checkpoints/vggt/model_tracker_fixed_e20.pt",
+    "sparse_config_path": "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+    "patch_module": {
+      "type": "headsparse",
+      "topk_mode": "token",
+      "lazy_dino_topk": true,
+      "topk": 4
+    }
+  },
+  "saf3r": {
+    "profile": "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+    "topk": 4,
+    "topk_source": "lazy first-correspondence head, NOT paper DINO feature Top-K",
+    "lazy_dino_topk": true
+  },
+  "source_sha256": {
+    "saf3r/patch/reuse_residual_exploration.py": "f407f28e75d0161904229746ee995584204d9ef548b32bfc2e4d3334cd0b458e",
+    "saf3r/triton/reuse_explore_av.py": "2f4e4766b78ee1cba26ec6693577b11ae8b09e0ba28e13643d5df49d8e3901ee",
+    "saf3r/patch/fused_shared_av.py": "18812393e72d273a8c52e7a5d63f42d31fca86740b47e4ad307cb048c29b8554",
+    "saf3r/patch/value_clustering_gpu.py": "caa604347c6b2dfdf18f09295c3618ae0dcfa8098163c69fdcdd233ec2fd2fcc",
+    "saf3r/patch/region_history_attention.py": "f3a97e3c46582528b511c841d26a8e828598d352267ccd54269aab9a90ec8f26",
+    "saf3r/patch/value_evolving_attention.py": "b804d63a6aef940fb20754331f17d21f2f70e32743ee47d8896443cfbd509962",
+    "saf3r/patch/value_region_av.py": "334a1cddb4d32a2438f7a2469bb4ad32f16ca7524be3693c1d29841ab065b16e",
+    "saf3r/patch/patch_vggt.py": "b77a7ea3e562e4e1975d357c2e364b3140f83de19f136dd73eb2c55f3ea6093a",
+    "saf3r/triton/fused_shared_av.py": "2a3426aec363718fbaf458b01a2c43267cf17cad1142de4be2bb08147bdfbd49",
+    "saf3r/triton/value_region_selection.py": "b2e0e3527b6d1153a9b1f81d68f8203cfb437664a3c62be160b3e6f2f399d878",
+    "scripts/evaluate_reuse_exploration.py": "969e82437006a97f0ede195ec1cd8513d4027445bc371a00cbb8d20cd33dd1eb",
+    "scripts/quality_metrics.py": "d20b85e2e3e8bf6a61d58239bd51d880c2f5551440703b34d1f566fd407df4e6",
+    "scripts/unified_diagnostic_runtime.py": "a7d5afbee79231f757e8957ef2af00b7d2537e52709be83b2b9ec84f78c31105",
+    "scripts/evaluate_all_edge_history.py": "ce9f7ca4d4f36ed728de9edcdd2ba7848a7eeb9218402e429660883c6ab5a3e2",
+    "configs/evaluation/reuse_residual_exploration.json": "2a4558a2794ce9322407754fb154b609eb8b7fa199541ce7ff2df5f9916ee191",
+    "configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json": "d1c348fa2a5933e0d0789515026d478dc0eb21c4a82375ad090ffc164317bfe2"
+  },
+  "timing": {
+    "median_seconds": 1.8925212009926327,
+    "samples": [
+      {
+        "seconds": 1.8764004220138304,
+        "peak_allocated_gib": 9.78203296661377,
+        "peak_reserved_gib": 13.224609375
+      },
+      {
+        "seconds": 1.8925212009926327,
+        "peak_allocated_gib": 9.780734062194824,
+        "peak_reserved_gib": 12.2578125
+      },
+      {
+        "seconds": 1.933082879986614,
+        "peak_allocated_gib": 9.781045913696289,
+        "peak_reserved_gib": 13.12890625
+      }
+    ],
+    "cold_samples": [
+      {
+        "seconds": 4.679207413981203,
+        "peak_allocated_gib": 9.781336784362793,
+        "peak_reserved_gib": 13.224609375
+      }
+    ],
+    "warmup": 1,
+    "repeats": 3,
+    "capture": false,
+    "scope": "Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync"
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "torch": "2.3.1+cu121",
+    "cuda": "12.1",
+    "device_uuid": "GPU-8e332fc5-55f4-0d85-1a2d-40bd87342c1f"
+  },
+  "quality_protocol": {
+    "tasks": [
+      "pose",
+      "recon_unposed"
+    ],
+    "sampling": "uniform",
+    "seed": 0,
+    "f1_threshold_m": 0.25,
+    "downsample_m": 0.0390625,
+    "cd_definition": "(ACC+Comp)/2 unsquared metres",
+    "reconstruction": "unposed"
+  },
+  "quality": {
+    "values": {
+      "auc03": 0.5189964157706094,
+      "auc30": 0.9483870967741936,
+      "acc": 0.0596542381738662,
+      "comp": 0.05462740715475046,
+      "cd": 0.057140822664308324,
+      "f1": 0.9948156079149966
+    },
+    "complete": true,
+    "unavailable": {},
+    "speedup_vs_vggt": 1.171886269388722,
+    "speedup_unavailable": null,
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "metrics": {
+    "pose": {
+      "auc30": 0.9483870967741936,
+      "auc15": 0.8974910394265233,
+      "auc05": 0.6980645161290323,
+      "auc03": 0.5189964157706094
+    },
+    "recon_unposed": {
+      "acc": 0.0596542381738662,
+      "comp": 0.05462740715475046,
+      "overall": 0.057140822664308324,
+      "precision": 0.9917717776901852,
+      "recall": 0.9978781791948398,
+      "fscore": 0.9948156079149966
+    }
+  },
+  "quality_errors": {}
+}

@@ -1,0 +1,59 @@
+[datasets auto-import] Failed to import benchmarks.da3.bench.datasets.dtu: No module named 'plyfile'
+[7Scenes] fire: 1000 images
+Sampled fire (uniform): 1000 -> 128 frames
+Traceback (most recent call last):
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/scripts/evaluate_all_edge_history.py", line 10, in <module>
+    runpy.run_path(str(ROOT/'scripts/evaluate_reuse_exploration.py'),run_name='__main__')
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/runpy.py", line 289, in run_path
+    return _run_module_code(code, init_globals, run_name,
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/runpy.py", line 96, in _run_module_code
+    _run_code(code, mod_globals, init_globals,
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/scripts/evaluate_reuse_exploration.py", line 169, in <module>
+    try:run(a)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/scripts/evaluate_reuse_exploration.py", line 90, in run
+    with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):raw=model(images)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/models/vggt.py", line 65, in forward
+    aggregated_tokens_list, patch_start_idx = self.aggregator(images)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/models/aggregator.py", line 217, in forward
+    patch_tokens = self.patch_embed(images)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/vision_transformer.py", line 336, in forward
+    ret = self.forward_features(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/vision_transformer.py", line 272, in forward_features
+    x = blk(x)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/block.py", line 253, in forward
+    return super().forward(x_or_x_list)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/block.py", line 106, in forward
+    x = x + ffn_residual_func(x)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/block.py", line 86, in ffn_residual_func
+    return self.ls2(self.mlp(self.norm2(x)))
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/saf3r/models/official_vggt/layers/mlp.py", line 36, in forward
+    x = self.act(x)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1532, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1541, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/data/mmc_syang/miniconda3/envs/fastvggt/lib/python3.10/site-packages/torch/nn/modules/activation.py", line 696, in forward
+    return F.gelu(input, approximate=self.approximate)
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.02 GiB. GPU 

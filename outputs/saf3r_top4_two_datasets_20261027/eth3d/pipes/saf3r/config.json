@@ -1,0 +1,23 @@
+{
+  "method": "saf3r",
+  "config": null,
+  "model": {
+    "name": "VGGT",
+    "dpt_only": true,
+    "ckpt_path": "/data_NVME1/mmc_lyxiang/3D/SAF3R/checkpoints/vggt/model_tracker_fixed_e20.pt",
+    "sparse_config_path": "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+    "patch_module": {
+      "type": "headsparse",
+      "topk_mode": "token",
+      "lazy_dino_topk": true,
+      "topk": 4
+    }
+  },
+  "saf3r": {
+    "profile": "/data_NVME1/mmc_lyxiang/3D/SAF3R-joint-history-eval/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+    "topk": 4,
+    "topk_source": "lazy first-correspondence head, NOT paper DINO feature Top-K",
+    "lazy_dino_topk": true
+  },
+  "seed": 0
+}

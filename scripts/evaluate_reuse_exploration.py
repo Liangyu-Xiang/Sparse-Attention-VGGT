@@ -36,7 +36,8 @@ def run(args):
     save(out/'status.json',dict(stage='loading',method=args.method,scene=args.scene))
     torch.set_num_threads(2);torch.manual_seed(0);np.random.seed(0);o3d.utility.random.seed(0)
     torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
-    dataset=MV_REGISTRY.get('7scenes')()
+    dataset_name=getattr(args,'dataset','7scenes')
+    dataset=MV_REGISTRY.get(dataset_name)()
     positions,scene=sample_frames(dataset.get_data(args.scene),args.scene,args.frames,sample_mode='uniform',seed=0)
     cfg=Dict(yaml.safe_load((ROOT/'configs/evaluation/eval_saf3r_vggt.yaml').read_text())['model'])
     cfg.ckpt_path=str(getattr(args,'checkpoint',None) or ROOT/'checkpoints/vggt/model_tracker_fixed_e20.pt')
@@ -106,7 +107,7 @@ def run(args):
     timing=dict(median_seconds=float(np.median([s['seconds'] for s in samples])),samples=samples,cold_samples=cold,
         warmup=args.warmup,repeats=args.repeats,capture=args.capture,
         scope='Complete forward, includes reset/clustering/pooling/selection/history and 4/32-query probe evidence; no per-layer sync')
-    common=dict(method=args.method,scene=args.scene,dataset='7scenes',frames=len(images),input=canonical,
+    common=dict(method=args.method,scene=args.scene,dataset=dataset_name,frames=len(images),input=canonical,
         config=None if config is None else asdict(config),model_config=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,
         source_sha256=hashes,timing=timing,
         hardware=dict(gpu=torch.cuda.get_device_name(),torch=torch.__version__,cuda=torch.version.cuda,
@@ -129,7 +130,7 @@ def run(args):
     save(out/'status.json',dict(stage='quality',method=args.method))
     metrics={};errors={}
     try:
-        _,gt=load_scene_data(dataset,'7scenes',args.scene,args.frames,'uniform',seed=0)
+        _,gt=load_scene_data(dataset,dataset_name,args.scene,args.frames,'uniform',seed=0)
         for task in ('pose','recon_unposed'):
             try:
                 np.random.seed(0);o3d.utility.random.seed(0)
@@ -155,6 +156,7 @@ def run(args):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--method',choices=['dense','saf3r','history80','reuse_explore'],required=True)
+    p.add_argument('--dataset',choices=['7scenes','eth3d'],default='7scenes')
     p.add_argument('--scene',required=True);p.add_argument('--frames',type=int,default=128)
     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
     p.add_argument('--checkpoint',type=Path)

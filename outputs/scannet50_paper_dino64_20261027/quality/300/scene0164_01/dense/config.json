@@ -1,0 +1,24 @@
+{
+  "model": {
+    "name": "VGGT",
+    "dpt_only": true,
+    "ckpt_path": "/data_NVME1/mmc_lyxiang/3D/SAF3R/checkpoints/vggt/model_tracker_fixed_e20.pt"
+  },
+  "protocol": {
+    "sampling": "uniform over RGB frames with valid finite poses",
+    "seed": 0,
+    "confidence_threshold": 1.0,
+    "reconstruction": "unposed depth unprojection with predicted cameras; no GT-camera fusion",
+    "alignment": "FastVGGT first-camera gauge followed by GT/pred bounding-box diagonal scale and center alignment; no ICP",
+    "point_cap": 100000,
+    "downsample_m": 0.05,
+    "distance_clip_m": 0.5,
+    "f1_threshold_m": 0.05,
+    "cd_definition": "(ACC+Comp)/2 unsquared clipped distances; official FastVGGT sum saved separately",
+    "auc": "DA3-Bench relative rotation/translation angular AUC, all distinct camera pairs",
+    "warmup": 1,
+    "repeats": 3,
+    "scope": "full forward including DINO Top-K construction and caching",
+    "parameter_provenance": "Paper 300/500/700 uniform; public non-lazy DINO Top64/max2048 example, not unpublished per-scene K reproduction"
+  }
+}
