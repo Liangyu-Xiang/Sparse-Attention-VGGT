@@ -2,7 +2,15 @@
 
 本页索引本轮已完成的本地实测、原始指标、输入列表、源码快照及验证记录。全部结果保留原始尺度；不同计时批次在各报告中注明。
 
-## 最新：新的 cosine-distortion 目标及对应质量转移
+## 最新：一次性合并修正后的方案
+
+[最终结论](../../outputs/reuse_rep_revision_7scenes128_20261029/conclusions.md) · [完整比较](../../outputs/reuse_rep_revision_7scenes128_20261029/combined_report.md) · [逐场景六指标](../../outputs/reuse_rep_revision_7scenes128_20261029/report.md) · [完成与核对](../../outputs/reuse_rep_revision_7scenes128_20261029/completion.json) · [实现说明](reuse_rep_revision.md)
+
+7Scenes全七场景、128帧，合并版7/7完成。Drop=π、Rep相对收益、全部已执行边历史、相对QK logit及当前grid校准一次性启用，保留估计质量转移。AUC@3=15.86462%、AUC@30=80.83533%、ACC=0.134610m、Comp=0.124789m、CD=0.129699m、F1=46.65088%。完整前向110.432s，Dense配对加速比0.111284x，峰值显存均值15.902GiB；包括新增诊断开销。
+
+旧reuse/cosine质量直接复用，历史计时不冒充本轮速度比较。冗余旧方法重跑已停止；中途逐项消融已按用户纠正停止并排除。40项CPU/CUDA测试、真实128帧数值检查及245个合并源码快照核验通过。质量较上一版cosine恢复，但仍不及原版reuse，且未获加速。无测试真值调参。相对logit统计已融合，原有概率汇总第二次QK仍保留计时。
+
+## 上一轮：cosine-distortion 目标及对应质量转移
 
 [完整报告](../../outputs/reuse_cosine_7scenes128_20261029/report.md) · [逐场景与宏平均](../../outputs/reuse_cosine_7scenes128_20261029/summary.json) · [状态分布](../../outputs/reuse_cosine_7scenes128_20261029/state_behavior.json) · [配对核对](../../outputs/reuse_cosine_7scenes128_20261029/pairing_audit.json)
 

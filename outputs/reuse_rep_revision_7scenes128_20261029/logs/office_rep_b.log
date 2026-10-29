@@ -1,0 +1,39 @@
+[7Scenes] office: 1000 images
+Sampled office (uniform): 1000 -> 128 frames
+FORWARD office rep_b 0 {'seconds': 99.44339617202058, 'peak_allocated_gib': 15.496540069580078, 'peak_reserved_gib': 19.75}
+FORWARD office rep_b 1 {'seconds': 97.69653012882918, 'peak_allocated_gib': 15.502531051635742, 'peak_reserved_gib': 20.005859375}
+*** Aborted at 1793280536 (unix time) try "date -d @1793280536" if you are using GNU date ***
+PC: @     0x7f2d6fd6e5b0 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x3195af)
+*** SIGTERM (@0x9bd2b) received by PID 635743 (TID 0x7f2e83fdb740) from PID 638251; stack trace: ***
+    @     0x7f2e84077ee8 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x99ee7)
+    @     0x7f2afcba25d8 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/pycolmap/_core.cpython-311-x86_64-linux-gnu.so+0x9945d7)
+    @     0x7f2e84020520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7f2d6fd6e5b0 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x3195af)
+    @     0x7f2d6fd6834a cuCtxGetDevice
+    @     0x7f2e7d011116 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12+0x11115)
+    @     0x7f2e7d04f0a8 cudaGetDevice
+    @     0x7f2e7cf68342 c10::cuda::ExchangeDevice(signed char)
+    @     0x7f2e212cacc0 void c10::impl::InlineOptionalDeviceGuard<c10::cuda::impl::CUDAGuardImpl>::reset_device<c10::cuda::impl::CUDAGuardImpl, void>(c10::Device)
+    @     0x7f2e21148eed at::(anonymous namespace)::structured_index_out_functional::set_output_raw_strided(long, c10::ArrayRef<long>, c10::ArrayRef<long>, c10::TensorOptions, c10::ArrayRef<at::Dimname>)
+    @     0x7f2e5b896907 at::TensorIteratorBase::allocate_or_resize_outputs()
+    @     0x7f2e5b899c7b at::TensorIteratorBase::build(at::TensorIteratorConfig&)
+    @     0x7f2e5bf04ee3 at::meta::structured_index_Tensor::meta(at::Tensor const&, c10::IListRef<at::OptionalTensorRef>)
+    @     0x7f2e21173600 at::(anonymous namespace)::wrapper_CUDA_index_Tensor(at::Tensor const&, c10::List<std::optional<at::Tensor> > const&)
+    @     0x7f2e211737bf c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, c10::List<std::optional<at::Tensor> > const&), &at::(anonymous namespace)::wrapper_CUDA_index_Tensor>, at::TeE
+    @     0x7f2e5c5fbd45 at::_ops::index_Tensor::call(at::Tensor const&, c10::List<std::optional<at::Tensor> > const&)
+    @     0x7f2e6f205b66 at::indexing::dispatch_index(at::Tensor const&, std::vector<at::Tensor, std::allocator<at::Tensor> >&&)
+    @     0x7f2e6f200df4 torch::autograd::THPVariable_getitem(_object*, _object*)
+    @     0x55c96e808ec8 _PyEval_EvalFrameDefault
+    @     0x55c96e84e5c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x55c96e84ddfe method_vectorcall
+    @     0x55c96e838506 PyObject_Call
+    @     0x55c96e80c520 _PyEval_EvalFrameDefault
+    @     0x55c96e84e5c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x55c96e84ddfe method_vectorcall
+    @     0x55c96e838506 PyObject_Call
+    @     0x55c96e80c520 _PyEval_EvalFrameDefault
+    @     0x55c96e82e0b5 _PyFunction_Vectorcall
+    @     0x55c96e7ff0f0 _PyObject_FastCallDictTstate.localalias
+    @     0x55c96e836297 _PyObject_Call_Prepend
+    @     0x55c96e908e77 slot_tp_call
+    @     0x55c96e7fa2c3 _PyObject_MakeTpCall.localalias

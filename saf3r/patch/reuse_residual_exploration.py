@@ -29,8 +29,16 @@ class ReuseExploreConfig:
     evidence_mode:str="second_qk"
     state_loss:str="output_proxy"
     prior_floor_fraction:float=1e-6
+    drop_multiplier:float=2.
+    history_mode:str="genuine_probability"
+    mass_transfer:bool=True
+    rep_gain:bool=False
 
     def __post_init__(self):
+        if self.history_mode not in ('genuine_probability','all_probability','all_relative_logit'):raise ValueError('Invalid history mode')
+        if self.drop_multiplier not in (1.,2.):raise ValueError('Invalid drop multiplier')
+        if self.history_mode!='genuine_probability' and self.state_loss!='cosine_distortion':raise ValueError('Revised history requires cosine states')
+        if self.history_mode=='all_relative_logit' and self.query_shift:raise ValueError('Relative history requires fixed query groups')
         if self.state_loss not in ('output_proxy','cosine_distortion'):raise ValueError('Invalid state loss')
         if not 0<self.prior_floor_fraction<=1e-3:raise ValueError('Invalid prior floor')
         if not 0<=self.query_shift<32:raise ValueError('Query shift must be 0..31')
@@ -50,7 +58,7 @@ def canonical_layout(frames,height,width,gy,gx,device):
     return labels,frames*gy*gx
 
 
-def budget_states(errors,costs,budget,iterations=16,maximize=False):
+def budget_states(errors,costs,budget,iterations=16,maximize=False,lambda_upper=None):
     """Independent region operating points; feasible <=B, no fixed split.
 
     Exact knapsack optimum is not claimed. Costs must be nonnegative; first
@@ -61,7 +69,7 @@ def budget_states(errors,costs,budget,iterations=16,maximize=False):
         ceiling=errors.masked_fill(~feasible,-torch.inf).amax(-1,keepdim=True)
         errors=(ceiling-errors).masked_fill(~feasible,torch.inf)
     lo=torch.zeros(len(errors),device=errors.device)
-    hi=errors[:,:,0].amax(1)+1e-12
+    hi=errors[:,:,0].amax(1)+1e-12 if lambda_upper is None else lambda_upper
     for _ in range(iterations):
         mid=(lo+hi)*.5
         selected=(errors+mid[:,None,None]*costs).argmin(-1)
@@ -220,7 +228,7 @@ class ReuseExploreState:
         self.fine=FullCoverageValue(frames,height*width,self.budget,device,c.source_width,c.local_iterations)
         self.grid,self.regions=canonical_layout(frames,height,width,c.grid_y,c.grid_x,device)
         self.grid_sizes=torch.bincount(self.grid,minlength=self.regions).float()
-        self.history_ids=None;self.history_weights=None;self.previous_grid=None;self.previous_real_grid=None
+        self.history_ids=None;self.history_weights=None;self.history_relative=None;self.previous_grid=None;self.previous_real_grid=None
         self.query_order=torch.arange(self.n,device=device)
         self.previous_layer=-1;self.records=[];self.captured={};self.profile_events=[]
 
@@ -253,15 +261,19 @@ class ReuseResidualExploration(nn.Module):
         with stage(s,'pooling'),torch.autocast(x.device.type,enabled=False):
             population,means,pooled,overlap=s.prepare(k,features)
             if c.state_loss=="cosine_distortion":
-                from .reuse_cosine_distortion import normalized_values,history_prior,cosine_states,transfer_weights
+                from .reuse_cosine_distortion import normalized_values,history_prior,cosine_states,transfer_weights,relative_logit_prior
                 zvalues=normalized_values(features)
+            token_grid=None
+            if c.history_mode=='all_relative_logit':
+                token_grid=torch.zeros(s.n,device=x.device,dtype=torch.long)
+                token_grid[s.patches]=s.grid
         order=None
         if c.query_shift:
             order=(torch.arange(s.n,device=x.device)+self.layer*c.query_shift%32)%s.n
             if self.layer:regroup_history(s,order)
             s.query_order=order
             q=q[:,order].contiguous()
-        output=torch.empty_like(v);history=[];weights=[];grids=[];real_grids=[];stats=[];capture=[]
+        output=torch.empty_like(v);history=[];weights=[];grids=[];real_grids=[];stats=[];capture=[];relative_evidence=[]
         candidates=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
         for start in range(0,s.groups,c.window_groups):
             g=min(c.window_groups,s.groups-start);first=start*32;end=min(s.n,(start+g)*32)
@@ -295,21 +307,49 @@ class ReuseResidualExploration(nn.Module):
                 with stage(s,'reuse_and_budget'),torch.autocast(x.device.type,enabled=False):
                     old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                     old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
-                    hids,hmass,discarded=top_history(old_ids,old_weights,beta,s.grid,s.fine.labels,s.fine.reps,c.history_per_cluster)
+                    if c.history_mode=='all_relative_logit':
+                        prior,pi=relative_logit_prior(probability,s.grid,s.grid_sizes,old_ids,
+                            s.history_relative[start:start+g],s.fine.labels,s.fine.base_count)
+                        old_weights=prior.gather(1,old_ids.long().clamp_min(0)).masked_fill(old_ids<0,0)
+                        history_beta=torch.ones_like(beta)
+                    else:history_beta=beta
+                    hids,hmass,discarded=top_history(old_ids,old_weights,history_beta,s.grid,s.fine.labels,s.fine.reps,c.history_per_cluster)
                     if c.state_loss=="cosine_distortion":
-                        prior=history_prior(pi,s.fine.labels,population,old_ids,old_weights,beta,s.grid,c.prior_floor_fraction)
-                        errors,costs=cosine_states(pi,zvalues,s.fine.reps,s.fine.labels,population,hids,allowed,prior)
+                        if c.history_mode!='all_relative_logit':
+                            prior=history_prior(pi,s.fine.labels,population,old_ids,old_weights,beta,s.grid,c.prior_floor_fraction)
+                        errors,costs=cosine_states(pi,zvalues,s.fine.reps,s.fine.labels,population,hids,allowed,prior,c.drop_multiplier)
                     else:
                         errors,costs=operating_points(pi,pi_hat,means,features[s.fine.reps],population,
                                                     hids,hmass,features,allowed)
-                    selected,count=budget_states(errors,costs,s.budget,c.dual_iterations,maximize=c.allocation_objective=="max_error")
+                    # Subtracting the Rep baseline is an exact gain reformulation.
+                    # Keep the same feasible discrete dual solve (not a greedy exchange).
+                    objective=errors-errors[:,:,1:2] if c.rep_gain else errors
+                    selected,count=budget_states(objective,costs,s.budget,c.dual_iterations,maximize=c.allocation_objective=="max_error",
+                        lambda_upper=errors[:,:,0].amax(1)+1e-12 if c.rep_gain else None)
                     ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
                     if c.state_loss=="cosine_distortion":
-                        pops,_=transfer_weights(selected,zvalues,s.fine.reps,s.fine.labels,hids,prior,ids)
+                        if c.mass_transfer:pops,_=transfer_weights(selected,zvalues,s.fine.reps,s.fine.labels,hids,prior,ids)
                         limit=c.history_per_cluster
                         reused=torch.where((selected>=2)&(selected<=limit+1),selected-1,
                             torch.where((selected>=limit+2)&(selected<=2*limit+1),selected-limit-1,0))
                         for amount in range(limit+1):record[f'selected_history_count_{amount}_clusters']=(reused==amount).sum(1)
+                    if c.rep_gain:
+                        observed=(old_ids>=0)
+                        overlap_rep=observed&(old_ids.long().clamp_min(0)==s.fine.reps[s.fine.labels[old_ids.long().clamp_min(0)]])
+                        gains=errors[:,:,1:2]-errors
+                        finite=torch.isfinite(gains)
+                        record.update(observed_history=observed.sum(1),history_rep_overlap=overlap_rep.sum(1),
+                            history_candidates=(hids>=0).sum((1,2)),
+                            positive_gain_states=((gains>0)&finite).sum((1,2)),
+                            positive_gain_sum=gains.masked_fill(~finite,0).clamp_min(0).sum((1,2)),
+                            negative_gain_sum=gains.masked_fill(~finite,0).clamp_max(0).sum((1,2)),
+                            selected_gain=gains.gather(2,selected[:,:,None]).sum((1,2)),
+                            gain_min=gains.masked_fill(~finite,torch.inf).amin((1,2)),
+                            gain_max=gains.masked_fill(~finite,-torch.inf).amax((1,2)))
+                        for state_id in range(gains.shape[-1]):
+                            present=finite[:,:,state_id]
+                            record[f'state_{state_id}_clusters']=(selected==state_id).sum(1)
+                            record[f'gain_{state_id}']=gains[:,:,state_id].masked_fill(~present,0).sum(1)/present.sum(1).clamp_min(1)
                     record['history_cap_discarded']=discarded
                     record['proxy_drop_error']=(errors[:,:,0]).sum(1)
                     record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).sum((1,2))
@@ -318,8 +358,22 @@ class ReuseResidualExploration(nn.Module):
             with stage(s,'execution_and_evidence'):
                 if q.is_cuda:
                     from saf3r.triton.reuse_explore_av import weighted_attention
-                    result,mass=weighted_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale,single_qk=c.evidence_mode=="saved_logits")
-                else:result,mass=reference_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale)
+                    reference=None
+                    if c.history_mode=='all_relative_logit':
+                        reference=(pooled,token_grid)
+                    execution=weighted_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale,
+                        single_qk=c.evidence_mode=="saved_logits",relative_reference=reference)
+                    if reference is None:result,mass=execution
+                    else:
+                        result,mass,delta=execution
+                        relative_evidence.append(delta)
+                else:
+                    result,mass=reference_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale)
+                    if c.history_mode=='all_relative_logit':
+                        safe=actual.long().clamp_min(0)
+                        raw=(q[:,first:end].float().mean(1)[:,None,:]*k[:,safe].float()).sum(-1)*o.scale
+                        ref=(q[:,first:end].float().mean(1)[:,None,None,:]*pooled[:,s.grid[ids.clamp_min(0)]].float()).sum(-1)*o.scale
+                        relative_evidence.append((raw-ref).mean(0).masked_fill(ids<0,0))
             output[:,first:end]=result
             with stage(s,'history_summary'):
                 mass=mass/mass.sum(1,keepdim=True).clamp_min(1e-30)
@@ -328,6 +382,7 @@ class ReuseResidualExploration(nn.Module):
                 # A selected history Key may represent other members. Only its
                 # unit-Key probability is genuine evidence, not transferred mass.
                 evidence=mass/pops.clamp_min(1) if c.state_loss=="cosine_distortion" else mass
+                if c.history_mode!='genuine_probability':real=ids>=0
                 real_grid=torch.zeros_like(grid).scatter_add_(1,key_grid,evidence*real)
                 history.append(ids.masked_fill(~real,-1).int());weights.append((evidence*real).half())
                 grids.append(grid.half());real_grids.append(real_grid.half())
@@ -335,6 +390,16 @@ class ReuseResidualExploration(nn.Module):
             if c.capture:capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
                                              mass=mass.clone(),reuse=record['reuse_edges'].clone()))
         s.history_ids=torch.cat(history);s.history_weights=torch.cat(weights)
+        if relative_evidence:s.history_relative=torch.cat(relative_evidence)
+        if c.rep_gain:
+            # Layer 0 has no candidate allocation; keep a consistent diagnostic schema.
+            diagnostic_keys=('observed_history','history_rep_overlap','history_candidates','positive_gain_states',
+                'positive_gain_sum','negative_gain_sum','selected_gain','gain_min','gain_max')
+            for record in stats:
+                for key in diagnostic_keys:record.setdefault(key,torch.zeros_like(record['counts']))
+                for state_id in range(2*c.history_per_cluster+3):
+                    record.setdefault(f'state_{state_id}_clusters',record['counts'] if state_id==1 else torch.zeros_like(record['counts']))
+                    record.setdefault(f'gain_{state_id}',torch.zeros_like(record['counts']))
         s.previous_grid=torch.cat(grids);s.previous_real_grid=torch.cat(real_grids)
         s.previous_layer=self.layer
         joined={key:torch.cat([r[key] for r in stats]) for key in stats[0]}
@@ -351,10 +416,12 @@ class ReuseResidualExploration(nn.Module):
             evidence_scratch_peak_bytes=min(c.window_groups*32,s.n)*q.shape[0]*s.budget*4 if c.evidence_mode=='saved_logits' else 0,
             stored_history_bytes=s.history_ids.numel()*4+s.history_weights.numel()*2,
             stored_grid_bytes=s.previous_grid.numel()*4,
-            population_compensation=c.state_loss=="output_proxy",head_aware=False,
-            state_loss=c.state_loss,mass_transfer="estimated assigned mass / own prior mass" if c.state_loss=="cosine_distortion" else "original population weights",
+            population_compensation=c.state_loss=="output_proxy" or not c.mass_transfer,head_aware=False,
+            history_mode=c.history_mode,drop_multiplier=c.drop_multiplier,rep_gain=c.rep_gain,
+            relative_logit_evidence_bytes=0 if s.history_relative is None else s.history_relative.numel()*4,
+            state_loss=c.state_loss,mass_transfer="estimated assigned mass / own prior mass" if c.state_loss=="cosine_distortion" and c.mass_transfer else "original population weights",
             selector='separable vector-output proxy, discrete dual budget search; not exact knapsack',
-            history='FP16 group-mean conditional patch mass; genuine edges only; no fixed retention ratio',
+            history=c.history_mode+'; compact relative logits FP32, probabilities FP16; no fixed retention ratio',
             evidence=c.evidence_mode,allocation_objective=c.allocation_objective,query_shift=c.query_shift))
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
             query_order=None if order is None else order.clone(),canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())

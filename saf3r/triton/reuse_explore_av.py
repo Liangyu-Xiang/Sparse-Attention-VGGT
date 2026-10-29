@@ -10,7 +10,7 @@ import triton.language as tl
 
 @triton.jit
 def _attention(Q,K,V,IDS,BIAS,SPECIAL,O,LSE,
-               LOGITS,SAVE:tl.constexpr,
+               LOGITS,SAVE:tl.constexpr,POOL,GRID,DELTA,RELATIVE:tl.constexpr,G:tl.constexpr,
                H:tl.constexpr,R:tl.constexpr,N:tl.constexpr,A:tl.constexpr,S:tl.constexpr,
                D:tl.constexpr,QH:tl.constexpr,KH:tl.constexpr,SCALE:tl.constexpr,BD:tl.constexpr):
     group,head=tl.program_id(0),tl.program_id(1)
@@ -31,6 +31,15 @@ def _attention(Q,K,V,IDS,BIAS,SPECIAL,O,LSE,
             v=tl.load(V+head*KH+tl.maximum(ids,0)[:,None]*D+dd[None,:],
                       valid[:,None]&(dd[None,:]<D),0)
             z=tl.where(valid[None,:],tl.dot(q,k)*SCALE+bias[None,:],-float('inf'))
+            if RELATIVE and bank==1:
+                # Compact raw evidence: one scalar / group / selected Key.
+                # No H x query x support logit bank is written to memory.
+                region=tl.load(GRID+tl.maximum(ids,0),valid,0)
+                pooled=tl.load(POOL+head*G*D+region[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0)
+                qmean=tl.sum(q.to(tl.float32),0)/tl.minimum(32,R-group*32)
+                reference=tl.sum(pooled.to(tl.float32)*qmean[None,:],1)*SCALE
+                raw=tl.sum(tl.where(rr[:,None]<R,z-bias[None,:],0.),0)/tl.minimum(32,R-group*32)
+                tl.atomic_add(DELTA+group*A+col,(raw-reference)/H,valid,sem='relaxed')
             if SAVE and bank==1:
                 tl.store(LOGITS+head*R*A+rr[:,None]*A+col[None,:],z,(rr[:,None]<R)&(col[None,:]<A))
             mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx)
@@ -58,7 +67,7 @@ def _mass(Q,K,IDS,BIAS,LSE,M,H:tl.constexpr,R:tl.constexpr,A:tl.constexpr,D:tl.c
     tl.atomic_add(M+group*A+col,mass,valid,sem='relaxed')
 
 
-def weighted_attention(q,k,v,indices,log_weights,specials,scale,single_qk=False):
+def weighted_attention(q,k,v,indices,log_weights,specials,scale,single_qk=False,relative_reference=None):
     h,r,d=q.shape;g,a=indices.shape
     if g!=triton.cdiv(r,32):raise ValueError('Invalid group count')
     if q.stride(1)!=d or q.stride(2)!=1 or not all(t.is_contiguous() for t in (k,v,indices,log_weights,specials)):
@@ -67,14 +76,17 @@ def weighted_attention(q,k,v,indices,log_weights,specials,scale,single_qk=False)
     mass=torch.zeros((g,a),device=q.device,dtype=torch.float32)
     logits=torch.empty((h,r,a),device=q.device,dtype=torch.float32) if single_qk else lse
     bd=max(16,triton.next_power_of_2(d))
-    _attention[(g,h)](q,k,v,indices,log_weights,specials,output,lse,logits,single_qk,h,r,k.shape[1],a,len(specials),d,
+    relative=relative_reference is not None
+    pooled,grid=relative_reference if relative else (k,indices)
+    delta=torch.zeros_like(mass) if relative else mass
+    _attention[(g,h)](q,k,v,indices,log_weights,specials,output,lse,logits,single_qk,pooled,grid,delta,relative,pooled.shape[1],h,r,k.shape[1],a,len(specials),d,
                       q.stride(0),k.stride(0),scale,bd,num_warps=4)
     if a and single_qk:
         _saved_mass[(g,h,triton.cdiv(a,64))](logits,indices,lse,mass,h,r,a,num_warps=4)
     elif a:
         _mass[(g,h,triton.cdiv(a,64))](q,k,indices,log_weights,lse,mass,h,r,a,d,
                                     q.stride(0),k.stride(0),scale,bd,num_warps=4)
-    return output,mass
+    return (output,mass,delta) if relative else (output,mass)
 
 
 @triton.jit

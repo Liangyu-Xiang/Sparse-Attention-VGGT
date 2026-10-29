@@ -1,0 +1,39 @@
+[7Scenes] redkitchen: 1000 images
+Sampled redkitchen (uniform): 1000 -> 128 frames
+FORWARD redkitchen rep_b 0 {'seconds': 105.00499982526526, 'peak_allocated_gib': 15.499603748321533, 'peak_reserved_gib': 20.259765625}
+FORWARD redkitchen rep_b 1 {'seconds': 101.75187616795301, 'peak_allocated_gib': 15.503499507904053, 'peak_reserved_gib': 20.009765625}
+*** Aborted at 1793280536 (unix time) try "date -d @1793280536" if you are using GNU date ***
+PC: @     0x7fa5ab50af7a __pthread_rwlock_unlock
+*** SIGTERM (@0x9bd2b) received by PID 636866 (TID 0x7fa5ab46d740) from PID 638251; stack trace: ***
+    @     0x7fa5ab509ee8 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x99ee7)
+    @     0x7fa223fbf5d8 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/pycolmap/_core.cpython-311-x86_64-linux-gnu.so+0x9945d7)
+    @     0x7fa5ab4b2520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7fa5ab50af7a __pthread_rwlock_unlock
+    @     0x7fa5a44356a2 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12+0x356a1)
+    @     0x7fa5a444d395 cudaGetLastError
+    @     0x7fa54658d551 void at::native::gpu_kernel_impl<at::native::BinaryFunctor<float, float, float, at::native::binary_internal::DivFunctor<float> > >(at::TensorIteratorBase&, at::native::BinaryFunctor<float, float, float, at::native::binary_internal::DivFunctor<float> > consE
+    @     0x7fa5485151bc at::(anonymous namespace)::wrapper_CUDA_div_Tensor(at::Tensor const&, at::Tensor const&)
+    @     0x7fa54851524f c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, at::Tensor const&), &at::(anonymous namespace)::wrapper_CUDA_div_Tensor>, at::Tensor, c10::guts::typelist::tyE
+    @     0x7fa5839d624c at::_ops::div_Tensor::call(at::Tensor const&, at::Tensor const&)
+    @     0x7fa59624cd88 torch::autograd::THPVariable_div(_object*, _object*, _object*)
+    @     0x7fa59624cfa6 _object* torch::autograd::TypeError_to_NotImplemented_<&torch::autograd::THPVariable_div>(_object*, _object*, _object*)
+    @     0x55558f44057b method_vectorcall_VARARGS_KEYWORDS
+    @     0x55558f4a7c9b vectorcall_maybe.constprop.0
+    @     0x55558f542b74 slot_nb_true_divide
+    @     0x55558f4b3dcb PyNumber_TrueDivide
+    @     0x55558f42213a _PyEval_EvalFrameDefault
+    @     0x55558f4675c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x55558f466dfe method_vectorcall
+    @     0x55558f451506 PyObject_Call
+    @     0x55558f425520 _PyEval_EvalFrameDefault
+    @     0x55558f4675c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x55558f466dfe method_vectorcall
+    @     0x55558f451506 PyObject_Call
+    @     0x55558f425520 _PyEval_EvalFrameDefault
+    @     0x55558f4470b5 _PyFunction_Vectorcall
+    @     0x55558f4180f0 _PyObject_FastCallDictTstate.localalias
+    @     0x55558f44f297 _PyObject_Call_Prepend
+    @     0x55558f521e77 slot_tp_call
+    @     0x55558f4132c3 _PyObject_MakeTpCall.localalias
+    @     0x55558f4215eb _PyEval_EvalFrameDefault
+    @     0x55558f4675c2 _PyObject_VectorcallTstate.lto_priv.4

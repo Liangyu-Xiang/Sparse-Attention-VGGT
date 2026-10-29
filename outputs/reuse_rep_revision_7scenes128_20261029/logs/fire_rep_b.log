@@ -1,0 +1,39 @@
+[7Scenes] fire: 1000 images
+Sampled fire (uniform): 1000 -> 128 frames
+FORWARD fire rep_b 0 {'seconds': 100.60633918410167, 'peak_allocated_gib': 15.497623443603516, 'peak_reserved_gib': 20.2578125}
+FORWARD fire rep_b 1 {'seconds': 98.01023591589183, 'peak_allocated_gib': 15.498315334320068, 'peak_reserved_gib': 20.0078125}
+*** Aborted at 1793280536 (unix time) try "date -d @1793280536" if you are using GNU date ***
+PC: @     0x7f4116b36051 pthread_mutex_lock
+*** SIGTERM (@0x9bd2b) received by PID 636149 (TID 0x7f4116a9b740) from PID 638251; stack trace: ***
+    @     0x7f4116b37ee8 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x99ee7)
+    @     0x7f3d8f66e5d8 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/pycolmap/_core.cpython-311-x86_64-linux-gnu.so+0x9945d7)
+    @     0x7f4116ae0520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7f4116b36051 pthread_mutex_lock
+    @     0x7f40026791b2 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x2241b1)
+    @     0x7f4002679a9d (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x224a9c)
+    @     0x7f40035cba98 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1176a97)
+    @     0x7f40035cbc5d (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1176c5c)
+    @     0x7f40028aa03f (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x45503e)
+    @     0x7f40035ea8c4 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x11958c3)
+    @     0x7f400260b105 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1b6104)
+    @     0x7f400260ba20 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1b6a1f)
+    @     0x7f400260c5d9 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1b75d8)
+    @     0x7f40027d7ba7 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x382ba6)
+    @     0x7f40027bdd1b cuLaunchKernel
+    @     0x7f410fa13e89 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12+0x13e88)
+    @     0x7f410fa7a02b cudaLaunchKernel
+    @     0x7f40b250b2d1 void at::native::gpu_index_kernel<__nv_dl_wrapper_t<__nv_dl_tag<void (*)(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>), &(void at::native::index_kernel_impl<at::native::OpaqueType<8> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10:E
+    @     0x7f40b250c9c4 at::native::index_kernel(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)
+    @     0x7f40b3b73686 at::(anonymous namespace)::wrapper_CUDA_index_Tensor(at::Tensor const&, c10::List<std::optional<at::Tensor> > const&)
+    @     0x7f40b3b737bf c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, c10::List<std::optional<at::Tensor> > const&), &at::(anonymous namespace)::wrapper_CUDA_index_Tensor>, at::TeE
+    @     0x7f40eeffbd45 at::_ops::index_Tensor::call(at::Tensor const&, c10::List<std::optional<at::Tensor> > const&)
+    @     0x7f4101c05b66 at::indexing::dispatch_index(at::Tensor const&, std::vector<at::Tensor, std::allocator<at::Tensor> >&&)
+    @     0x7f4101c00df4 torch::autograd::THPVariable_getitem(_object*, _object*)
+    @     0x5594128f9ec8 _PyEval_EvalFrameDefault
+    @     0x55941293f5c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x55941293edfe method_vectorcall
+    @     0x559412929506 PyObject_Call
+    @     0x5594128fd520 _PyEval_EvalFrameDefault
+    @     0x55941293f5c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x55941293edfe method_vectorcall
+    @     0x559412929506 PyObject_Call

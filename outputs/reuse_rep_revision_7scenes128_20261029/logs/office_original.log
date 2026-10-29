@@ -1,0 +1,40 @@
+[7Scenes] office: 1000 images
+Sampled office (uniform): 1000 -> 128 frames
+FORWARD office original 0 {'seconds': 83.15600801398978, 'peak_allocated_gib': 15.49842643737793, 'peak_reserved_gib': 19.748046875}
+FORWARD office original 1 {'seconds': 80.86370154516771, 'peak_allocated_gib': 15.496914386749268, 'peak_reserved_gib': 20.00390625}
+FORWARD office original 2 {'seconds': 81.03551792632788, 'peak_allocated_gib': 15.49593448638916, 'peak_reserved_gib': 20.271484375}
+*** Aborted at 1793279739 (unix time) try "date -d @1793279739" if you are using GNU date ***
+PC: @     0x7f5ef76799fc pthread_kill
+*** SIGTERM (@0x99fa9) received by PID 630697 (TID 0x7f5ef75e0740) from PID 630697; stack trace: ***
+    @     0x7f5ef767cee8 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x99ee7)
+    @     0x7f5b701a25d8 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/pycolmap/_core.cpython-311-x86_64-linux-gnu.so+0x9945d7)
+    @     0x7f5ef7625520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7f5ef76799fc pthread_kill
+    @     0x7f5ef7625476 raise
+    @     0x7f5b7c4cd645 SignalHandler(int, siginfo_t*, void*)
+    @     0x7f5ef7625520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7f5de346ac83 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x415c82)
+    @     0x7f5de32738ef (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x21e8ee)
+    @     0x7f5de329323f (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x23e23e)
+    @     0x7f5de41cd9a1 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x11789a0)
+    @     0x7f5de41cdc23 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1178c22)
+    @     0x7f5de328109d (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x22c09c)
+    @     0x7f5de332ebe9 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x2d9be8)
+    @     0x7f5de417b665 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1126664)
+    @     0x7f5de33d7897 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x382896)
+    @     0x7f5de33bdc1a cuStreamSynchronize
+    @     0x7f5ef0612683 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12+0x12682)
+    @     0x7f5ef0679d28 cudaStreamSynchronize
+    @     0x7f5e92ab8fc2 at::native::copy_kernel_cuda(at::TensorIterator&, bool)
+    @     0x7f5ecf24fd33 at::native::copy_impl(at::Tensor&, at::Tensor const&, bool) [clone .isra.0]
+    @     0x7f5ecf2519b7 at::native::copy_(at::Tensor&, at::Tensor const&, bool)
+    @     0x7f5ecff0dd27 at::_ops::copy_::call(at::Tensor&, at::Tensor const&, bool)
+    @     0x7f5ecf52fa2f at::native::_to_copy(at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f5ed031a22c c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, E
+    @     0x7f5ecf9e3b72 at::_ops::_to_copy::redispatch(c10::DispatchKeySet, at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f5ed00e1c1b c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, E
+    @     0x7f5ecfa85b4d at::_ops::_to_copy::call(at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f5ecf52dafb at::native::to(at::Tensor const&, c10::Device, c10::ScalarType, bool, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f5ed0419ea8 c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, c10::Device, c10::ScalarType, bool, bool, std::optional<c10::MemoryFormat>), &at::(anonymous namespace)::(anoE
+    @     0x7f5ecfc20a29 at::_ops::to_device::call(at::Tensor const&, c10::Device, c10::ScalarType, bool, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f5ee2cfe5e5 torch::utils::(anonymous namespace)::internal_new_from_data(c10::TensorOptions, c10::ScalarType, std::optional<c10::Device>, _object*, bool, bool, bool, bool)

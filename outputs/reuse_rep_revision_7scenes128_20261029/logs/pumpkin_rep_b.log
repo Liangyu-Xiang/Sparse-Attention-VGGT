@@ -1,0 +1,39 @@
+[7Scenes] pumpkin: 1000 images
+Sampled pumpkin (uniform): 1000 -> 128 frames
+FORWARD pumpkin rep_b 0 {'seconds': 99.89259077236056, 'peak_allocated_gib': 15.501115798950195, 'peak_reserved_gib': 19.751953125}
+FORWARD pumpkin rep_b 1 {'seconds': 98.54155020369217, 'peak_allocated_gib': 15.499785900115967, 'peak_reserved_gib': 20.0078125}
+*** Aborted at 1793280536 (unix time) try "date -d @1793280536" if you are using GNU date ***
+PC: @     0x7f5cebd8e0aa malloc
+*** SIGTERM (@0x9bd2b) received by PID 636150 (TID 0x7f5cebce6740) from PID 638251; stack trace: ***
+    @     0x7f5cebd82ee8 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x99ee7)
+    @     0x7f59648bf5d8 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/pycolmap/_core.cpython-311-x86_64-linux-gnu.so+0x9945d7)
+    @     0x7f5cebd2b520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7f5cebd8e0aa malloc
+    @     0x7f5cdd6cdada operator new(unsigned long)
+    @     0x7f5ce4ee431d std::set<c10::cuda::CUDACachingAllocator::Native::(anonymous namespace)::Block*, bool (*)(c10::cuda::CUDACachingAllocator::Native::(anonymous namespace)::Block const*, c10::cuda::CUDACachingAllocator::Native::(anonymous namespace)::Block const*), std::alloE
+    @     0x7f5ce4eed791 c10::cuda::CUDACachingAllocator::Native::DeviceCachingAllocator::alloc_found_block(c10::cuda::CUDACachingAllocator::Native::(anonymous namespace)::AllocParams const&, unsigned long, std::shared_ptr<c10::GatheredContext>, bool)
+    @     0x7f5ce4f0a294 c10::cuda::CUDACachingAllocator::Native::DeviceCachingAllocator::malloc(signed char, unsigned long, CUstream_st*)
+    @     0x7f5ce4f0c5c5 c10::cuda::CUDACachingAllocator::Native::NativeCachingAllocator::malloc(void**, signed char, unsigned long, CUstream_st*)
+    @     0x7f5ce4f0cb3f c10::cuda::CUDACachingAllocator::Native::NativeCachingAllocator::allocate(unsigned long)
+    @     0x7f5c88485b78 void at::native::mbtopk::launch<float, unsigned int, 2>(at::cuda::detail::TensorInfo<float const, unsigned int>, unsigned int, unsigned int, bool, unsigned int, unsigned int, at::cuda::detail::TensorInfo<float, unsigned int>, unsigned int, at::cuda::detailE
+    @     0x7f5c8842b29f at::native::launch_gather_topk_kernel(at::TensorBase const&, long, long, bool, at::TensorBase const&, at::TensorBase const&)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const
+    @     0x7f5c88449cd1 at::native::launch_gather_topk_kernel(at::TensorBase const&, long, long, bool, at::TensorBase const&, at::TensorBase const&)
+    @     0x7f5c89059ca2 at::native::structured_topk_out_cuda::impl(at::Tensor const&, long, long, bool, bool, at::Tensor const&, at::Tensor const&)
+    @     0x7f5c88d03ada at::(anonymous namespace)::wrapper_CUDA_topk(at::Tensor const&, long, long, bool, bool)
+    @     0x7f5c88d03b6e c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<std::tuple<at::Tensor, at::Tensor> (at::Tensor const&, long, long, bool, bool), &at::(anonymous namespace)::wrapper_CUDA_topk>, std::tuple<aE
+    @     0x7f5cc4232afb at::_ops::topk::call(at::Tensor const&, c10::SymInt, long, bool, bool)
+    @     0x7f5cd6a97b09 torch::autograd::THPVariable_topk(_object*, _object*, _object*)
+    @     0x5636a787857b method_vectorcall_VARARGS_KEYWORDS
+    @     0x5636a78654ac PyObject_Vectorcall
+    @     0x5636a78595eb _PyEval_EvalFrameDefault
+    @     0x5636a789f5c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x5636a789edfe method_vectorcall
+    @     0x5636a7889506 PyObject_Call
+    @     0x5636a785d520 _PyEval_EvalFrameDefault
+    @     0x5636a789f5c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x5636a789edfe method_vectorcall
+    @     0x5636a7889506 PyObject_Call
+    @     0x5636a785d520 _PyEval_EvalFrameDefault
+    @     0x5636a787f0b5 _PyFunction_Vectorcall
+    @     0x5636a78500f0 _PyObject_FastCallDictTstate.localalias
+    @     0x5636a7887297 _PyObject_Call_Prepend

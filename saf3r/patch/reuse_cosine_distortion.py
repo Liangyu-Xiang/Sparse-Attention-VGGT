@@ -62,7 +62,7 @@ def _costs_and_mask(pi,population,hids,exact_allowed,errors):
     return errors,torch.stack(cost,-1)
 
 
-def cosine_states(pi,z,reps,labels,population,hids,exact_allowed,prior):
+def cosine_states(pi,z,reps,labels,population,hids,exact_allowed,prior,drop_multiplier=2.):
     g,f=pi.shape;limit=hids.shape[-1]
     if z.is_cuda:
         from saf3r.triton.reuse_cosine_distortion import distortion_losses
@@ -83,7 +83,36 @@ def cosine_states(pi,z,reps,labels,population,hids,exact_allowed,prior):
                         minimum=torch.minimum(minimum,dist);chosen|=members==h
                     errors[group,cluster,2+slot]=(a*minimum).sum()
                     errors[group,cluster,2+limit+slot]=(a*dr.masked_fill(chosen,0)).sum()
-    return _costs_and_mask(pi,population,hids,exact_allowed,errors)
+    errors,costs=_costs_and_mask(pi,population,hids,exact_allowed,errors)
+    errors[:,:,0]=drop_multiplier*pi
+    return errors,costs
+
+
+def relative_logit_prior(probability,grid,grid_sizes,old_ids,delta,labels,clusters):
+    """Calibrate compact previous raw-logit residuals within CURRENT grids.
+
+    Unobserved keys have likelihood ratio one. Each grid retains exactly its
+    current coarse mass, even when a fine cluster spans multiple grids.
+    delta is mean_{head,query}(raw QK - raw coarse QK), not compensated logits.
+    """
+    g=len(probability);p=len(grid)
+    denominator=grid_sizes[None].expand(g,-1).clone()
+    if old_ids is not None:
+        safe=old_ids.long().clamp_min(0);valid=old_ids>=0
+        ratio=delta.float().clamp(-30,30).exp()
+        count=torch.zeros_like(probability).scatter_add_(1,grid[safe],valid.float())
+        total=torch.zeros_like(probability).scatter_add_(1,grid[safe],ratio.masked_fill(~valid,0))
+        # Separate counts and ratios: n + sum(R-1) catastrophically cancels
+        # when every grid member is observed and all likelihoods are tiny.
+        denominator=(grid_sizes[None]-count)+total
+    base=probability/denominator.clamp_min(1e-30)
+    prior=base[:,grid].clone()
+    if old_ids is not None:
+        padded=torch.cat((prior,torch.zeros((g,1),device=prior.device)),1)
+        padded.scatter_(1,torch.where(valid,safe,p),(base.gather(1,grid[safe])*ratio).masked_fill(~valid,0))
+        prior=padded[:,:p].contiguous()
+    pi=torch.zeros((g,clusters),device=prior.device).scatter_add_(1,labels[None].expand(g,-1),prior)
+    return prior,pi
 
 
 def transfer_weights(selected,z,reps,labels,hids,prior,packed_ids):

@@ -46,9 +46,10 @@ def run(args):
     if args.method!='saf3r':cfg.pop('patch_module');cfg.pop('sparse_config_path')
     model=build_model(cfg,'cuda');images=load_images(model,'vggt',scene.image_files).cuda()
     state=None;config=None
-    if args.method in ('original','shift8','max_error','single_qk','grid4','grid8','cosine_distortion'):
+    if args.method in ('original','shift8','max_error','single_qk','grid4','grid8','cosine_distortion','rep_a','rep_b','rep_c','rep_d','rep_combined'):
         from saf3r.patch.reuse_residual_exploration import ReuseExploreConfig,install_reuse_residual_exploration
         config_path=ROOT/('configs/evaluation/reuse_cosine_distortion.json' if args.method=='cosine_distortion' else f'configs/evaluation/reuse_ablation_{args.method}.json')
+        if args.method.startswith('rep_'):config_path=ROOT/f'configs/evaluation/reuse_{args.method}.json'
         config=ReuseExploreConfig(**json.loads(config_path.read_text()))
         config=replace(config,capture=args.capture)
         state=install_reuse_residual_exploration(model,config)
@@ -78,6 +79,10 @@ def run(args):
         'configs/evaluation/reuse_ablation_grid4.json','configs/evaluation/reuse_ablation_grid8.json',
         'configs/evaluation/reuse_residual_exploration.json',
         'configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json']
+    sources+=['configs/evaluation/reuse_rep_'+stage+'.json' for stage in 'abcd']
+    sources+=['configs/evaluation/reuse_rep_combined.json']
+    sources+=['tests/test_reuse_rep_revision.py','scripts/validate_reuse_rep_revision.py']
+    sources+=['docs/experiments/reuse_rep_revision.md','docs/experiments/reuse_rep_revision_reference.md']
     hashes={}
     for name in sources:
         data=(ROOT/name).read_bytes();hashes[name]=hashlib.sha256(data).hexdigest()
@@ -155,7 +160,7 @@ def run(args):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--method',choices=['dense','original','cosine_distortion'],required=True)
+    p.add_argument('--method',choices=['dense','original','cosine_distortion','rep_a','rep_b','rep_c','rep_d','rep_combined'],required=True)
     p.add_argument('--scene',required=True);p.add_argument('--frames',type=int,default=128)
     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')

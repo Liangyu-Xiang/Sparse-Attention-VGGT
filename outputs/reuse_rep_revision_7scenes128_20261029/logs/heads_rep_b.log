@@ -1,0 +1,39 @@
+[7Scenes] heads: 1000 images
+Sampled heads (uniform): 1000 -> 128 frames
+FORWARD heads rep_b 0 {'seconds': 102.51190821500495, 'peak_allocated_gib': 15.499603748321533, 'peak_reserved_gib': 20.2578125}
+FORWARD heads rep_b 1 {'seconds': 101.11339615518227, 'peak_allocated_gib': 15.502674102783203, 'peak_reserved_gib': 20.0078125}
+*** Aborted at 1793280536 (unix time) try "date -d @1793280536" if you are using GNU date ***
+PC: @     0x7f3752bea22c (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x119522b)
+*** SIGTERM (@0x9bd2b) received by PID 636349 (TID 0x7f38660af740) from PID 638251; stack trace: ***
+    @     0x7f386614bee8 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x99ee7)
+    @     0x7f34dec6e5d8 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/pycolmap/_core.cpython-311-x86_64-linux-gnu.so+0x9945d7)
+    @     0x7f38660f4520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7f3752bea22c (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x119522b)
+    @     0x7f3751c0b105 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1b6104)
+    @     0x7f3751c0ba20 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1b6a1f)
+    @     0x7f3751c0c5d9 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1b75d8)
+    @     0x7f3751dd7ba7 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x382ba6)
+    @     0x7f3751dbdd1b cuLaunchKernel
+    @     0x7f385f013e89 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12+0x13e88)
+    @     0x7f385f07a02b cudaLaunchKernel
+    @     0x7f3802886088 void at::native::mbtopk::launch<float, unsigned int, 2>(at::cuda::detail::TensorInfo<float const, unsigned int>, unsigned int, unsigned int, bool, unsigned int, unsigned int, at::cuda::detail::TensorInfo<float, unsigned int>, unsigned int, at::cuda::detailE
+    @     0x7f380282b29f at::native::launch_gather_topk_kernel(at::TensorBase const&, long, long, bool, at::TensorBase const&, at::TensorBase const&)::{lambda()#1}::operator()() const::{lambda()#7}::operator()() const
+    @     0x7f3802849cd1 at::native::launch_gather_topk_kernel(at::TensorBase const&, long, long, bool, at::TensorBase const&, at::TensorBase const&)
+    @     0x7f3803459ca2 at::native::structured_topk_out_cuda::impl(at::Tensor const&, long, long, bool, bool, at::Tensor const&, at::Tensor const&)
+    @     0x7f3803103ada at::(anonymous namespace)::wrapper_CUDA_topk(at::Tensor const&, long, long, bool, bool)
+    @     0x7f3803103b6e c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<std::tuple<at::Tensor, at::Tensor> (at::Tensor const&, long, long, bool, bool), &at::(anonymous namespace)::wrapper_CUDA_topk>, std::tuple<aE
+    @     0x7f383e632afb at::_ops::topk::call(at::Tensor const&, c10::SymInt, long, bool, bool)
+    @     0x7f3850e97b09 torch::autograd::THPVariable_topk(_object*, _object*, _object*)
+    @     0x5613a912757b method_vectorcall_VARARGS_KEYWORDS
+    @     0x5613a91144ac PyObject_Vectorcall
+    @     0x5613a91085eb _PyEval_EvalFrameDefault
+    @     0x5613a914e5c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x5613a914ddfe method_vectorcall
+    @     0x5613a9138506 PyObject_Call
+    @     0x5613a910c520 _PyEval_EvalFrameDefault
+    @     0x5613a914e5c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x5613a914ddfe method_vectorcall
+    @     0x5613a9138506 PyObject_Call
+    @     0x5613a910c520 _PyEval_EvalFrameDefault
+    @     0x5613a912e0b5 _PyFunction_Vectorcall
+    @     0x5613a90ff0f0 _PyObject_FastCallDictTstate.localalias

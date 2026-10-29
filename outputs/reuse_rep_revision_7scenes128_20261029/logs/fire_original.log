@@ -1,0 +1,40 @@
+[7Scenes] fire: 1000 images
+Sampled fire (uniform): 1000 -> 128 frames
+FORWARD fire original 0 {'seconds': 84.53769274195656, 'peak_allocated_gib': 15.49842643737793, 'peak_reserved_gib': 19.748046875}
+FORWARD fire original 1 {'seconds': 82.32272048201412, 'peak_allocated_gib': 15.495622634887695, 'peak_reserved_gib': 20.001953125}
+FORWARD fire original 2 {'seconds': 82.53108925418928, 'peak_allocated_gib': 15.496670722961426, 'peak_reserved_gib': 20.26953125}
+*** Aborted at 1793279739 (unix time) try "date -d @1793279739" if you are using GNU date ***
+PC: @     0x7fd5f29c89fc pthread_kill
+*** SIGTERM (@0x99fa8) received by PID 630696 (TID 0x7fd5f292f740) from PID 630696; stack trace: ***
+    @     0x7fd5f29cbee8 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x99ee7)
+    @     0x7fd26b4bf5d8 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/pycolmap/_core.cpython-311-x86_64-linux-gnu.so+0x9945d7)
+    @     0x7fd5f2974520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7fd5f29c89fc pthread_kill
+    @     0x7fd5f2974476 raise
+    @     0x7fd2777cd645 SignalHandler(int, siginfo_t*, void*)
+    @     0x7fd5f2974520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7fd4df3cbefa (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1176ef9)
+    @     0x7fd4de40b8d0 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1b68cf)
+    @     0x7fd4de40c5d9 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1b75d8)
+    @     0x7fd4de5d7ba7 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x382ba6)
+    @     0x7fd4de5bdd1b cuLaunchKernel
+    @     0x7fd5eb813e89 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12+0x13e88)
+    @     0x7fd5eb87a02b cudaLaunchKernel
+    @     0x7fd58e58f4bc void at::native::gpu_kernel_impl_nocast<__nv_hdl_wrapper_t<false, false, false, __nv_dl_tag<void (*)(at::TensorIterator&, c10::Scalar const&), &at::native::(anonymous namespace)::masked_fill_kernel, 4u>, long (long, bool), long const> >(at::TensorIteratorBE
+    @     0x7fd58e3d075b at::native::(anonymous namespace)::masked_fill_kernel(at::TensorIterator&, c10::Scalar const&)::{lambda()#1}::operator()() const [clone .isra.0]
+    @     0x7fd58e3d11f4 at::native::masked_fill__cuda(at::Tensor&, at::Tensor const&, c10::Scalar const&)
+    @     0x7fd58f9e9beb c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor& (at::Tensor&, at::Tensor const&, c10::Scalar const&), &at::(anonymous namespace)::(anonymous namespace)::wrapper_CUDA_Scalar_masE
+    @     0x7fd5cb25fb46 at::_ops::masked_fill__Scalar::call(at::Tensor&, at::Tensor const&, c10::Scalar const&)
+    @     0x7fd5ca6f248c at::native::masked_fill(at::Tensor const&, at::Tensor const&, c10::Scalar const&)
+    @     0x7fd5cb51dca2 c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, at::Tensor const&, c10::Scalar const&), &at::(anonymous namespace)::(anonymous namespace)::wrapper_CompositeEE
+    @     0x7fd5cb25769b at::_ops::masked_fill_Scalar::call(at::Tensor const&, at::Tensor const&, c10::Scalar const&)
+    @     0x7fd5dd68c66f torch::autograd::THPVariable_masked_fill(_object*, _object*, _object*)
+    @     0x55628474957b method_vectorcall_VARARGS_KEYWORDS
+    @     0x5562847364ac PyObject_Vectorcall
+    @     0x55628472a5eb _PyEval_EvalFrameDefault
+    @     0x5562847705c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x55628476fdfe method_vectorcall
+    @     0x55628475a506 PyObject_Call
+    @     0x55628472e520 _PyEval_EvalFrameDefault
+    @     0x5562847705c2 _PyObject_VectorcallTstate.lto_priv.4
+    @     0x55628476fdfe method_vectorcall
