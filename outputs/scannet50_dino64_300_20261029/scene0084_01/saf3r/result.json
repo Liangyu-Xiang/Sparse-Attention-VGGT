@@ -1,0 +1,17 @@
+{
+  "scene": "scene0084_01",
+  "method": "saf3r",
+  "frames": 300,
+  "values": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "speedup": null,
+  "speedup_unavailable": "Paired timings not yet available",
+  "reason": "Traceback (most recent call last):\n  File \"/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/scripts/evaluate_scannet50_paper.py\", line 52, in run\n    with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):raw=model(images)\n                                                                                ^^^^^^^^^^^^^\n  File \"/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1775, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1786, in _call_impl\n    return forward_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/saf3r/models/official_vggt/models/vggt.py\", line 65, in forward\n    aggregated_tokens_list, patch_start_idx = self.aggregator(images)\n                                              ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1775, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py\", line 1786, in _call_impl\n    return forward_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/saf3r/patch/patch_vggt.py\", line 345, in forward\n    est_topk_idx = compute_qk_topk_indices_batched(\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/saf3r/patch/utils.py\", line 140, in compute_qk_topk_indices_batched\n    topk_idx_out = torch.empty((B, Nq, out_width), device=device, dtype=torch.int32)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntorch.OutOfMemoryError: CUDA out of memory. Tried to allocate 22.23 GiB. GPU 0 has a total capacity of 31.36 GiB of which 19.81 GiB is free. Including non-PyTorch memory, this process has 11.54 GiB memory in use. Of the allocated memory 10.78 GiB is allocated by PyTorch, and 147.29 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)\n",
+  "failure_peak_allocated_gib": 14.954639911651611
+}

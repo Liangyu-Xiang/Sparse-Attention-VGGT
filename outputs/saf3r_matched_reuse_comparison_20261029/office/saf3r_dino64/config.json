@@ -1,0 +1,30 @@
+{
+  "method": "saf3r_dino64",
+  "config": null,
+  "model": {
+    "name": "VGGT",
+    "dpt_only": true,
+    "ckpt_path": "/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/checkpoints/vggt/model_tracker_fixed_e20.pt",
+    "sparse_config_path": "/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+    "patch_module": {
+      "type": "headsparse",
+      "topk_mode": "token",
+      "lazy_dino_topk": false,
+      "topk": 64,
+      "per_frame_topk": true,
+      "max_topk": 8192,
+      "include_first_frame": false
+    }
+  },
+  "saf3r": {
+    "profile": "/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json",
+    "topk": 64,
+    "topk_source": "DINO final features cosine similarity per-frame",
+    "lazy_dino_topk": false,
+    "max_topk": 8192,
+    "per_frame_topk": true,
+    "include_first_frame": false,
+    "profile_sha256": "d1c348fa2a5933e0d0789515026d478dc0eb21c4a82375ad090ffc164317bfe2"
+  },
+  "seed": 0
+}
