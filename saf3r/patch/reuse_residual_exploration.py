@@ -33,8 +33,10 @@ class ReuseExploreConfig:
     history_mode:str="genuine_probability"
     mass_transfer:bool=True
     rep_gain:bool=False
+    compact:bool=False
 
     def __post_init__(self):
+        if self.compact and (self.state_loss!='cosine_distortion' or self.history_mode!='all_relative_logit' or not self.mass_transfer or not self.rep_gain or self.allocation_objective!='min_error'):raise ValueError('Compact path requires the complete combined method')
         if self.history_mode not in ('genuine_probability','all_probability','all_relative_logit'):raise ValueError('Invalid history mode')
         if self.drop_multiplier not in (1.,2.):raise ValueError('Invalid drop multiplier')
         if self.history_mode!='genuine_probability' and self.state_loss!='cosine_distortion':raise ValueError('Revised history requires cosine states')
@@ -263,6 +265,10 @@ class ReuseResidualExploration(nn.Module):
             if c.state_loss=="cosine_distortion":
                 from .reuse_cosine_distortion import normalized_values,history_prior,cosine_states,transfer_weights,relative_logit_prior
                 zvalues=normalized_values(features)
+            geometry=None
+            if c.compact and q.is_cuda:
+                from saf3r.triton import reuse_compact as compact
+                geometry=compact.prepare_geometry(zvalues,s.fine.labels,s.fine.reps,population)
             token_grid=None
             if c.history_mode=='all_relative_logit':
                 token_grid=torch.zeros(s.n,device=x.device,dtype=torch.long)
@@ -299,11 +305,12 @@ class ReuseResidualExploration(nn.Module):
                     residual=torch.sparse.mm(overlap,demand.T).T
                     candidate=residual.topk(candidates,dim=1).indices
                     allowed=torch.zeros_like(pi,dtype=torch.bool).scatter_(1,candidate,True)
-                    ck=k[:,s.patches[s.fine.reps[candidate]]]
-                    logits=(pq@ck.transpose(-1,-2)).float()*o.scale+population[candidate].log()[None,:,None]
-                    fine_mass=(logits-normalizer).exp().mean((0,2))
-                    pi_hat=pi.clone().scatter_(1,candidate,fine_mass)
-                    pi_hat/=pi_hat.sum(1,keepdim=True).clamp_min(1e-30)
+                    if not c.compact:
+                        ck=k[:,s.patches[s.fine.reps[candidate]]]
+                        logits=(pq@ck.transpose(-1,-2)).float()*o.scale+population[candidate].log()[None,:,None]
+                        fine_mass=(logits-normalizer).exp().mean((0,2))
+                        pi_hat=pi.clone().scatter_(1,candidate,fine_mass)
+                        pi_hat/=pi_hat.sum(1,keepdim=True).clamp_min(1e-30)
                 with stage(s,'reuse_and_budget'),torch.autocast(x.device.type,enabled=False):
                     old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                     old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
@@ -313,27 +320,40 @@ class ReuseResidualExploration(nn.Module):
                         old_weights=prior.gather(1,old_ids.long().clamp_min(0)).masked_fill(old_ids<0,0)
                         history_beta=torch.ones_like(beta)
                     else:history_beta=beta
-                    hids,hmass,discarded=top_history(old_ids,old_weights,history_beta,s.grid,s.fine.labels,s.fine.reps,c.history_per_cluster)
+                    if geometry is not None:
+                        hids,discarded=compact.top_history(old_ids,prior,s.fine.reps,geometry,c.history_per_cluster)
+                    else:hids,hmass,discarded=top_history(old_ids,old_weights,history_beta,s.grid,s.fine.labels,s.fine.reps,c.history_per_cluster)
                     if c.state_loss=="cosine_distortion":
                         if c.history_mode!='all_relative_logit':
                             prior=history_prior(pi,s.fine.labels,population,old_ids,old_weights,beta,s.grid,c.prior_floor_fraction)
-                        errors,costs=cosine_states(pi,zvalues,s.fine.reps,s.fine.labels,population,hids,allowed,prior,c.drop_multiplier)
+                        if geometry is not None:
+                            errors,costs=cosine_states(pi,zvalues,s.fine.reps,s.fine.labels,population,hids,allowed,prior,c.drop_multiplier,geometry=geometry)
+                        else:errors,costs=cosine_states(pi,zvalues,s.fine.reps,s.fine.labels,population,hids,allowed,prior,c.drop_multiplier)
                     else:
                         errors,costs=operating_points(pi,pi_hat,means,features[s.fine.reps],population,
                                                     hids,hmass,features,allowed)
                     # Subtracting the Rep baseline is an exact gain reformulation.
                     # Keep the same feasible discrete dual solve (not a greedy exchange).
-                    objective=errors-errors[:,:,1:2] if c.rep_gain else errors
-                    selected,count=budget_states(objective,costs,s.budget,c.dual_iterations,maximize=c.allocation_objective=="max_error",
-                        lambda_upper=errors[:,:,0].amax(1)+1e-12 if c.rep_gain else None)
-                    ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
+                    objective=geometry['objective'] if geometry is not None else (errors-errors[:,:,1:2] if c.rep_gain else errors)
+                    if geometry is not None:
+                        selected,count=compact.budget(objective,costs,errors[:,:,0].amax(1)+1e-12,s.budget,c.dual_iterations)
+                        ids,real,record=compact.pack(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
+                    else:
+                        selected,count=budget_states(objective,costs,s.budget,c.dual_iterations,maximize=c.allocation_objective=="max_error",
+                            lambda_upper=errors[:,:,0].amax(1)+1e-12 if c.rep_gain else None)
+                        ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
                     if c.state_loss=="cosine_distortion":
-                        if c.mass_transfer:pops,_=transfer_weights(selected,zvalues,s.fine.reps,s.fine.labels,hids,prior,ids)
+                        if c.mass_transfer:
+                            if geometry is not None:pops=compact.transfer(selected,s.fine.labels,s.fine.reps,hids,prior,pi,ids,geometry)
+                            else:pops,_=transfer_weights(selected,zvalues,s.fine.reps,s.fine.labels,hids,prior,ids)
                         limit=c.history_per_cluster
-                        reused=torch.where((selected>=2)&(selected<=limit+1),selected-1,
-                            torch.where((selected>=limit+2)&(selected<=2*limit+1),selected-limit-1,0))
-                        for amount in range(limit+1):record[f'selected_history_count_{amount}_clusters']=(reused==amount).sum(1)
-                    if c.rep_gain:
+                        if geometry is not None:
+                            record.update(compact.diagnostics(errors,selected,hids,old_ids,s.fine.labels,s.fine.reps))
+                        else:
+                            reused=torch.where((selected>=2)&(selected<=limit+1),selected-1,
+                                torch.where((selected>=limit+2)&(selected<=2*limit+1),selected-limit-1,0))
+                            for amount in range(limit+1):record[f'selected_history_count_{amount}_clusters']=(reused==amount).sum(1)
+                    if c.rep_gain and geometry is None:
                         observed=(old_ids>=0)
                         overlap_rep=observed&(old_ids.long().clamp_min(0)==s.fine.reps[s.fine.labels[old_ids.long().clamp_min(0)]])
                         gains=errors[:,:,1:2]-errors
@@ -351,8 +371,9 @@ class ReuseResidualExploration(nn.Module):
                             record[f'state_{state_id}_clusters']=(selected==state_id).sum(1)
                             record[f'gain_{state_id}']=gains[:,:,state_id].masked_fill(~present,0).sum(1)/present.sum(1).clamp_min(1)
                     record['history_cap_discarded']=discarded
-                    record['proxy_drop_error']=(errors[:,:,0]).sum(1)
-                    record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).sum((1,2))
+                    if geometry is None:
+                        record['proxy_drop_error']=(errors[:,:,0]).sum(1)
+                        record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).sum((1,2))
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
@@ -410,7 +431,9 @@ class ReuseResidualExploration(nn.Module):
             actual_unique_density=((joined['counts']+len(s.specials))*rows).sum()/s.n**2,
             unused_budget_mean=(s.budget-joined['counts']).float().mean(),
             canonical_qk_per_head=0 if self.layer==0 else 4*s.groups*s.regions,
-            fine_probe_qk_per_head=0 if self.layer==0 else 4*s.groups*candidates,
+            fine_probe_qk_per_head=0 if self.layer==0 or c.compact else 4*s.groups*candidates,
+            compact=c.compact,geometry_width=0 if geometry is None else geometry['width'],
+            geometry_cache_bytes=0 if geometry is None else sum(geometry[name].numel()*geometry[name].element_size() for name in ('members','rank','distances','rep_distance')),
             final_unique_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),
             evidence_extra_qk_per_head=(joined['counts']*rows).sum() if c.evidence_mode=='second_qk' else 0,
             evidence_scratch_peak_bytes=min(c.window_groups*32,s.n)*q.shape[0]*s.budget*4 if c.evidence_mode=='saved_logits' else 0,
@@ -420,7 +443,7 @@ class ReuseResidualExploration(nn.Module):
             history_mode=c.history_mode,drop_multiplier=c.drop_multiplier,rep_gain=c.rep_gain,
             relative_logit_evidence_bytes=0 if s.history_relative is None else s.history_relative.numel()*4,
             state_loss=c.state_loss,mass_transfer="estimated assigned mass / own prior mass" if c.state_loss=="cosine_distortion" and c.mass_transfer else "original population weights",
-            selector='separable vector-output proxy, discrete dual budget search; not exact knapsack',
+            selector=('Rep-relative weighted cosine distortion, discrete dual budget search; not exact knapsack' if c.rep_gain else 'separable vector-output proxy, discrete dual budget search; not exact knapsack'),
             history=c.history_mode+'; compact relative logits FP32, probabilities FP16; no fixed retention ratio',
             evidence=c.evidence_mode,allocation_objective=c.allocation_objective,query_shift=c.query_shift))
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),

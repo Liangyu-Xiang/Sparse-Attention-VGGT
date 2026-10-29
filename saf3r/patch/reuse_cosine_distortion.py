@@ -62,11 +62,19 @@ def _costs_and_mask(pi,population,hids,exact_allowed,errors):
     return errors,torch.stack(cost,-1)
 
 
-def cosine_states(pi,z,reps,labels,population,hids,exact_allowed,prior,drop_multiplier=2.):
+def cosine_states(pi,z,reps,labels,population,hids,exact_allowed,prior,drop_multiplier=2.,geometry=None):
     g,f=pi.shape;limit=hids.shape[-1]
     if z.is_cuda:
-        from saf3r.triton.reuse_cosine_distortion import distortion_losses
-        errors=distortion_losses(z,labels,reps,hids,prior,f)
+        if geometry is not None:
+            from saf3r.triton.reuse_compact import losses
+            errors=losses(labels,hids,prior,geometry,f)
+            from saf3r.triton.reuse_compact import finalize
+            errors,costs,objective=finalize(errors,pi,population,hids,exact_allowed,drop_multiplier)
+            geometry['objective']=objective
+            return errors,costs
+        else:
+            from saf3r.triton.reuse_cosine_distortion import distortion_losses
+            errors=distortion_losses(z,labels,reps,hids,prior,f)
     else:
         errors=torch.zeros((g,f,2*limit+3),device=z.device)
         for group in range(g):

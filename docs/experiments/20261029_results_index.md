@@ -2,7 +2,15 @@
 
 本页索引本轮已完成的本地实测、原始指标、输入列表、源码快照及验证记录。全部结果保留原始尺度；不同计时批次在各报告中注明。
 
-## 最新：一次性合并修正后的方案
+## 最新：完整合并版的实现加速
+
+[最终结论](../../outputs/reuse_compact_7scenes128_20261029/conclusions.md) · [六指标比较](../../outputs/reuse_compact_7scenes128_20261029/compact_report.md) · [原始指标](../../outputs/reuse_compact_7scenes128_20261029/summary.json) · [新版分项profile](../../outputs/reuse_compact_heads128_profile_20261029/report.md) · [实现说明](reuse_compact.md)
+
+7Scenes全七场景128帧，7/7完成；44项测试、真实128帧28项核对及266个源码快照校验通过。缓存局部Value几何，移除无用fine-probe QK，分组稳定Top-4，融合状态/求解/打包/收益统计，解析简单状态质量转移并扩大处理窗口。目标、11状态、预算及最近邻语义保持，无真值调参。
+
+完整前向均值19.51376s，相对已保存原合并版110.43218s的时间比5.6592x，相对已保存Dense参考0.62978x。旧方案未重跑，不冒充本批次重新测量。AUC@3=16.77329%、AUC@30=81.17249%、ACC=0.141462m、Comp=0.129468m、CD=0.135465m、F1=46.05677%。相对原合并版F1 -0.59412个百分点、CD +0.005766m，不是无损精度声明。第二次概率汇总QK仍计时。
+
+## 上一轮：一次性合并修正后的方案
 
 [最终结论](../../outputs/reuse_rep_revision_7scenes128_20261029/conclusions.md) · [完整比较](../../outputs/reuse_rep_revision_7scenes128_20261029/combined_report.md) · [逐场景六指标](../../outputs/reuse_rep_revision_7scenes128_20261029/report.md) · [完成与核对](../../outputs/reuse_rep_revision_7scenes128_20261029/completion.json) · [实现说明](reuse_rep_revision.md)
 
