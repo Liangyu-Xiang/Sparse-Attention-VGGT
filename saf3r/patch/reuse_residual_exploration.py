@@ -34,6 +34,7 @@ class ReuseExploreConfig:
     mass_transfer:bool=True
     rep_gain:bool=False
     compact:bool=False
+    disable_population_compensation:bool=False
 
     def __post_init__(self):
         if self.compact and (self.state_loss!='cosine_distortion' or self.history_mode!='all_relative_logit' or not self.mass_transfer or not self.rep_gain or self.allocation_objective!='min_error'):raise ValueError('Compact path requires the complete combined method')
@@ -375,6 +376,9 @@ class ReuseResidualExploration(nn.Module):
                         record['proxy_drop_error']=(errors[:,:,0]).sum(1)
                         record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).sum((1,2))
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
+            if c.disable_population_compensation:
+                # Every selected real key contributes once; padding remains masked.
+                pops=(ids>=0).to(dtype=pops.dtype)
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
                 if q.is_cuda:
