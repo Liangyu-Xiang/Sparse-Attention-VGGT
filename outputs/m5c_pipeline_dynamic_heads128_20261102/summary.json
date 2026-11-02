@@ -1,0 +1,336 @@
+{
+  "max_drop_relative_l2": 5.2629353319844085e-08,
+  "reference_timing_reused_from": "/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/outputs/m5c_pipeline_heads128_20261102/before/forward.json",
+  "complete": true,
+  "dataset": "7scenes",
+  "scene": "heads",
+  "frames": 128,
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 5090 D",
+    "physical_gpu": "7",
+    "torch": "2.9.1+cu128"
+  },
+  "config_identical": true,
+  "source_frozen": {
+    "before": true,
+    "after": true
+  },
+  "before": {
+    "warmup": 1,
+    "repeats": 3,
+    "median_seconds": 33.03683687699959,
+    "samples": [
+      {
+        "seconds": 33.25049303425476,
+        "peak_allocated_gib": 19.0628662109375,
+        "peak_reserved_gib": 24.970703125
+      },
+      {
+        "seconds": 33.03683687699959,
+        "peak_allocated_gib": 19.06347417831421,
+        "peak_reserved_gib": 24.97265625
+      },
+      {
+        "seconds": 32.95604697102681,
+        "peak_allocated_gib": 19.066335678100586,
+        "peak_reserved_gib": 24.21875
+      }
+    ],
+    "cold_samples": [
+      {
+        "seconds": 34.26394241116941,
+        "peak_allocated_gib": 19.081570148468018,
+        "peak_reserved_gib": 25.73046875
+      }
+    ]
+  },
+  "after": {
+    "warmup": 1,
+    "repeats": 3,
+    "median_seconds": 28.180861281231046,
+    "samples": [
+      {
+        "seconds": 28.194639357738197,
+        "peak_allocated_gib": 18.665520668029785,
+        "peak_reserved_gib": 24.203125
+      },
+      {
+        "seconds": 28.069502756930888,
+        "peak_allocated_gib": 18.66584587097168,
+        "peak_reserved_gib": 24.181640625
+      },
+      {
+        "seconds": 28.180861281231046,
+        "peak_allocated_gib": 18.662171363830566,
+        "peak_reserved_gib": 24.435546875
+      }
+    ],
+    "cold_samples": [
+      {
+        "seconds": 30.268002106808126,
+        "peak_allocated_gib": 18.663228511810303,
+        "peak_reserved_gib": 23.94921875
+      }
+    ]
+  },
+  "speedup_vs_preoptimization": 1.172314662327326,
+  "time_reduction_fraction": 0.14698669893391936,
+  "profile_wall_seconds": 28.951968773268163,
+  "profile_inclusive_seconds": {
+    "patch_embed_dino": 0.5997178955078125,
+    "frame_qkv": 0.10800825595855715,
+    "frame_proj": 0.029697088122367866,
+    "frame_attention": 0.6338179206848146,
+    "frame_mlp": 0.2738360290527344,
+    "frame_block": 1.0447502365112307,
+    "global_qkv": 0.09969424057006837,
+    "cluster_centroid_reduce": 0.009407328039407727,
+    "cluster_full_search": 0.16873705291748048,
+    "cluster_empty_repair": 0.013946111947298053,
+    "value_update": 1.068062774658203,
+    "pooling": 0.0797658554315567,
+    "m5c_coarse_observation": 0.784525280475617,
+    "sparse_attention_kernel": 3.6124866874813994,
+    "attention_mass_second_qk": 1.447135394286361,
+    "execution_and_evidence": 5.184416191756717,
+    "current_history_probe_qk": 0.9693237771764426,
+    "m5c_evidence_statistics": 6.155582207530742,
+    "m5c_evidence_and_host_copy": 6.15758582603934,
+    "history_summary": 0.15883807691559135,
+    "global_proj": 0.02972278404235839,
+    "global_attention": 24.49569427490234,
+    "global_mlp": 0.2739364175796509,
+    "global_block": 24.879650451660158,
+    "cluster_neighbor_graph": 0.446592544555664,
+    "cluster_local_search": 0.4031819839477541,
+    "geometry_prepare": 0.011767967969179154,
+    "coarse_observation": 0.46311385598778654,
+    "residual_fine_probe": 0.5551402878463267,
+    "history_probability": 3.324711966812606,
+    "history_gate": 0.3554540807306769,
+    "drop_vector_sum": 0.5534611528366794,
+    "rep_loss": 0.15199689785763673,
+    "history_loss_and_owners": 0.9590379196107373,
+    "state_losses": 1.3317682864367972,
+    "budget_solve4": 0.27497897714376435,
+    "state_decode": 0.01521215998614208,
+    "support_pack": 0.9946211532354338,
+    "mass_transfer": 1.3949610878229155,
+    "state_diagnostics": 0.4482783679068092,
+    "reuse_and_budget": 8.89451040244102,
+    "camera_head": 0.0088253755569458,
+    "depth_head": 1.0016211547851563,
+    "point_head": 1.0108834838867187
+  },
+  "output_differences": {
+    "pose_enc": {
+      "max_before_after_relative_l2": 0.004931731882217898,
+      "before_self_jitter": 0.006163537533899545,
+      "after_self_jitter": 0.005508505384253231
+    },
+    "depth": {
+      "max_before_after_relative_l2": 0.01407973249918029,
+      "before_self_jitter": 0.013237733278928113,
+      "after_self_jitter": 0.013149046057608369
+    },
+    "depth_conf": {
+      "max_before_after_relative_l2": 0.05811019372324175,
+      "before_self_jitter": 0.056975371640417626,
+      "after_self_jitter": 0.06569139558493345
+    },
+    "world_points": {
+      "max_before_after_relative_l2": 0.014146166041134417,
+      "before_self_jitter": 0.014544260838791564,
+      "after_self_jitter": 0.013425682381688318
+    },
+    "world_points_conf": {
+      "max_before_after_relative_l2": 0.09201907636388758,
+      "before_self_jitter": 0.06626015087700393,
+      "after_self_jitter": 0.08432990059840731
+    }
+  },
+  "real_same_input_max_prior_rel_l2": 0,
+  "real_history_qualified_mismatches": 0,
+  "real_pi_max_rel_l2": 6.269185348628525e-08,
+  "peak_calibration_gpu_bytes": 1638417408,
+  "quality_evaluated": false,
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Implementation/numerical/timing diagnostic only; no pose or recon_unposed GT evaluation",
+  "dense_speedup": null,
+  "dense_reason": "Unchanged Dense/SAF3R not rerun",
+  "controls_executed": 0,
+  "stages_disjoint": [
+    {
+      "stage": "M5c\u6821\u51c6\u7edf\u8ba1\uff08GPU\u5e38\u9a7b\uff09",
+      "seconds": 5.188262048862898,
+      "percent": 17.92026215474615
+    },
+    {
+      "stage": "\u7a00\u758fAttention\u524d\u5411",
+      "seconds": 3.6124866874813994,
+      "percent": 12.477532526404566
+    },
+    {
+      "stage": "\u5386\u53f2\u6982\u7387\u4f30\u8ba1",
+      "seconds": 3.324711966812606,
+      "percent": 11.483558361775803
+    },
+    {
+      "stage": "Attention\u6982\u7387\u7b2c\u4e8c\u6b21QK",
+      "seconds": 1.447135394286361,
+      "percent": 4.998407057081325
+    },
+    {
+      "stage": "\u6982\u7387\u8d28\u91cf\u8f6c\u79fb",
+      "seconds": 1.3949610878229155,
+      "percent": 4.8181969518936105
+    },
+    {
+      "stage": "\u5f53\u524dValue\u805a\u7c7b\u66f4\u65b0",
+      "seconds": 1.068062774658203,
+      "percent": 3.6890898607936413
+    },
+    {
+      "stage": "\u9010\u5e27Transformer\u5757",
+      "seconds": 1.0447502365112307,
+      "percent": 3.608568331396755
+    },
+    {
+      "stage": "\u5168\u5c40Attention\u5176\u4f59\u5de5\u4f5c",
+      "seconds": 1.0203186987377564,
+      "percent": 3.524181776203345
+    },
+    {
+      "stage": "\u539fcoarse\u89c2\u6d4b\u4e0eExact\u5019\u9009",
+      "seconds": 1.0182541438341133,
+      "percent": 3.517050801561411
+    },
+    {
+      "stage": "\u5176\u4ed6\u8f93\u51fa\u5934",
+      "seconds": 1.0108834838867187,
+      "percent": 3.491592534945956
+    },
+    {
+      "stage": "\u6df1\u5ea6\u5934",
+      "seconds": 1.0016211547851563,
+      "percent": 3.4596004412351324
+    },
+    {
+      "stage": "\u652f\u6301\u96c6\u6253\u5305",
+      "seconds": 0.9946211532354338,
+      "percent": 3.435422429085158
+    },
+    {
+      "stage": "\u5f53\u524dM5c\u63a2\u9488QK",
+      "seconds": 0.9693237771764426,
+      "percent": 3.3480452676128154
+    },
+    {
+      "stage": "History\u635f\u5931\u4e0e\u6700\u8fd1Key",
+      "seconds": 0.9590379196107373,
+      "percent": 3.3125179055929617
+    },
+    {
+      "stage": "M5c\u5f53\u524d\u7c97\u89c2\u6d4b",
+      "seconds": 0.784525280475617,
+      "percent": 2.709751080562724
+    },
+    {
+      "stage": "DINO\u56fe\u50cf\u7279\u5f81",
+      "seconds": 0.5997178955078125,
+      "percent": 2.0714261934298563
+    },
+    {
+      "stage": "RMS Drop\u5411\u91cf\u6c47\u603b",
+      "seconds": 0.5534611528366794,
+      "percent": 1.9116553593269385
+    },
+    {
+      "stage": "\u72b6\u6001\u7edf\u8ba1",
+      "seconds": 0.4482783679068092,
+      "percent": 1.5483539180432107
+    },
+    {
+      "stage": "\u5176\u4f59\u6a21\u578b\u5de5\u4f5c",
+      "seconds": 0.4064830427169772,
+      "percent": 1.403992824252891
+    },
+    {
+      "stage": "\u5386\u53f2\u7b5b\u9009\u53caRep\u8eab\u4efd",
+      "seconds": 0.3554540807306769,
+      "percent": 1.227738740001403
+    },
+    {
+      "stage": "\u56db\u72b6\u600116\u8f6e\u9884\u7b97\u6c42\u89e3",
+      "seconds": 0.27497897714376435,
+      "percent": 0.9497776540682252
+    },
+    {
+      "stage": "\u5168\u5c40MLP",
+      "seconds": 0.2739364175796509,
+      "percent": 0.9461766523214177
+    },
+    {
+      "stage": "\u72b6\u6001\u635f\u5931\u7ec4\u88c5",
+      "seconds": 0.22073346896842327,
+      "percent": 0.7624136161564182
+    },
+    {
+      "stage": "\u5206\u914d\u5176\u4ed6\u51c6\u5907",
+      "seconds": 0.20106316952919556,
+      "percent": 0.6944723827928156
+    },
+    {
+      "stage": "\u5386\u53f2\u7f51\u683c\u6c47\u603b",
+      "seconds": 0.15883807691559135,
+      "percent": 0.548626871903468
+    },
+    {
+      "stage": "Rep\u5e73\u65b9L2\u635f\u5931",
+      "seconds": 0.15199689785763673,
+      "percent": 0.5249974327942821
+    },
+    {
+      "stage": "\u5168\u5c40QKV\u4e0e\u8f93\u51fa\u6295\u5f71",
+      "seconds": 0.12941702461242677,
+      "percent": 0.44700652867952473
+    },
+    {
+      "stage": "Attention\u6267\u884c\u51c6\u5907",
+      "seconds": 0.12479410998895646,
+      "percent": 0.43103897708105554
+    },
+    {
+      "stage": "\u5168\u5c40\u5757\u5f52\u4e00\u5316\u548c\u6b8b\u5dee",
+      "seconds": 0.11001975917816587,
+      "percent": 0.38000835503420255
+    },
+    {
+      "stage": "\u6c60\u5316\u4e0e\u7c07\u7f51\u683c\u5173\u7cfb",
+      "seconds": 0.06799788746237755,
+      "percent": 0.2348647693232452
+    },
+    {
+      "stage": "\u72b6\u6001ID\u6620\u5c04",
+      "seconds": 0.01521215998614208,
+      "percent": 0.052542815363644205
+    },
+    {
+      "stage": "\u51e0\u4f55\u7f13\u5b58",
+      "seconds": 0.011767967969179154,
+      "percent": 0.04064657279263013
+    },
+    {
+      "stage": "\u76f8\u673a\u5934",
+      "seconds": 0.0088253755569458,
+      "percent": 0.030482855743421765
+    }
+  ]
+}

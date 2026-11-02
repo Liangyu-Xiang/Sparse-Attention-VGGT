@@ -66,7 +66,7 @@ def run(args):
     save(out/'config.json',dict(method=args.method,config=None if config is None else asdict(config),
         model=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,seed=0))
     sources=json.loads((ROOT/'baseline_source_hashes.json').read_text())
-    names=set(sources)|{'saf3r/patch/zdrop_history_cleanup.py','saf3r/triton/zdrop_history_cleanup.py','saf3r/patch/zdrop_history_states.py','saf3r/triton/zdrop_history_states.py','scripts/evaluate_zdrop_history_states.py','configs/evaluation/reuse_zdrop_history_states.json'}
+    names=set(sources)|{'saf3r/patch/reuse_m5c_equivalent.py','saf3r/triton/reuse_m5c_equivalent.py','saf3r/patch/reuse_m5c_pipeline.py','saf3r/triton/reuse_drop_moment.py','saf3r/patch/zdrop_history_cleanup.py','saf3r/triton/zdrop_history_cleanup.py','saf3r/patch/zdrop_history_states.py','saf3r/triton/zdrop_history_states.py','scripts/evaluate_zdrop_history_states.py','configs/evaluation/reuse_zdrop_history_states.json'}
     hashes={};buffer=io.BytesIO()
     with tarfile.open(fileobj=buffer,mode='w') as archive:
         for name in sorted(names):

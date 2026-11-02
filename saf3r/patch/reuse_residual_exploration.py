@@ -306,6 +306,8 @@ class ReuseResidualExploration(nn.Module):
             if self.layer and c.compact and q.is_cuda:
                 from saf3r.triton import reuse_compact as compact
                 geometry=compact.prepare_geometry(zvalues,s.fine.labels,s.fine.reps,population,l2=c.state_l2)
+                from saf3r.triton.reuse_drop_moment import prepare as prepare_drop,drop_norm
+                if geometry is not None:geometry['drop_bins']=prepare_drop(population)
             if self.layer and (c.state_l2 or c.direction_drop) and geometry is None:raise RuntimeError('Combined method requires compact geometry')
             token_grid=None
             if c.history_mode=='all_relative_logit':
@@ -324,8 +326,8 @@ class ReuseResidualExploration(nn.Module):
             s.query_order=order
             q=q[:,order].contiguous()
         if c.history_mode=='dense_m5c':
-            from . import reuse_m5c as m5c
-            s.m5c_next={};s.m5c_reconstruction_qk=0;s.m5c_prior_errors=[];s.m5c_seed_errors=[];s.m5c_probe_qk=0
+            from . import reuse_m5c_pipeline as m5c
+            s.m5c_next={};s.m5c_count_errors=[];s.m5c_reconstruction_qk=0;s.m5c_prior_errors=[];s.m5c_seed_errors=[];s.m5c_probe_qk=0
         output=torch.empty_like(v);history=[];grids=[];real_grids=[];stats=[];capture=[];relative_evidence=[]
         candidates=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
         for start in range(0,s.groups,c.window_groups):
@@ -377,9 +379,7 @@ class ReuseResidualExploration(nn.Module):
                         if geometry is not None:
                             if c.direction_drop:
                                 vec=zvalues  # shared layer-RMS-scaled Value for Drop and L2 states
-                                totals=torch.zeros((g,s.fine.base_count,vec.shape[1]),device=vec.device)
-                                for j in range(g):totals[j].index_add_(0,s.fine.labels,prior[j,:,None]*vec)
-                                geometry['drop_values']=totals.norm(dim=-1)
+                                geometry['drop_values']=drop_norm(prior,vec,geometry,s.fine.base_count,geometry['drop_bins'])
                             errors,costs=history_rule.states(pi,zvalues,s.fine.reps,s.fine.labels,population,hids,allowed,prior,c.drop_multiplier,geometry,history_context)
                         else:errors,costs=cosine_states(pi,zvalues,s.fine.reps,s.fine.labels,population,hids,allowed,prior,c.drop_multiplier)
                     else:
@@ -482,6 +482,10 @@ class ReuseResidualExploration(nn.Module):
             stats.append(record)
             if c.capture:capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
                                              mass=mass.clone(),reuse=record['reuse_edges'].clone()))
+        if c.history_mode=='dense_m5c':
+            if bool(torch.stack(s.m5c_count_errors).any()):raise ValueError('History count exceeds region population')
+            s.m5c_reconstruction_qk=int(s.m5c_reconstruction_qk)
+            s.m5c_probe_qk=int(s.m5c_probe_qk)
         s.history_ids=torch.cat(history);s.history_weights=None
         if relative_evidence:s.history_relative=torch.cat(relative_evidence)
         if c.history_mode=='dense_m5c':
@@ -529,10 +533,10 @@ class ReuseResidualExploration(nn.Module):
         if c.history_mode=='dense_m5c':
             s.records[-1].update(history_estimator='D2 + M5c',beta_down_exponent=1.,beta_up_exponent=2.,
                 probability_normalization='all Keys including specials; no patch renormalization',
-                history_cache_device='cpu_grid_statistics_gpu_previous_qk',history_cache_dtype='float32_statistics_model_qk_dtype',
+                history_cache_device='gpu_grid_statistics_gpu_previous_qk',history_cache_dtype='float32_statistics_model_qk_dtype',
                 history_estimator_head_aware=True,history='D2 full-Key probabilities reconstructed exactly from previous Q/K; M5c beta(1,2)',
                 history_gpu_reconstruction_bytes=s.m5c_previous_q.numel()*s.m5c_previous_q.element_size()+s.m5c_previous_k.numel()*s.m5c_previous_k.element_size(),
-                extra_previous_layer_probe_qk_per_head=s.m5c_reconstruction_qk,history_cpu_bytes=m5c.host_bytes(s.m5c_previous),
+                extra_previous_layer_probe_qk_per_head=s.m5c_reconstruction_qk,history_cpu_bytes=m5c.host_bytes(s.m5c_previous),history_calibration_gpu_bytes=m5c.device_bytes(s.m5c_previous),
                 seed_normalization_max_error=torch.stack(s.m5c_seed_errors).max(),
                 prior_patch_mass_max_error=torch.stack(s.m5c_prior_errors).max() if s.m5c_prior_errors else torch.tensor(0.,device=x.device),
                 extra_known_probe_qk_per_head=s.m5c_probe_qk,extra_coarse_probe_qk_per_head=4*s.groups*(s.regions+len(s.specials)))
