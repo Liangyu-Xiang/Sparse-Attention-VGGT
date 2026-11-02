@@ -10,19 +10,19 @@ import triton.language as tl
 
 
 @triton.jit
-def _geometry(Z,MEM,LABEL,RANK,REP,DIST,DR,P:tl.constexpr,D:tl.constexpr,M:tl.constexpr,BD:tl.constexpr,B:tl.constexpr):
+def _geometry(Z,MEM,LABEL,RANK,REP,DIST,DR,P:tl.constexpr,D:tl.constexpr,M:tl.constexpr,BD:tl.constexpr,B:tl.constexpr,L2:tl.constexpr):
     pair=tl.program_id(0)*B+tl.arange(0,B);j=pair//M;col=pair%M;dd=tl.arange(0,BD)
     valid=j<P;c=tl.load(LABEL+j,valid,0);other=tl.load(MEM+c*M+col,valid,-1)
     z=tl.load(Z+j[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
     zo=tl.load(Z+tl.maximum(other,0)[:,None]*D+dd[None,:],valid[:,None]&(other[:,None]>=0)&(dd[None,:]<D),0.)
-    distance=tl.minimum(2.,tl.maximum(0.,1.-tl.sum(z*zo,1)))
+    distance=tl.sum((z-zo)*(z-zo),1) if L2 else tl.minimum(2.,tl.maximum(0.,1.-tl.sum(z*zo,1)))
     distance=tl.where(j==other,0.,distance)
     tl.store(DIST+pair,distance,valid)
     rep=tl.load(REP+c,valid,0)
     tl.store(DR+j,distance,valid&(other==rep))
 
 
-def prepare_geometry(z,labels,reps,population):
+def prepare_geometry(z,labels,reps,population,l2=False):
     p,d=z.shape;f=len(reps)
     width=triton.next_power_of_2(int(population.max()))
     # A pathological oversized cluster falls back to the original kernels;
@@ -36,8 +36,8 @@ def prepare_geometry(z,labels,reps,population):
     members[labels,rank.long()]=torch.arange(p,device=z.device,dtype=torch.int32)
     distances=torch.empty((p,width),device=z.device,dtype=torch.float32)
     rep_distance=torch.empty(p,device=z.device,dtype=torch.float32)
-    _geometry[(triton.cdiv(p*width,128),)](z,members,labels,rank,reps,distances,rep_distance,p,d,width,triton.next_power_of_2(d),128,num_warps=4)
-    return dict(members=members,rank=rank,distances=distances,rep_distance=rep_distance,width=width)
+    _geometry[(triton.cdiv(p*width,128),)](z,members,labels,rank,reps,distances,rep_distance,p,d,width,triton.next_power_of_2(d),128,l2,num_warps=4)
+    return dict(members=members,rank=rank,distances=distances,rep_distance=rep_distance,norm2=(z*z).sum(1).contiguous(),l2=l2,width=width)
 
 
 @triton.jit
@@ -72,25 +72,26 @@ def top_history(ids,prior,reps,geometry,limit):
 
 
 @triton.jit
-def _loss(DIST,DR,RANK,LABEL,HIDS,PRIOR,E,P:tl.constexpr,F:tl.constexpr,M:tl.constexpr,H:tl.constexpr,B:tl.constexpr):
+def _loss(DIST,DR,NORM2,RANK,LABEL,HIDS,PRIOR,E,ACTIVE_ONLY:tl.constexpr,L2:tl.constexpr,P:tl.constexpr,F:tl.constexpr,M:tl.constexpr,H:tl.constexpr,B:tl.constexpr):
     group=tl.program_id(0);j=tl.program_id(1)*B+tl.arange(0,B);valid=j<P
     c=tl.load(LABEL+j,valid,0);a=tl.load(PRIOR+group*P+j,valid,0.);dr=tl.load(DR+j,valid,0.)
     base=(group*F+c)*(2*H+3)
+    if L2:tl.atomic_add(E+base,a*tl.load(NORM2+j,valid,0.),valid,sem='relaxed')
     tl.atomic_add(E+base+1,a*dr,valid,sem='relaxed')
-    minimum=tl.full((B,),2.,tl.float32);chosen=tl.full((B,),False,tl.int1)
+    minimum=tl.full((B,),1.e30 if L2 else 2.,tl.float32);chosen=tl.full((B,),False,tl.int1)
     for slot in tl.static_range(H):
         h=tl.load(HIDS+(group*F+c)*H+slot,valid,-1)
         rank=tl.load(RANK+tl.maximum(h,0),valid&(h>=0),0)
         d=tl.load(DIST+j*M+rank,valid,2.)
-        minimum=tl.minimum(minimum,tl.where(h>=0,d,2.));chosen=chosen|(j==h)
-        tl.atomic_add(E+base+2+slot,a*minimum,valid,sem='relaxed')
-        tl.atomic_add(E+base+2+H+slot,a*tl.where(chosen,0.,dr),valid,sem='relaxed')
+        minimum=tl.minimum(minimum,tl.where(h>=0,d,1.e30 if L2 else 2.));chosen=chosen|(j==h)
+        tl.atomic_add(E+base+2+slot,a*minimum,valid&((h>=0) if ACTIVE_ONLY else True),sem='relaxed')
+        tl.atomic_add(E+base+2+H+slot,a*tl.where(chosen,0.,dr),valid&((h>=0) if ACTIVE_ONLY else True),sem='relaxed')
 
 
 def losses(labels,hids,prior,geometry,clusters):
     g,p=prior.shape;h=hids.shape[-1]
     errors=torch.zeros((g,clusters,2*h+3),device=prior.device)
-    _loss[(g,triton.cdiv(p,256))](geometry['distances'],geometry['rep_distance'],geometry['rank'],labels,hids,prior,errors,p,clusters,geometry['width'],h,256,num_warps=4)
+    _loss[(g,triton.cdiv(p,256))](geometry['distances'],geometry['rep_distance'],geometry['norm2'],geometry['rank'],labels,hids,prior,errors,geometry.get('skip_invalid_states',False),geometry['l2'],p,clusters,geometry['width'],h,256,num_warps=4)
     return errors
 
 
@@ -232,7 +233,7 @@ def pack(selected,hids,reps,labels,population,cap):
 
 
 @triton.jit
-def _finalize(E,PI,POP,HIDS,ALLOW,COST,OBJ,F:tl.constexpr,H:tl.constexpr,S:tl.constexpr,DROP:tl.constexpr,B:tl.constexpr,BS:tl.constexpr):
+def _finalize(E,PI,DROP_VALUES,POP,HIDS,ALLOW,COST,OBJ,F:tl.constexpr,H:tl.constexpr,S:tl.constexpr,DROP:tl.constexpr,L2:tl.constexpr,CUSTOM_DROP:tl.constexpr,B:tl.constexpr,BS:tl.constexpr):
     group=tl.program_id(0);c=tl.program_id(1)*B+tl.arange(0,B);s=tl.arange(0,BS)
     value=tl.load(E+(group*F+c[:,None])*S+s[None,:],(c[:,None]<F)&(s[None,:]<S),0.)
     baseline=tl.load(E+(group*F+c)*S+1,c<F,0.)
@@ -246,7 +247,8 @@ def _finalize(E,PI,POP,HIDS,ALLOW,COST,OBJ,F:tl.constexpr,H:tl.constexpr,S:tl.co
     valid=~(only[None,:]|hr[None,:])|prefix
     valid=valid&(~hr[None,:]|(pop[:,None]>amount[None,:]))
     allowed=tl.load(ALLOW+group*F+c,c<F,False)
-    value=tl.where(s[None,:]==0,DROP*pi[:,None],value)
+    dv=tl.load(DROP_VALUES+group*F+c,c<F,0.) if CUSTOM_DROP else pi
+    value=tl.where(s[None,:]==0,(dv[:,None] if CUSTOM_DROP else DROP*(value if L2 else pi[:,None])),value)
     value=tl.where(s[None,:]==S-1,tl.where(allowed[:,None],0.,float('inf')),value)
     value=tl.where(valid,value,float('inf'))
     cost=tl.where(s==0,0,tl.where(s==1,1,tl.where(only,amount,tl.where(hr,amount+1,0)))).to(tl.float32)
@@ -257,10 +259,10 @@ def _finalize(E,PI,POP,HIDS,ALLOW,COST,OBJ,F:tl.constexpr,H:tl.constexpr,S:tl.co
     tl.store(OBJ+(group*F+c[:,None])*S+s[None,:],value-baseline[:,None],mask)
 
 
-def finalize(errors,pi,population,hids,allowed,drop):
+def finalize(errors,pi,population,hids,allowed,drop,l2=False,drop_values=None):
     g,f,s=errors.shape;h=hids.shape[-1]
     costs=torch.empty_like(errors);objective=torch.empty_like(errors)
-    _finalize[(g,triton.cdiv(f,128))](errors,pi,population,hids,allowed,costs,objective,f,h,s,drop,128,triton.next_power_of_2(s),num_warps=4,enable_fp_fusion=False)
+    _finalize[(g,triton.cdiv(f,128))](errors,pi,pi if drop_values is None else drop_values,population,hids,allowed,costs,objective,f,h,s,drop,l2,drop_values is not None,128,triton.next_power_of_2(s),num_warps=4,enable_fp_fusion=False)
     return errors,costs,objective
 
 

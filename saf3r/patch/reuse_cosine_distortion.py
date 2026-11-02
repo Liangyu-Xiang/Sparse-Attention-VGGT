@@ -69,7 +69,7 @@ def cosine_states(pi,z,reps,labels,population,hids,exact_allowed,prior,drop_mult
             from saf3r.triton.reuse_compact import losses
             errors=losses(labels,hids,prior,geometry,f)
             from saf3r.triton.reuse_compact import finalize
-            errors,costs,objective=finalize(errors,pi,population,hids,exact_allowed,drop_multiplier)
+            errors,costs,objective=finalize(errors,pi,population,hids,exact_allowed,drop_multiplier,l2=geometry.get("l2",False),drop_values=geometry.get("drop_values"))
             geometry['objective']=objective
             return errors,costs
         else:

@@ -1,0 +1,581 @@
+{
+  "complete": true,
+  "scene": "heads",
+  "dataset": "7scenes",
+  "frames": 128,
+  "uninstrumented_before": {
+    "warmup": 1,
+    "repeats": 3,
+    "median_seconds": 59.888337885029614,
+    "samples": [
+      {
+        "seconds": 59.85276442812756,
+        "peak_allocated_gib": 20.177199840545654,
+        "peak_reserved_gib": 23.001953125
+      },
+      {
+        "seconds": 59.888337885029614,
+        "peak_allocated_gib": 20.17847204208374,
+        "peak_reserved_gib": 23.5546875
+      },
+      {
+        "seconds": 59.901375364977866,
+        "peak_allocated_gib": 20.17499351501465,
+        "peak_reserved_gib": 23.044921875
+      }
+    ],
+    "cold_samples": [
+      {
+        "seconds": 64.31877010688186,
+        "peak_allocated_gib": 20.176400184631348,
+        "peak_reserved_gib": 22.966796875
+      }
+    ]
+  },
+  "uninstrumented_after": {
+    "warmup": 1,
+    "repeats": 3,
+    "median_seconds": 53.83086015377194,
+    "samples": [
+      {
+        "seconds": 53.83086015377194,
+        "peak_allocated_gib": 19.62243938446045,
+        "peak_reserved_gib": 22.091796875
+      },
+      {
+        "seconds": 53.93374651391059,
+        "peak_allocated_gib": 19.60186767578125,
+        "peak_reserved_gib": 22.134765625
+      },
+      {
+        "seconds": 53.55932144867256,
+        "peak_allocated_gib": 19.60860300064087,
+        "peak_reserved_gib": 22.498046875
+      }
+    ],
+    "cold_samples": [
+      {
+        "seconds": 57.74244280811399,
+        "peak_allocated_gib": 19.60895347595215,
+        "peak_reserved_gib": 23.330078125
+      }
+    ]
+  },
+  "cleanup_speedup": 1.1125279758479436,
+  "profile_wall_seconds": 54.518329998943955,
+  "profile_cuda_interval_seconds": 54.518265625,
+  "instrumentation_wall_ratio": 1.0127709243955643,
+  "stages": [
+    {
+      "stage": "历史概率估计",
+      "seconds": 18.775059774637235,
+      "percent": 34.4381090619796
+    },
+    {
+      "stage": "M5c校准统计及CPU拷贝",
+      "seconds": 10.401203748553963,
+      "percent": 19.0783834175832
+    },
+    {
+      "stage": "RMS Drop向量汇总",
+      "seconds": 5.011748644217838,
+      "percent": 9.192788117455521
+    },
+    {
+      "stage": "稀疏Attention前向",
+      "seconds": 3.8238322177529294,
+      "percent": 7.01385521699257
+    },
+    {
+      "stage": "Attention概率第二次QK",
+      "seconds": 1.451104481637476,
+      "percent": 2.6616849692519473
+    },
+    {
+      "stage": "概率质量转移",
+      "seconds": 1.3955496960282316,
+      "percent": 2.5597837349181662
+    },
+    {
+      "stage": "当前M5c探针QK",
+      "seconds": 1.0854635519087321,
+      "percent": 1.9910089572089762
+    },
+    {
+      "stage": "当前Value聚类更新",
+      "seconds": 1.0670231704711912,
+      "percent": 1.957184731096609
+    },
+    {
+      "stage": "原coarse观测与Exact候选",
+      "seconds": 1.0358596474528312,
+      "percent": 1.900023112580136
+    },
+    {
+      "stage": "逐帧Transformer块",
+      "seconds": 1.0178755798339842,
+      "percent": 1.8670358790123092
+    },
+    {
+      "stage": "其他输出头",
+      "seconds": 1.0098380737304689,
+      "percent": 1.8522931024192295
+    },
+    {
+      "stage": "支持集打包",
+      "seconds": 1.0092012166976947,
+      "percent": 1.851124948910542
+    },
+    {
+      "stage": "深度头",
+      "seconds": 0.9995900268554687,
+      "percent": 1.8334956466353451
+    },
+    {
+      "stage": "全局Attention其余工作",
+      "seconds": 0.9502475313991561,
+      "percent": 1.7429892908467888
+    },
+    {
+      "stage": "M5c当前粗观测",
+      "seconds": 0.9050599994063366,
+      "percent": 1.6601041669808927
+    },
+    {
+      "stage": "History损失与最近Key",
+      "seconds": 0.8706455357596262,
+      "percent": 1.5969795182926387
+    },
+    {
+      "stage": "DINO图像特征",
+      "seconds": 0.600585205078125,
+      "percent": 1.1016219943774577
+    },
+    {
+      "stage": "状态统计",
+      "seconds": 0.4507011204361914,
+      "percent": 0.8266974660131468
+    },
+    {
+      "stage": "其余模型工作",
+      "seconds": 0.3721508274078298,
+      "percent": 0.682616776490365
+    },
+    {
+      "stage": "历史筛选及Rep身份",
+      "seconds": 0.35919471965730215,
+      "percent": 0.6588520664395259
+    },
+    {
+      "stage": "历史网格汇总",
+      "seconds": 0.3524448321014641,
+      "percent": 0.6464711011273373
+    },
+    {
+      "stage": "四状态16轮预算求解",
+      "seconds": 0.2752260809689768,
+      "percent": 0.50483278918317
+    },
+    {
+      "stage": "全局MLP",
+      "seconds": 0.27397833824157714,
+      "percent": 0.5025441200314728
+    },
+    {
+      "stage": "状态损失组装",
+      "seconds": 0.220299616054633,
+      "percent": 0.4040840506004872
+    },
+    {
+      "stage": "分配其他准备",
+      "seconds": 0.1988086903281605,
+      "percent": 0.3646643708287639
+    },
+    {
+      "stage": "Rep平方L2损失",
+      "seconds": 0.15471647974010513,
+      "percent": 0.2837883376634015
+    },
+    {
+      "stage": "全局QKV与输出投影",
+      "seconds": 0.12940614593029023,
+      "percent": 0.23736291763278233
+    },
+    {
+      "stage": "Attention执行准备",
+      "seconds": 0.12053481876850647,
+      "percent": 0.22109070673230258
+    },
+    {
+      "stage": "全局块归一化和残差",
+      "seconds": 0.11071434974670724,
+      "percent": 0.20307753461610098
+    },
+    {
+      "stage": "池化与簇网格关系",
+      "seconds": 0.05441468787193297,
+      "percent": 0.09981001275099344
+    },
+    {
+      "stage": "状态ID映射",
+      "seconds": 0.015140575971454417,
+      "percent": 0.02777156572734318
+    },
+    {
+      "stage": "几何缓存",
+      "seconds": 0.01174460804462433,
+      "percent": 0.021542519575748757
+    },
+    {
+      "stage": "相机头",
+      "seconds": 0.008901632308959961,
+      "percent": 0.01632779804513446
+    }
+  ],
+  "inclusive_detail": [
+    {
+      "name": "global_block",
+      "inclusive_cuda_seconds": 50.50932427978516,
+      "inclusive_host_seconds": 50.722248271573335,
+      "calls": 24
+    },
+    {
+      "name": "global_attention",
+      "inclusive_cuda_seconds": 50.12463159179688,
+      "inclusive_host_seconds": 50.712346906308085,
+      "calls": 24
+    },
+    {
+      "name": "reuse_and_budget",
+      "inclusive_cuda_seconds": 28.73629215049745,
+      "inclusive_host_seconds": 28.73634012043476,
+      "calls": 1518
+    },
+    {
+      "name": "history_probability",
+      "inclusive_cuda_seconds": 18.775059774637235,
+      "inclusive_host_seconds": 8.350466191302985,
+      "calls": 1518
+    },
+    {
+      "name": "m5c_evidence_and_host_copy",
+      "inclusive_cuda_seconds": 11.486667300462695,
+      "inclusive_host_seconds": 16.265385736711323,
+      "calls": 1584
+    },
+    {
+      "name": "m5c_evidence_statistics",
+      "inclusive_cuda_seconds": 11.44628120958806,
+      "inclusive_host_seconds": 16.178320030216128,
+      "calls": 1584
+    },
+    {
+      "name": "execution_and_evidence",
+      "inclusive_cuda_seconds": 5.395471518158912,
+      "inclusive_host_seconds": 0.5795215335674584,
+      "calls": 1584
+    },
+    {
+      "name": "drop_vector_sum",
+      "inclusive_cuda_seconds": 5.011748644217838,
+      "inclusive_host_seconds": 1.554368816781789,
+      "calls": 1518
+    },
+    {
+      "name": "sparse_attention_kernel",
+      "inclusive_cuda_seconds": 3.8238322177529294,
+      "inclusive_host_seconds": 0.3245240803807974,
+      "calls": 1584
+    },
+    {
+      "name": "attention_mass_second_qk",
+      "inclusive_cuda_seconds": 1.451104481637476,
+      "inclusive_host_seconds": 0.06901405146345496,
+      "calls": 1584
+    },
+    {
+      "name": "mass_transfer",
+      "inclusive_cuda_seconds": 1.3955496960282316,
+      "inclusive_host_seconds": 1.3962105293758214,
+      "calls": 1518
+    },
+    {
+      "name": "state_losses",
+      "inclusive_cuda_seconds": 1.2456616315543643,
+      "inclusive_host_seconds": 0.5643844604492188,
+      "calls": 1518
+    },
+    {
+      "name": "previous_history_probe_qk",
+      "inclusive_cuda_seconds": 1.0864937597811217,
+      "inclusive_host_seconds": 0.14691782044246793,
+      "calls": 1518
+    },
+    {
+      "name": "current_history_probe_qk",
+      "inclusive_cuda_seconds": 1.0854635519087321,
+      "inclusive_host_seconds": 0.10509617114439607,
+      "calls": 1584
+    },
+    {
+      "name": "value_update",
+      "inclusive_cuda_seconds": 1.0670231704711912,
+      "inclusive_host_seconds": 1.2090383004397154,
+      "calls": 24
+    },
+    {
+      "name": "frame_block",
+      "inclusive_cuda_seconds": 1.0178755798339842,
+      "inclusive_host_seconds": 0.4443173068575561,
+      "calls": 24
+    },
+    {
+      "name": "point_head",
+      "inclusive_cuda_seconds": 1.0098380737304689,
+      "inclusive_host_seconds": 1.0103988512419164,
+      "calls": 1
+    },
+    {
+      "name": "support_pack",
+      "inclusive_cuda_seconds": 1.0092012166976947,
+      "inclusive_host_seconds": 14.400006158743054,
+      "calls": 1518
+    },
+    {
+      "name": "depth_head",
+      "inclusive_cuda_seconds": 0.9995900268554687,
+      "inclusive_host_seconds": 0.8172753481194377,
+      "calls": 1
+    },
+    {
+      "name": "m5c_coarse_observation",
+      "inclusive_cuda_seconds": 0.9050599994063366,
+      "inclusive_host_seconds": 0.9080095114186406,
+      "calls": 1584
+    },
+    {
+      "name": "history_loss_and_owners",
+      "inclusive_cuda_seconds": 0.8706455357596262,
+      "inclusive_host_seconds": 0.105006187222898,
+      "calls": 1518
+    },
+    {
+      "name": "frame_attention",
+      "inclusive_cuda_seconds": 0.6321480274200438,
+      "inclusive_host_seconds": 0.4105504541657865,
+      "calls": 24
+    },
+    {
+      "name": "patch_embed_dino",
+      "inclusive_cuda_seconds": 0.600585205078125,
+      "inclusive_host_seconds": 0.008628695271909237,
+      "calls": 1
+    },
+    {
+      "name": "residual_fine_probe",
+      "inclusive_cuda_seconds": 0.5668234874010085,
+      "inclusive_host_seconds": 0.5675391512922943,
+      "calls": 1518
+    },
+    {
+      "name": "coarse_observation",
+      "inclusive_cuda_seconds": 0.4690361600518228,
+      "inclusive_host_seconds": 0.4691412393003702,
+      "calls": 1518
+    },
+    {
+      "name": "state_diagnostics",
+      "inclusive_cuda_seconds": 0.4507011204361914,
+      "inclusive_host_seconds": 0.4510964988730848,
+      "calls": 1518
+    },
+    {
+      "name": "cluster_neighbor_graph",
+      "inclusive_cuda_seconds": 0.450239839553833,
+      "inclusive_host_seconds": 0.45018444349989295,
+      "calls": 23
+    },
+    {
+      "name": "cluster_local_search",
+      "inclusive_cuda_seconds": 0.39760300636291496,
+      "inclusive_host_seconds": 0.3976585469208658,
+      "calls": 46
+    },
+    {
+      "name": "history_gate",
+      "inclusive_cuda_seconds": 0.35919471965730215,
+      "inclusive_host_seconds": 0.46921790996566415,
+      "calls": 1518
+    },
+    {
+      "name": "history_summary",
+      "inclusive_cuda_seconds": 0.3524448321014641,
+      "inclusive_host_seconds": 0.3530392674729228,
+      "calls": 1584
+    },
+    {
+      "name": "budget_solve4",
+      "inclusive_cuda_seconds": 0.2752260809689768,
+      "inclusive_host_seconds": 1.0731937806122005,
+      "calls": 1518
+    },
+    {
+      "name": "global_mlp",
+      "inclusive_cuda_seconds": 0.27397833824157714,
+      "inclusive_host_seconds": 0.004085972439497709,
+      "calls": 24
+    },
+    {
+      "name": "frame_mlp",
+      "inclusive_cuda_seconds": 0.2738339862823487,
+      "inclusive_host_seconds": 0.027129794005304575,
+      "calls": 24
+    },
+    {
+      "name": "cluster_full_search",
+      "inclusive_cuda_seconds": 0.168259033203125,
+      "inclusive_host_seconds": 0.07428498426452279,
+      "calls": 2
+    },
+    {
+      "name": "rep_loss",
+      "inclusive_cuda_seconds": 0.15471647974010513,
+      "inclusive_host_seconds": 0.1159321335144341,
+      "calls": 1518
+    },
+    {
+      "name": "frame_qkv",
+      "inclusive_cuda_seconds": 0.10686659288406372,
+      "inclusive_host_seconds": 0.014827920589596033,
+      "calls": 24
+    },
+    {
+      "name": "global_qkv",
+      "inclusive_cuda_seconds": 0.09964915370941162,
+      "inclusive_host_seconds": 0.001588528510183096,
+      "calls": 24
+    },
+    {
+      "name": "pooling",
+      "inclusive_cuda_seconds": 0.0661592959165573,
+      "inclusive_host_seconds": 0.06257611606270075,
+      "calls": 24
+    },
+    {
+      "name": "global_proj",
+      "inclusive_cuda_seconds": 0.029756992220878607,
+      "inclusive_host_seconds": 0.002448486629873514,
+      "calls": 24
+    },
+    {
+      "name": "frame_proj",
+      "inclusive_cuda_seconds": 0.029675327897071842,
+      "inclusive_host_seconds": 0.0022430461831390858,
+      "calls": 24
+    },
+    {
+      "name": "state_decode",
+      "inclusive_cuda_seconds": 0.015140575971454417,
+      "inclusive_host_seconds": 0.05021995957940817,
+      "calls": 1518
+    },
+    {
+      "name": "cluster_empty_repair",
+      "inclusive_cuda_seconds": 0.01411507205665111,
+      "inclusive_host_seconds": 0.10803295345976949,
+      "calls": 48
+    },
+    {
+      "name": "geometry_prepare",
+      "inclusive_cuda_seconds": 0.01174460804462433,
+      "inclusive_host_seconds": 0.009226474445313215,
+      "calls": 23
+    },
+    {
+      "name": "cluster_centroid_reduce",
+      "inclusive_cuda_seconds": 0.010611071869730948,
+      "inclusive_host_seconds": 0.15688692731782794,
+      "calls": 72
+    },
+    {
+      "name": "camera_head",
+      "inclusive_cuda_seconds": 0.008901632308959961,
+      "inclusive_host_seconds": 0.005381028633564711,
+      "calls": 1
+    }
+  ],
+  "numerical_comparison": {
+    "pose_enc": {
+      "before_self_jitter": 0.0044975200868842035,
+      "after_self_jitter": 0.004695672178657416,
+      "max_before_after_relative_l2": 0.004943006459185817,
+      "within_0_005": true,
+      "within_observed_jitter": false,
+      "profile_relative_l2": 0.004398421368232867
+    },
+    "depth": {
+      "before_self_jitter": 0.0130624824410931,
+      "after_self_jitter": 0.012178920980473615,
+      "max_before_after_relative_l2": 0.013344171183616133,
+      "within_0_005": false,
+      "within_observed_jitter": false,
+      "profile_relative_l2": 0.01269461808582048
+    },
+    "depth_conf": {
+      "before_self_jitter": 0.06522423268787005,
+      "after_self_jitter": 0.0663710362932681,
+      "max_before_after_relative_l2": 0.06968483249676842,
+      "within_0_005": false,
+      "within_observed_jitter": false,
+      "profile_relative_l2": 0.052376257878370594
+    },
+    "world_points": {
+      "before_self_jitter": 0.014285825562594546,
+      "after_self_jitter": 0.013035220571743658,
+      "max_before_after_relative_l2": 0.014635599192410075,
+      "within_0_005": false,
+      "within_observed_jitter": false,
+      "profile_relative_l2": 0.013491096360122376
+    },
+    "world_points_conf": {
+      "before_self_jitter": 0.08654942725178681,
+      "after_self_jitter": 0.07687795848607173,
+      "max_before_after_relative_l2": 0.11425103274327464,
+      "within_0_005": false,
+      "within_observed_jitter": false,
+      "profile_relative_l2": 0.07964137074887662
+    }
+  },
+  "checks": {
+    "sources_unchanged": true,
+    "same_config": true,
+    "all24": true,
+    "edge_cap20": true,
+    "costs": true,
+    "transfer": true,
+    "partition_sum": true,
+    "nonnegative_parts": true
+  },
+  "source_frozen": {
+    "before": true,
+    "after": true
+  },
+  "quality_evaluated": false,
+  "quality_six_fields": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_unavailable_reason": "Implementation/timing diagnostic only; no GT quality evaluation",
+  "dense_speedup": null,
+  "dense_speedup_unavailable_reason": "Dense/SAF3R not rerun",
+  "notes": [
+    "CUDA intervals include CPU launch/queue idle gaps; not pure active-kernel time.",
+    "Nested inclusive intervals must not be added twice.",
+    "Timing instrumentation is transparent context wrappers/hooks only; no extra per-layer synchronization.",
+    "Profile total includes instrumentation overhead; uninstrumented median is reported separately."
+  ]
+}

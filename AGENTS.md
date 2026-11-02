@@ -35,3 +35,8 @@ a user requirement, not an optional reporting preference.
   degradation against local matched Dense, and baseline reproduction drift
   against published Dense as two distinct differences. H100 paper timings are
   not local RTX4090 timing baselines.
+
+## Evaluation scope: changed methods only
+
+- By default, rerun only the method changed by the user. Reuse existing complete results for unchanged Dense, SAF3R and other controls; do not rerun them merely to obtain contemporaneous timings.
+- Rerun an unchanged control only when the user explicitly requests that rerun. Missing contemporaneous speed comparisons must be N/A with a reason; historical timing references must be labeled with their batch and never presented as paired measurements.
