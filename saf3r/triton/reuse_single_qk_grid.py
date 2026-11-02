@@ -65,7 +65,7 @@ def _reduce(LOGGRID,LSE,OUT,H:tl.constexpr,R:tl.constexpr,REGIONS:tl.constexpr,B
     tl.store(OUT+(group*2+kind)*REGIONS+region,result,region<REGIONS)
 
 
-def weighted_attention(q,k,v,indices,log_weights,specials,scale,key_grid,regions,emit_evidence=True):
+def weighted_attention(q,k,v,indices,log_weights,specials,scale,key_grid,regions,emit_evidence=True,evidence_layout=None):
     h,r,d=q.shape;g,a=indices.shape
     if g!=triton.cdiv(r,32):raise ValueError('Invalid query group count')
     # Stable grouping changes physical scheduling, never logical history IDs.
@@ -77,6 +77,9 @@ def weighted_attention(q,k,v,indices,log_weights,specials,scale,key_grid,regions
     counts.scatter_add_(1,bank.long(),torch.ones_like(indices,dtype=torch.int32))
     offsets=torch.nn.functional.pad(counts[:,:regions].cumsum(1,dtype=torch.int32),(1,0)).contiguous()
     order=order.int().contiguous()
+    if emit_evidence and evidence_layout is not None:
+        evidence_layout['selected_grid_order']=order
+        evidence_layout['selected_grid_offsets']=offsets
     output=torch.empty_like(q);lse=torch.empty((h,r),device=q.device,dtype=torch.float32)
     probes=torch.full((g,h,4,a),-torch.inf,device=q.device) if emit_evidence else lse
     logs=torch.empty((g,h,2,regions,32),device=q.device,dtype=torch.float32)

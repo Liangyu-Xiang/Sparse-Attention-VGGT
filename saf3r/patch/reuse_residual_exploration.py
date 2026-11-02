@@ -15,6 +15,8 @@ from .value_evolving_attention import token_layout
 
 @dataclass(frozen=True)
 class ReuseExploreConfig:
+    history_evidence_backend:str="reference"
+    history_cache_format:str="packed"
     retention:float=.2
     state_l2:bool=False
     direction_drop:bool=False
@@ -327,7 +329,11 @@ class ReuseResidualExploration(nn.Module):
             s.query_order=order
             q=q[:,order].contiguous()
         if c.history_mode=='dense_m5c':
-            from . import reuse_headmean_history as m5c
+            if c.history_evidence_backend=='grid_local':
+                from . import reuse_grid_local_history as m5c
+            elif c.history_evidence_backend=='reference':
+                from . import reuse_headmean_history as m5c
+            else:raise ValueError('Unknown history evidence backend')
             if self.layer==0:m5c.ensure_cache(s,q)
             s.m5c_next={};s.m5c_count_errors=[];s.m5c_reconstruction_qk=0;s.m5c_prior_errors=[];s.m5c_seed_errors=[];s.m5c_probe_qk=0
         output=torch.empty_like(v);history=[];grids=[];real_grids=[];stats=[];capture=[];relative_evidence=[]
@@ -454,7 +460,7 @@ class ReuseResidualExploration(nn.Module):
                     if c.history_mode=='all_relative_logit':
                         reference=(pooled,token_grid)
                     execution=weighted_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale,
-                        key_grid=s.grid[ids.clamp_min(0)],regions=s.regions,emit_evidence=self.layer<23)
+                        key_grid=s.grid[ids.clamp_min(0)],regions=s.regions,emit_evidence=self.layer<23,evidence_layout=m5c_observation if c.history_evidence_backend=='grid_local' else None)
                     if reference is None:result,mass,ready_logits=execution;del execution
                     else:
                         result,mass,delta=execution

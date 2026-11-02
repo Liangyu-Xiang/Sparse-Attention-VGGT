@@ -1,0 +1,87 @@
+{
+  "source_root": "/tmp/sparse-vggt-grid-local-20261102",
+  "source_sha256": {
+    "saf3r/patch/reuse_residual_exploration.py": "a12be89444ab9b4dfdabe34ae1bc4297c9514d53905b334d3c7f253d91ff8484",
+    "saf3r/patch/reuse_grid_local_history.py": "0c185632da0a6578cb0fbc01b9fedcccaeb2ba9a1781a67f15c0cdb2a43ac07a",
+    "saf3r/triton/reuse_grid_local_history.py": "1d80173cab419b4e9dd08a6bf8dee0668a2f476e1443e2ddc17e444e34b85269",
+    "saf3r/patch/reuse_ready_history.py": "2135f629df19b2972662bc2db943f058775199ae6157506ef1b35538a5b956dd",
+    "saf3r/triton/reuse_single_qk_grid.py": "b3a436e40cde7c2cdbb4ac708d174d904e9213bf9ea1ebbdb32a8bc7b49b3520",
+    "configs/evaluation/reuse_grid_local_history.json": "641f227f4df9add9d5b7300b1f82ea024ab68f73af9ffdfbac7b1fefc49efb13"
+  },
+  "datasets": {
+    "7scenes": [
+      "heads",
+      "chess",
+      "stairs",
+      "fire",
+      "office",
+      "pumpkin",
+      "redkitchen"
+    ],
+    "eth3d": [
+      "courtyard",
+      "delivery_area",
+      "electro",
+      "facade",
+      "kicker",
+      "office",
+      "pipes",
+      "playground",
+      "relief",
+      "relief_2",
+      "terrains"
+    ]
+  },
+  "config": {
+    "retention": 0.2,
+    "state_l2": true,
+    "direction_drop": true,
+    "clustering_mode": "adaptive_local",
+    "cluster_neighbors": 32,
+    "hierarchical": false,
+    "parent_arity": 4,
+    "parent_passes": 2,
+    "parent_moment_mode": "exact",
+    "cluster_fraction": null,
+    "disable_population_compensation": false,
+    "grid_y": 2,
+    "grid_x": 2,
+    "source_width": 32,
+    "local_iterations": 2,
+    "window_groups": 64,
+    "history_per_cluster": 4,
+    "candidate_fraction": 0.25,
+    "dual_iterations": 16,
+    "capture": false,
+    "query_shift": 0,
+    "allocation_objective": "min_error",
+    "evidence_mode": "fused_grid",
+    "state_loss": "cosine_distortion",
+    "prior_floor_fraction": 1e-06,
+    "drop_multiplier": 1.0,
+    "history_mode": "dense_m5c",
+    "mass_transfer": true,
+    "rep_gain": true,
+    "compact": true,
+    "attention_backend": "indexed",
+    "layer_retentions": null,
+    "refresh_interval": 1,
+    "reference_dual_iterations": 16,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "history_evidence_backend": "grid_local",
+    "history_cache_format": "packed"
+  },
+  "frozen_utc": "2026-11-02T15:53:26.761708+00:00",
+  "quality_tasks": [
+    "pose",
+    "recon_unposed"
+  ],
+  "controls_executed": 0,
+  "quality_retuning": false,
+  "timing": {
+    "warmup": 1,
+    "repeats": 1,
+    "reason": "Quality execution only; full-forward paired benchmark separately uses 1 warmup + 3 repeats"
+  }
+}

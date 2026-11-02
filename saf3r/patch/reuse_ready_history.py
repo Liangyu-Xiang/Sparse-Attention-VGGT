@@ -11,7 +11,7 @@ from saf3r.triton.reuse_ready_history import predict,calibrate,store,logsumexp
 
 def ensure_cache(s,q):
     h=q.shape[0];dtype=getattr(s,'ready_cache_dtype',torch.float16)
-    packed=dtype==torch.float16;stride=(s.budget*14+7)//8 if packed else s.budget
+    packed=dtype==torch.float16 and not getattr(s,'ready_cache_plain',False);stride=(s.budget*14+7)//8 if packed else s.budget
     dtype=torch.uint8 if packed else dtype
     row_bytes=h*4*stride*torch.empty((),dtype=dtype).element_size()
     limit=getattr(s,'ready_gpu_limit_bytes',8*2**30)
