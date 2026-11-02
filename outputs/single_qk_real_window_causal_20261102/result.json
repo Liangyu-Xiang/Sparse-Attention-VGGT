@@ -1,0 +1,63 @@
+{
+  "scope": "Same real heads128 L12 first64-group window; same Q,K,V,IDs,bias and CUDA device. Two warmups and three measured wrapper calls each, alternating order. Not complete-forward speedup.",
+  "shape": {
+    "query": [
+      16,
+      2048,
+      64
+    ],
+    "key": [
+      16,
+      133248,
+      64
+    ],
+    "support": [
+      64,
+      26009
+    ],
+    "regions": 512
+  },
+  "samples": {
+    "two_qk": [
+      0.003619580063968897,
+      0.0036147809587419033,
+      0.003618387971073389
+    ],
+    "one_qk": [
+      0.006489845924079418,
+      0.006512735038995743,
+      0.006498922128230333
+    ]
+  },
+  "median_seconds": {
+    "two_qk": 0.003618387971073389,
+    "one_qk": 0.006498922128230333
+  },
+  "single_qk_speed_ratio": 0.5567673992208123,
+  "old_patch_key_tiles": 26048,
+  "new_patch_key_tiles": 37218,
+  "padded_patch_tile_ratio": 1.42882371007371,
+  "output_difference": {
+    "max_abs": 0.015625,
+    "relative_l2": 0.0003500579623505473
+  },
+  "grid_difference": {
+    "max_abs": 4.0978193283081055e-08,
+    "relative_l2": 2.515601806862833e-07
+  },
+  "raw_probe_difference": {
+    "max_abs": 0.0,
+    "relative_l2": 0.0
+  },
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Kernel-only causal diagnostic, no GT quality",
+  "dense_speedup": null,
+  "dense_reason": "No unchanged Dense rerun"
+}

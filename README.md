@@ -285,6 +285,8 @@ Results and limitations:
 - `outputs/no_mass_compensation_profile_20261102/report.md`: exclusive timing; no double-counting of parent/child scopes.
 - `docs/experiments/headmean_single_qk.md` and `docs/experiments/no_mass_compensation.md`: formulas, implementation, validation and scope.
 
-Source archives, raw per-scene six-metric JSON, timing batches, memory and macro tables are retained. No paired Dense speedup is claimed for these batches. Independent estimator/execution causal ablations are in progress; do not infer their outcomes from combined changes.
+Source archives, raw per-scene six-metric JSON, timing batches, memory and macro tables are retained. No paired Dense speedup is claimed for these batches. Independent estimator/execution causal ablations are complete: `outputs/headmean_execution_causal_20261102/report.md`. They locate reconstruction regressions in the grid-grouped execution path; head-mean alone improves reconstruction but changes some pose metrics. The current default is retained for reproducibility, not advertised as an accepted speed/quality improvement.
 
 Large raw timing traces are stored as `.json.gz` / `.csv.gz`; decompress a copy with `gunzip -k` when rerunning legacy report generators. Quality metrics remain plain JSON and CSV.
+
+For the independently measured cause of quality regression and slowdown, see `docs/experiments/headmean_execution_causal.md`. Both variants and adverse results are retained.

@@ -1,0 +1,63 @@
+{
+  "scope": "Same real heads128 L12 first64-group window; same Q,K,V,IDs,bias and CUDA device; both wrappers return output, two unnormalized grid summaries and probe logits. Old grid aggregation is included in timing. Two warmups and three measured wrapper calls each, alternating order. Not complete-forward speedup.",
+  "shape": {
+    "query": [
+      16,
+      2048,
+      64
+    ],
+    "key": [
+      16,
+      133248,
+      64
+    ],
+    "support": [
+      64,
+      26009
+    ],
+    "regions": 512
+  },
+  "samples": {
+    "two_qk": [
+      0.003670570906251669,
+      0.0036706230603158474,
+      0.0036684339866042137
+    ],
+    "one_qk": [
+      0.0065026129595935345,
+      0.006498240865767002,
+      0.0064899553544819355
+    ]
+  },
+  "median_seconds": {
+    "two_qk": 0.003670570906251669,
+    "one_qk": 0.006498240865767002
+  },
+  "single_qk_speed_ratio": 0.5648560867585544,
+  "old_patch_key_tiles": 26048,
+  "new_patch_key_tiles": 37066,
+  "padded_patch_tile_ratio": 1.4229883292383292,
+  "output_difference": {
+    "max_abs": 0.015625,
+    "relative_l2": 0.0003583956276997924
+  },
+  "grid_difference": {
+    "max_abs": 3.3527612686157227e-08,
+    "relative_l2": 2.291567540169126e-07
+  },
+  "raw_probe_difference": {
+    "max_abs": 0.0,
+    "relative_l2": 0.0
+  },
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Kernel-only causal diagnostic, no GT quality",
+  "dense_speedup": null,
+  "dense_reason": "No unchanged Dense rerun"
+}
