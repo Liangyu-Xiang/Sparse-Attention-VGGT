@@ -265,3 +265,26 @@ If you find SAF3R useful for your research or project, please consider citing:
   year={2026}
 }
 ```
+
+## Current head-mean history implementation (2026-11-02)
+
+The active implementation uses head-mean cross-layer conditional statistics and a single selected-edge QK pass. Every layer still updates Value clusters and states; total retention is capped at20%. Probability-mass compensation remains enabled by default. The no-compensation version is a separate ablation and is not a quality-preserving replacement.
+
+```bash
+PYTORCH_ALLOC_CONF=expandable_segments:True python scripts/evaluate_zdrop_history_states.py \
+  --dataset 7scenes --method zdrop_history_states --scene heads --frames 128 \
+  --config configs/evaluation/reuse_zdrop_history_states.json \
+  --output-dir /absolute/path/to/fresh/results
+```
+
+The original checkpoint and dataset workspace layout are required as before. Dense and SAF3R reference scores are reused, not rerun. Current code is byte-identical to the evaluated frozen head-mean source; unrelated working-tree edits are not included.
+
+Results and limitations:
+- `outputs/headmean_single_qk_quality_20261102/report.md`: full7Scenes and ETH3D quality, runtime and memory; ETH3D quality regresses and full-forward speed does not improve.
+- `outputs/no_mass_compensation_quality_v2_20261102/report.md`: removing mass compensation hurts reconstruction, particularly ETH3D; preserve as an ablation.
+- `outputs/no_mass_compensation_profile_20261102/report.md`: exclusive timing; no double-counting of parent/child scopes.
+- `docs/experiments/headmean_single_qk.md` and `docs/experiments/no_mass_compensation.md`: formulas, implementation, validation and scope.
+
+Source archives, raw per-scene six-metric JSON, timing batches, memory and macro tables are retained. No paired Dense speedup is claimed for these batches. Independent estimator/execution causal ablations are in progress; do not infer their outcomes from combined changes.
+
+Large raw timing traces are stored as `.json.gz` / `.csv.gz`; decompress a copy with `gunzip -k` when rerunning legacy report generators. Quality metrics remain plain JSON and CSV.

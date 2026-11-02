@@ -71,7 +71,7 @@ class ReuseExploreConfig:
         if not 0<self.prior_floor_fraction<=1e-3:raise ValueError('Invalid prior floor')
         if not 0<=self.query_shift<32:raise ValueError('Query shift must be 0..31')
         if self.allocation_objective not in ('min_error','max_error'):raise ValueError('Invalid allocation objective')
-        if self.evidence_mode not in ('second_qk','saved_logits'):raise ValueError('Invalid evidence mode')
+        if self.evidence_mode not in ('second_qk','saved_logits','fused_grid'):raise ValueError('Invalid evidence mode')
         if not math.isfinite(self.retention) or not .05<=self.retention<=.2:raise ValueError('Retention must be5–20%')
         if min(self.grid_y,self.grid_x,self.source_width,self.local_iterations,self.window_groups,self.dual_iterations)<1:
             raise ValueError('Positive grid/window/iteration sizes required')
@@ -263,7 +263,7 @@ class ReuseExploreState:
         self.grid_sizes=torch.bincount(self.grid,minlength=self.regions).float()
         self.history_ids=None;self.history_weights=None;self.history_relative=None;self.previous_grid=None;self.previous_real_grid=None
         self.query_order=torch.arange(self.n,device=device)
-        self.previous_layer=-1;self.records=[];self.captured={};self.profile_events=[]
+        self.ready_allocator_trims=0;self.ready_written={};self.previous_layer=-1;self.records=[];self.captured={};self.profile_events=[]
         self.m5c_previous_q=None;self.m5c_previous_k=None;self.m5c_previous_scale=None;self.m5c_reconstruction_qk=0
         self.m5c_previous={};self.m5c_next={};self.m5c_prior_errors=[];self.m5c_seed_errors=[];self.m5c_probe_qk=0
 
@@ -292,6 +292,7 @@ class ReuseResidualExploration(nn.Module):
     def forward(self,x,pos=None):
         o,s=self.original,self.state;c=s.config
         if self.training or len(x)!=1 or self.layer!=s.previous_layer+1:raise ValueError('Batch-one ordered inference required')
+        if c.capture:raise RuntimeError('Fused-grid capture exposes grid summaries, not per-edge masses; capture mode unsupported')
         if c.history_mode!='dense_m5c' or not c.state_l2 or not c.direction_drop or not c.compact or c.query_shift or c.hierarchical:raise RuntimeError('Cleanup supports only the frozen active method')
         q,k,v=prepare_qkv(o,x,pos);q=q.to(v.dtype).contiguous();k=k.to(v.dtype).contiguous()
         with stage(s,'value_update'),torch.autocast(x.device.type,enabled=False):
@@ -326,7 +327,8 @@ class ReuseResidualExploration(nn.Module):
             s.query_order=order
             q=q[:,order].contiguous()
         if c.history_mode=='dense_m5c':
-            from . import reuse_m5c_pipeline as m5c
+            from . import reuse_headmean_history as m5c
+            if self.layer==0:m5c.ensure_cache(s,q)
             s.m5c_next={};s.m5c_count_errors=[];s.m5c_reconstruction_qk=0;s.m5c_prior_errors=[];s.m5c_seed_errors=[];s.m5c_probe_qk=0
         output=torch.empty_like(v);history=[];grids=[];real_grids=[];stats=[];capture=[];relative_evidence=[]
         candidates=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
@@ -447,13 +449,13 @@ class ReuseResidualExploration(nn.Module):
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
                 if q.is_cuda:
-                    from saf3r.triton.reuse_explore_av import weighted_attention
+                    from saf3r.triton.reuse_single_qk_grid import weighted_attention
                     reference=None
                     if c.history_mode=='all_relative_logit':
                         reference=(pooled,token_grid)
                     execution=weighted_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale,
-                        single_qk=c.evidence_mode=="saved_logits",relative_reference=reference)
-                    if reference is None:result,mass=execution
+                        key_grid=s.grid[ids.clamp_min(0)],regions=s.regions,emit_evidence=self.layer<23)
+                    if reference is None:result,mass,ready_logits=execution;del execution
                     else:
                         result,mass,delta=execution
                         relative_evidence.append(delta)
@@ -465,25 +467,23 @@ class ReuseResidualExploration(nn.Module):
                         ref=(q[:,first:end].float().mean(1)[:,None,None,:]*pooled[:,s.grid[ids.clamp_min(0)]].float()).sum(-1)*o.scale
                         relative_evidence.append((raw-ref).mean(0).masked_fill(ids<0,0))
             output[:,first:end]=result
-            if c.history_mode=='dense_m5c':
+            if c.history_mode=='dense_m5c' and self.layer<23:
+                m5c_observation['ready_logits']=ready_logits
                 with stage(s,'m5c_evidence_and_host_copy'),torch.autocast(x.device.type,enabled=False):
                     m5c.save_evidence(s,q,k,start,ids,actual,m5c_observation,o.scale)
+                del ready_logits,m5c_observation['ready_logits']
             with stage(s,'history_summary'):
-                mass=mass/mass.sum(1,keepdim=True).clamp_min(1e-30)
-                key_grid=s.grid[ids.clamp_min(0)]
-                grid=torch.zeros((g,s.regions),device=x.device).scatter_add_(1,key_grid,mass)
-                # A selected history Key may represent other members. Only its
-                # unit-Key probability is genuine evidence, not transferred mass.
-                evidence=mass/pops.clamp_min(1) if c.state_loss=="cosine_distortion" else mass
-                if c.history_mode!='genuine_probability':real=ids>=0
-                real_grid=torch.zeros_like(grid).scatter_add_(1,key_grid,evidence*real)
+                patch_mass=mass[:,0].sum(1,keepdim=True).clamp_min(1e-30)
+                grid=mass[:,0]/patch_mass
+                real_grid=mass[:,1]/patch_mass
+                real=ids>=0
                 history.append(ids.masked_fill(~real,-1).int());pass  # This legacy half-precision history bank is unread by D2+M5c.
                 grids.append(grid.half());real_grids.append(real_grid.half())
             stats.append(record)
             if c.capture:capture.append(dict(ids=actual.clone(),population=pops.clone(),genuine=real.clone(),
                                              mass=mass.clone(),reuse=record['reuse_edges'].clone()))
         if c.history_mode=='dense_m5c':
-            if bool(torch.stack(s.m5c_count_errors).any()):raise ValueError('History count exceeds region population')
+            if s.m5c_count_errors and bool(torch.stack(s.m5c_count_errors).any()):raise ValueError('History count exceeds region population')
             s.m5c_reconstruction_qk=int(s.m5c_reconstruction_qk)
             s.m5c_probe_qk=int(s.m5c_probe_qk)
         s.history_ids=torch.cat(history);s.history_weights=None
@@ -491,8 +491,10 @@ class ReuseResidualExploration(nn.Module):
         if c.history_mode=='dense_m5c':
             if s.m5c_previous:raise RuntimeError('Unconsumed M5c history windows')
             s.m5c_previous=s.m5c_next;s.m5c_next={}
-            s.m5c_previous_q=q.detach().clone();s.m5c_previous_k=k.detach().clone();s.m5c_previous_scale=o.scale
+            s.m5c_previous_q=None;s.m5c_previous_k=None;s.m5c_previous_scale=None
+            if self.layer==23:m5c.release(s)
             s.history_pooled_fp32=None
+            m5c.trim(s)
         if self.layer==0:
             for record in stats:
                 for state_id in range(11):
@@ -511,7 +513,7 @@ class ReuseResidualExploration(nn.Module):
             compact=c.compact,geometry_width=0 if geometry is None else geometry['width'],
             geometry_cache_bytes=0 if geometry is None else sum(geometry[name].numel()*geometry[name].element_size() for name in ('members','rank','distances','rep_distance')),
             final_unique_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),
-            evidence_extra_qk_per_head=(joined['counts']*rows).sum() if c.evidence_mode=='second_qk' else 0,
+            evidence_extra_qk_per_head=0,
             evidence_scratch_peak_bytes=min(c.window_groups*32,s.n)*q.shape[0]*s.budget*4 if c.evidence_mode=='saved_logits' else 0,
             stored_history_bytes=s.history_ids.numel()*4,
             stored_grid_bytes=s.previous_grid.numel()*4,
@@ -521,7 +523,7 @@ class ReuseResidualExploration(nn.Module):
             state_loss=c.state_loss,mass_transfer="estimated assigned mass / own prior mass" if c.state_loss=="cosine_distortion" and c.mass_transfer else "original population weights",
             selector=('Rep-relative weighted cosine distortion, discrete dual budget search; not exact knapsack' if c.rep_gain else 'separable vector-output proxy, discrete dual budget search; not exact knapsack'),
             history=c.history_mode+'; compact relative logits FP32, probabilities FP16; no fixed retention ratio',
-            evidence=c.evidence_mode,allocation_objective=c.allocation_objective,query_shift=c.query_shift))
+            evidence='single_qk_fused_grid',allocation_objective=c.allocation_objective,query_shift=c.query_shift))
         if c.clustering_mode!='source_anchored':s.records[-1]['clustering']=s.fine.records[-1]
         if c.hierarchical:
             s.records[-1].update(hierarchical=True,parent_arity=c.parent_arity,parent_passes=c.parent_passes,parent_moment_mode=c.parent_moment_mode,parent_active=s.parent_prepared is not None,
@@ -531,13 +533,13 @@ class ReuseResidualExploration(nn.Module):
                 exact_parent_proxy='child Rep and most distant member, both real emitted Exact keys')
 
         if c.history_mode=='dense_m5c':
-            s.records[-1].update(history_estimator='D2 + M5c',beta_down_exponent=1.,beta_up_exponent=2.,
+            s.records[-1].update(history_estimator='Head-mean conditionals + head-mean M5c',beta_down_exponent=1.,beta_up_exponent=2.,
                 probability_normalization='all Keys including specials; no patch renormalization',
-                history_cache_device='gpu_grid_statistics_gpu_previous_qk',history_cache_dtype='float32_statistics_model_qk_dtype',
-                history_estimator_head_aware=True,history='D2 full-Key probabilities reconstructed exactly from previous Q/K; M5c beta(1,2)',
-                history_gpu_reconstruction_bytes=s.m5c_previous_q.numel()*s.m5c_previous_q.element_size()+s.m5c_previous_k.numel()*s.m5c_previous_k.element_size(),
-                extra_previous_layer_probe_qk_per_head=s.m5c_reconstruction_qk,history_cpu_bytes=m5c.host_bytes(s.m5c_previous),history_calibration_gpu_bytes=m5c.device_bytes(s.m5c_previous),
-                seed_normalization_max_error=torch.stack(s.m5c_seed_errors).max(),
+                history_cache_device='gpu_prepared_conditionals',history_cache_dtype='headmean_positive_fp16_u14_edges_float32_grid_statistics',
+                history_estimator_head_aware=False,history='Previous conditional probabilities averaged over heads before caching; current grid probabilities averaged before confidence; M5c beta(1,2); no head matching',
+                history_gpu_reconstruction_bytes=0,
+                extra_previous_layer_probe_qk_per_head=s.m5c_reconstruction_qk,history_cpu_bytes=m5c.host_bytes(s),history_calibration_gpu_bytes=m5c.device_bytes(s),ready_probe_scratch_bytes=min(c.window_groups,s.groups)*q.shape[0]*4*s.budget*4 if self.layer<23 else 0,ready_edge_cache_bytes=0 if s.ready_edges is None else s.ready_edges.numel()*s.ready_edges.element_size(),ready_allocator_trims=s.ready_allocator_trims,
+                seed_normalization_max_error=torch.stack(s.m5c_seed_errors).max() if s.m5c_seed_errors else torch.tensor(0.,device=x.device),
                 prior_patch_mass_max_error=torch.stack(s.m5c_prior_errors).max() if s.m5c_prior_errors else torch.tensor(0.,device=x.device),
                 extra_known_probe_qk_per_head=s.m5c_probe_qk,extra_coarse_probe_qk_per_head=4*s.groups*(s.regions+len(s.specials)))
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),

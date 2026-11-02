@@ -1,0 +1,220 @@
+{
+  "scope": "24 global attention modules, excluding QKV Linear and output Linear; residual includes Q/K normalization, RoPE and other preparation",
+  "whole_profile_wall_seconds": 25.22246428625658,
+  "whole_profile_cuda_interval_seconds": 25.256130859375,
+  "global_attention_inclusive_seconds": 20.808151977539065,
+  "excluded_qkv_projection_seconds": 0.13706036376952824,
+  "target_exclusive_seconds": 20.671091613769537,
+  "sum_of_exclusive_rows_seconds": 20.671091613769537,
+  "duplicate_seconds": 0.0,
+  "partition_error_seconds": 0.0,
+  "number_of_exclusive_segments": 132575,
+  "global_layers": 24,
+  "source_unchanged": true,
+  "same_gpu_overlap_detected": false,
+  "dma_not_added_to_main_total": true,
+  "dma": [
+    {
+      "operation": "dma_h2d",
+      "calls": 460,
+      "seconds": 1.456342773437501,
+      "bytes": 81739453440,
+      "inside_global_attention_seconds": 1.456342773437501
+    },
+    {
+      "operation": "dma_d2h",
+      "calls": 460,
+      "seconds": 1.4413551025390703,
+      "bytes": 81739453440,
+      "inside_global_attention_seconds": 1.4413551025390703
+    }
+  ],
+  "operations": [
+    {
+      "operation": "稀疏Attention与探针logit导出（融合内核）",
+      "seconds": 4.274370300292966,
+      "percent": 20.67800956116754,
+      "times_core": 1.0
+    },
+    {
+      "operation": "第二次选中边QK与概率聚合（融合内核）",
+      "seconds": 1.455504394531251,
+      "percent": 7.041255593689607,
+      "times_core": 0.3405190220490467
+    },
+    {
+      "operation": "概率质量转移与补偿权重",
+      "seconds": 1.417469848632836,
+      "percent": 6.857256864405862,
+      "times_core": 0.3316207415477509
+    },
+    {
+      "operation": "校准：逐边指数与grid分段累加（融合内核）",
+      "seconds": 1.3742124633788726,
+      "percent": 6.64799174158502,
+      "times_core": 0.32150056425496965
+    },
+    {
+      "operation": "当前Value聚类更新",
+      "seconds": 1.0673268432617171,
+      "percent": 5.163379192566413,
+      "times_core": 0.24970387876515107
+    },
+    {
+      "operation": "History状态最近Key归属与表示损失",
+      "seconds": 1.0666368408203086,
+      "percent": 5.160041185777509,
+      "times_core": 0.24954245090726024
+    },
+    {
+      "operation": "原coarse观测与Exact候选筛选",
+      "seconds": 1.021789062500039,
+      "percent": 4.943082259958635,
+      "times_core": 0.2390501970383814
+    },
+    {
+      "operation": "支持集打包及合法性检查",
+      "seconds": 1.0209594726562459,
+      "percent": 4.93906897483904,
+      "times_core": 0.2388561123462488
+    },
+    {
+      "operation": "未细分全局Attention准备与收尾（含Q/K归一化、RoPE等）",
+      "seconds": 0.9550269165038221,
+      "percent": 4.620108770006391,
+      "times_core": 0.22343102010566665
+    },
+    {
+      "operation": "缓存历史边概率更新、head平均与回填",
+      "seconds": 0.8272973632813052,
+      "percent": 4.002194846498679,
+      "times_core": 0.1935483603806161
+    },
+    {
+      "operation": "校准：条件概率计算、FP16量化与u14打包（融合内核）",
+      "seconds": 0.779182434082025,
+      "percent": 3.7694305102058174,
+      "times_core": 0.1822917481034855
+    },
+    {
+      "operation": "当前粗观测：探针准备、归一化及调度",
+      "seconds": 0.6720693969726359,
+      "percent": 3.251252568224087,
+      "times_core": 0.1572323757084341
+    },
+    {
+      "operation": "RMS Drop加权向量范数",
+      "seconds": 0.6139334716796301,
+      "percent": 2.9700099208629767,
+      "times_core": 0.14363132544635895
+    },
+    {
+      "operation": "网格概率迁移、prior展开与簇质量汇总",
+      "seconds": 0.5820485839843688,
+      "percent": 2.8157612324481764,
+      "times_core": 0.13617177340589212
+    },
+    {
+      "operation": "诊断统计与概率质量检查",
+      "seconds": 0.5809127807617234,
+      "percent": 2.810266586863573,
+      "times_core": 0.13590604930085434
+    },
+    {
+      "operation": "校准：保留边logsumexp归约",
+      "seconds": 0.39324963378909306,
+      "percent": 1.9024134822523813,
+      "times_core": 0.09200177012322486
+    },
+    {
+      "operation": "Rep损失与其他状态损失组装",
+      "seconds": 0.38570861816409807,
+      "percent": 1.8659325079240994,
+      "times_core": 0.09023752999071268
+    },
+    {
+      "operation": "历史候选筛选与Rep身份",
+      "seconds": 0.36140942382813557,
+      "percent": 1.7483809301459028,
+      "times_core": 0.08455267055438892
+    },
+    {
+      "operation": "校准其余：计数、网格归一化及缓存准备",
+      "seconds": 0.33475109863277874,
+      "percent": 1.6194166466264053,
+      "times_core": 0.07831588634467043
+    },
+    {
+      "operation": "16轮预算求解与状态ID映射",
+      "seconds": 0.30749621582033226,
+      "percent": 1.487566411903962,
+      "times_core": 0.07193953593568074
+    },
+    {
+      "operation": "分配阶段其余准备",
+      "seconds": 0.24166162109367462,
+      "percent": 1.1690801125021268,
+      "times_core": 0.056537362024322295
+    },
+    {
+      "operation": "下一层grid/Exact证据汇总",
+      "seconds": 0.16636340332028898,
+      "percent": 0.8048118910637022,
+      "times_core": 0.038921148995651224
+    },
+    {
+      "operation": "当前canonical grid QK",
+      "seconds": 0.14815917968752812,
+      "percent": 0.7167457938642947,
+      "times_core": 0.03466222373793241
+    },
+    {
+      "operation": "异步缓存预取/回写提交与控制",
+      "seconds": 0.13743115234375336,
+      "percent": 0.6648470961843496,
+      "times_core": 0.03215237396122039
+    },
+    {
+      "operation": "Attention工作区初始化与执行准备",
+      "seconds": 0.12956420898443266,
+      "percent": 0.6267893897684952,
+      "times_core": 0.0303118821912908
+    },
+    {
+      "operation": "当前特殊Token QK",
+      "seconds": 0.12595379638672133,
+      "percent": 0.6093233910434624,
+      "times_core": 0.029467216815091672
+    },
+    {
+      "operation": "缓存分配与显存回收",
+      "seconds": 0.12297247314453208,
+      "percent": 0.5949007214627069,
+      "times_core": 0.028769728522609173
+    },
+    {
+      "operation": "池化、簇几何及grid映射准备",
+      "seconds": 0.0813474121093698,
+      "percent": 0.39353225088113986,
+      "times_core": 0.019031437707630112
+    },
+    {
+      "operation": "缓存读取、缓冲区就绪等待与控制",
+      "seconds": 0.026283203125053056,
+      "percent": 0.12714956527765156,
+      "times_core": 0.006149023430012978
+    }
+  ],
+  "quality_evaluated": false,
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Exclusive timing / DMA timeline diagnostic only",
+  "dense_speedup": null,
+  "dense_reason": "Unchanged Dense/SAF3R not rerun"
+}

@@ -35,7 +35,8 @@ def run(args):
     save(out/'status.json',dict(stage='loading',method=args.method,scene=args.scene))
     torch.set_num_threads(2);torch.manual_seed(0);np.random.seed(0);o3d.utility.random.seed(0)
     torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
-    dataset=MV_REGISTRY.get('7scenes')()
+    dataset_name=getattr(args,'dataset','7scenes')
+    dataset=MV_REGISTRY.get(dataset_name)()
     positions,scene=sample_frames(dataset.get_data(args.scene),args.scene,args.frames,sample_mode='uniform',seed=0)
     cfg=Dict(yaml.safe_load((ROOT/'configs/evaluation/eval_saf3r_vggt.yaml').read_text())['model'])
     cfg.ckpt_path=str(ROOT/'checkpoints/vggt/model_tracker_fixed_e20.pt')
@@ -46,7 +47,7 @@ def run(args):
     if args.method!='saf3r':cfg.pop('patch_module');cfg.pop('sparse_config_path')
     model=build_model(cfg,'cuda');images=load_images(model,'vggt',scene.image_files).cuda()
     state=None;config=None
-    if args.method in ('original','shift8','max_error','single_qk','grid4','grid8','cosine_distortion','rep_a','rep_b','rep_c','rep_d','rep_combined','rep_compact'):
+    if args.method in ('original','shift8','max_error','single_qk','grid4','grid8','cosine_distortion','rep_a','rep_b','rep_c','rep_d','rep_combined','rep_compact','rep_compact_relative_reference','rep_m5c','rep_m5c_hierarchical','rep_m5c_flat_adaptive_reference','rep_m5c_anchored_reference','rep_combined_l2_direction_adaptive','rep_guarded','rep_compact_no_pop_grid4_cluster10_sparse90'):
         from saf3r.patch.reuse_residual_exploration import ReuseExploreConfig,install_reuse_residual_exploration
         config_path=ROOT/('configs/evaluation/reuse_cosine_distortion.json' if args.method=='cosine_distortion' else f'configs/evaluation/reuse_ablation_{args.method}.json')
         if args.method.startswith('rep_'):config_path=ROOT/f'configs/evaluation/reuse_{args.method}.json'
@@ -81,8 +82,12 @@ def run(args):
         'configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json']
     sources+=['configs/evaluation/reuse_rep_'+stage+'.json' for stage in 'abcd']
     sources+=['configs/evaluation/reuse_rep_combined.json','configs/evaluation/reuse_rep_compact.json','saf3r/triton/reuse_compact.py','docs/experiments/reuse_compact.md']
+    sources+=['configs/evaluation/reuse_rep_guarded.json','saf3r/patch/reuse_guarded.py','saf3r/triton/reuse_shared_grid.py','saf3r/triton/reuse_guarded_allocation.py','docs/experiments/reuse_guarded.md']
+    sources+=['configs/evaluation/reuse_rep_compact_no_pop_grid4_cluster10_sparse90.json']
     sources+=['tests/test_reuse_rep_revision.py','scripts/validate_reuse_rep_revision.py']
     sources+=['docs/experiments/reuse_rep_revision.md','docs/experiments/reuse_rep_revision_reference.md']
+    sources+=['saf3r/patch/hierarchical_reuse.py','saf3r/triton/hierarchical_reuse.py','configs/evaluation/reuse_rep_m5c_hierarchical.json','configs/evaluation/reuse_rep_m5c_flat_adaptive_reference.json','saf3r/patch/adaptive_value_clustering.py','configs/evaluation/reuse_rep_m5c_anchored_reference.json','saf3r/patch/reuse_m5c.py','saf3r/patch/history_dense_probability.py','saf3r/triton/history_probe_logits.py','configs/evaluation/reuse_rep_m5c.json','configs/evaluation/reuse_rep_compact_relative_reference.json']
+    sources+=['configs/evaluation/reuse_rep_combined_l2_direction_adaptive.json']
     hashes={}
     for name in sources:
         data=(ROOT/name).read_bytes();hashes[name]=hashlib.sha256(data).hexdigest()
@@ -113,7 +118,7 @@ def run(args):
     timing=dict(median_seconds=float(np.median([s['seconds'] for s in samples])),samples=samples,cold_samples=cold,
         warmup=args.warmup,repeats=args.repeats,capture=args.capture,
         scope='Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync')
-    common=dict(method=args.method,scene=args.scene,dataset='7scenes',frames=len(images),input=canonical,
+    common=dict(method=args.method,scene=args.scene,dataset=dataset_name,frames=len(images),input=canonical,
         config=None if config is None else asdict(config),model_config=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,
         source_sha256=hashes,timing=timing,
         hardware=dict(gpu=torch.cuda.get_device_name(),torch=torch.__version__,cuda=torch.version.cuda),
@@ -121,10 +126,11 @@ def run(args):
             f1_threshold_m=dataset.eval_threshold,downsample_m=dataset.down_sample,
             cd_definition='(ACC+Comp)/2 unsquared metres',reconstruction='unposed'))
     save(out/'forward.json',common)
-    if args.diagnostic:
-        q=quality_record({},'Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated')
+    if args.diagnostic or getattr(args,'timing_only',False):
+        reason='Timing-only Dense control; pose/reconstruction quality reused from existing completed results' if getattr(args,'timing_only',False) else f'Implementation diagnostic on {len(images)} actual frames; pose/recon_unposed not evaluated'
+        q=quality_record({},reason)
         write_quality(out,q);save(out/'diagnostic.json',dict(common,quality=q))
-        save(out/'status.json',dict(stage='diagnostic_complete'));return
+        save(out/'status.json',dict(stage='timing_complete' if getattr(args,'timing_only',False) else 'diagnostic_complete'));return
     ext,intr=pose_encoding_to_extri_intri(raw['pose_enc'],images.shape[-2:])
     pred=Dict(extrinsics=ext.squeeze().float().cpu().numpy(),intrinsics=intr.squeeze().float().cpu().numpy(),
         depth=raw['depth'].squeeze().float().cpu().numpy(),conf=raw['depth_conf'].squeeze().float().cpu().numpy(),
@@ -135,7 +141,7 @@ def run(args):
     save(out/'status.json',dict(stage='quality',method=args.method))
     metrics={};errors={}
     try:
-        _,gt=load_scene_data(dataset,'7scenes',args.scene,args.frames,'uniform',seed=0)
+        _,gt=load_scene_data(dataset,dataset_name,args.scene,args.frames,'uniform',seed=0)
         for task in ('pose','recon_unposed'):
             try:
                 np.random.seed(0);o3d.utility.random.seed(0)
@@ -160,13 +166,16 @@ def run(args):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--method',choices=['dense','original','cosine_distortion','rep_a','rep_b','rep_c','rep_d','rep_combined','rep_compact'],required=True)
+    p.add_argument('--method',choices=['dense','saf3r','original','cosine_distortion','rep_a','rep_b','rep_c','rep_d','rep_combined','rep_compact','rep_compact_relative_reference','rep_m5c','rep_m5c_hierarchical','rep_m5c_flat_adaptive_reference','rep_m5c_anchored_reference','rep_combined_l2_direction_adaptive','rep_guarded','rep_compact_no_pop_grid4_cluster10_sparse90'],required=True)
+    p.add_argument('--dataset',choices=['7scenes','eth3d'],default='7scenes')
     p.add_argument('--scene',required=True);p.add_argument('--frames',type=int,default=128)
     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')
     p.add_argument('--warmup',type=int,default=1);p.add_argument('--repeats',type=int,default=3)
+    p.add_argument('--timing-only',action='store_true',help='Full-forward timing only; six quality fields unavailable')
     p.add_argument('--capture',action='store_true');p.add_argument('--diagnostic',action='store_true')
     a=p.parse_args()
+    if a.timing_only and a.method!='dense':raise ValueError('Timing-only mode reserved for Dense paired control')
     if a.warmup<0 or a.repeats<1:raise ValueError('Invalid timing protocol')
     try:run(a)
     except Exception as exc:
