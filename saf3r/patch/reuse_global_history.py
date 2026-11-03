@@ -44,6 +44,15 @@ def build_prior(s,start,old_ids,obs):
  return prior,pi
 
 def produce(s,start,ids,obs,raw,selected_lse=None,special_lse=None,denominator='partition'):
+ # Producer, coarse observation and cache must refer to the SAME probes.
+ # A one-probe history bank must never be broadcast against four-probe observations:
+ # the store kernel assumes identical [group, head, probe] indexing.
+ if raw.ndim!=4:raise ValueError('Expected [group, head, probe, selected_key] evidence')
+ g,h,p,a=raw.shape
+ if ids.shape!=(g,a) or obs['grid_logits'].shape[:3]!=(g,h,p) or obs['special_logits'].shape[:3]!=(g,h,p) or obs['weights'].shape!=(g,p):
+  raise ValueError('Historical evidence and coarse observation probe shapes disagree')
+ if selected_lse is not None and selected_lse.shape!=(g,h,p):raise ValueError('Selected LSE probe shape mismatch')
+ if special_lse is not None and special_lse.shape!=(g,h,p):raise ValueError('Special LSE probe shape mismatch')
  valid=ids>=0;eta,anchor=current(s,obs);g=len(ids)
  selected_lse=raw.logsumexp(-1) if selected_lse is None else selected_lse
  special_lse=obs['special_logits'].logsumexp(-1) if special_lse is None else special_lse
