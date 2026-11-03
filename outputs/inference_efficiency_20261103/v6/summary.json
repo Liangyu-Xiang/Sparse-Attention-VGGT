@@ -1,0 +1,162 @@
+{
+  "complete": true,
+  "accepted_for_default": false,
+  "reason": "ETH3D quality gate failed and candidate slower than historical Dense; reference remains default",
+  "macro": [
+    {
+      "dataset": "7scenes",
+      "method": "dense",
+      "scenes": 7,
+      "auc03": 0.2366891638545182,
+      "auc30": 0.8463887326584177,
+      "acc": 0.15374080240940666,
+      "comp": 0.1256160255234417,
+      "cd": 0.1396784139664242,
+      "f1": 0.4801276551669396,
+      "dense_speedup": 1
+    },
+    {
+      "dataset": "7scenes",
+      "method": "saf3r",
+      "scenes": 7,
+      "auc03": 0.2393489876265467,
+      "auc30": 0.8471310226846644,
+      "acc": 0.1432626693903912,
+      "comp": 0.12788284608493933,
+      "cd": 0.13557275773766525,
+      "f1": 0.4731542111605921,
+      "dense_speedup": null
+    },
+    {
+      "dataset": "7scenes",
+      "method": "reference",
+      "scenes": 7,
+      "auc03": 0.22123406449193853,
+      "auc30": 0.844170650543682,
+      "acc": 0.14672733223996345,
+      "comp": 0.12431186625504884,
+      "cd": 0.13551959924750615,
+      "f1": 0.4521774206071279,
+      "dense_speedup": null
+    },
+    {
+      "dataset": "7scenes",
+      "method": "candidate_v6",
+      "scenes": 7,
+      "auc03": 0.22142154105736783,
+      "auc30": 0.8396454349456318,
+      "acc": 0.1476861300063086,
+      "comp": 0.12185783761323585,
+      "cd": 0.1347719838097722,
+      "f1": 0.4698241299018351,
+      "dense_speedup": null
+    },
+    {
+      "dataset": "eth3d",
+      "method": "dense",
+      "scenes": 11,
+      "auc03": 0.2918346459281902,
+      "auc30": 0.8181621198339696,
+      "acc": 0.3131932065080847,
+      "comp": 0.8488543023579402,
+      "cd": 0.5810237544330125,
+      "f1": 0.6257313582034151,
+      "dense_speedup": 1
+    },
+    {
+      "dataset": "eth3d",
+      "method": "saf3r",
+      "scenes": 11,
+      "auc03": 0.23332202363746113,
+      "auc30": 0.8017474050031402,
+      "acc": 0.3031057650914992,
+      "comp": 0.8577196742854597,
+      "cd": 0.5804127196884794,
+      "f1": 0.6283039038215265,
+      "dense_speedup": null
+    },
+    {
+      "dataset": "eth3d",
+      "method": "reference",
+      "scenes": 11,
+      "auc03": 0.23953378317792992,
+      "auc30": 0.7926977717431877,
+      "acc": 0.326858971757735,
+      "comp": 0.8753167750419136,
+      "cd": 0.6010878733998243,
+      "f1": 0.5686820418121805,
+      "dense_speedup": null
+    },
+    {
+      "dataset": "eth3d",
+      "method": "candidate_v6",
+      "scenes": 11,
+      "auc03": 0.1985805549666372,
+      "auc30": 0.7670151845776924,
+      "acc": 0.3816969318529223,
+      "comp": 0.96711907200939,
+      "cd": 0.6744080019311561,
+      "f1": 0.4961912377892567,
+      "dense_speedup": null
+    }
+  ],
+  "changes": [
+    {
+      "dataset": "7scenes",
+      "relative_change_percent": {
+        "auc03": 0.0847412742968956,
+        "auc30": -0.5360545992846077,
+        "acc": 0.653455461711161,
+        "comp": -1.9740904193153108,
+        "cd": -0.551665915399091,
+        "f1": 3.9026073595212596
+      },
+      "failed_one_percent_gate": []
+    },
+    {
+      "dataset": "eth3d",
+      "relative_change_percent": {
+        "auc03": -17.097057320249455,
+        "auc30": -3.2398964751746195,
+        "acc": 16.77725405556032,
+        "comp": 10.487894164153367,
+        "cd": 12.197905127685328,
+        "f1": -12.747158990975393
+      },
+      "failed_one_percent_gate": [
+        "auc03",
+        "auc30",
+        "acc",
+        "comp",
+        "cd",
+        "f1"
+      ]
+    }
+  ],
+  "timing": {
+    "reference_seconds": 26.100919036660343,
+    "candidate_seconds": 18.109622897114605,
+    "speedup_vs_reference": 1.441273470184682,
+    "time_reduction_percent": 30.616914784960148,
+    "dense_speedup": null,
+    "dense_reason": "User explicitly prohibited Dense rerun; historical Dense heads128 12.216022619977593 s (20261029) is not contemporaneous",
+    "historical_dense_seconds": 12.216022619977593,
+    "goal_achieved": false
+  },
+  "profile": {
+    "wall_seconds": 17.969498686958104,
+    "peak_allocated_gib": 17.786049365997314,
+    "sum_error_seconds": 0.0
+  },
+  "sampling": "7Scenes all seven scenes, 128 frames; ETH3D all eleven scenes, 14\u201376 frames; equal-scene macro averages",
+  "units": {
+    "auc03": "fraction",
+    "auc30": "fraction",
+    "acc": "m",
+    "comp": "m",
+    "cd": "m",
+    "f1": "fraction"
+  },
+  "cd_definition": "(ACC + Comp)/2, unsquared distances",
+  "saf3r_profile": "Local lazy first-correspondence-head Top-4; not a claim of paper DINO configuration"
+}
