@@ -57,7 +57,7 @@ def _states(POS,PROB,BACK,Z,SUM,MEM,REP,POP,ALLOW,O0,CLUSTERS,ERROR,COST,QUAL,
  de=tl.sum(drop*drop,1);re=tl.sum(rep_res*rep_res,1);he=tl.sum(hist*hist,1)
  amount=tl.sum(qualified.to(tl.int32),1);allowed=tl.load(ALLOW+g*F+c,ci<COUNT,False)
  base=(g*F+c)*4
- tl.store(ERROR+base,de,ci<COUNT);tl.store(ERROR+base+1,tl.where(rep_seen,float('inf'),re),ci<COUNT)
+ tl.store(ERROR+base,de,ci<COUNT);tl.store(ERROR+base+1,re,ci<COUNT)
  tl.store(ERROR+base+2,tl.where(amount>0,he,float('inf')),ci<COUNT);tl.store(ERROR+base+3,tl.where(allowed,0.,float('inf')),ci<COUNT)
  tl.store(COST+base,0.,ci<COUNT);tl.store(COST+base+1,1.,ci<COUNT);tl.store(COST+base+2,amount.to(tl.float32),ci<COUNT);tl.store(COST+base+3,pop,ci<COUNT)
 
