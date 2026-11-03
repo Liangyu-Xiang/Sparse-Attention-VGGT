@@ -51,7 +51,8 @@ def main():
    take=observed[members]&((p>pi/pop[c])|(members==rep));qual[group,members]=take
    hm=p[take].sum();hv=(p[take,None]*z[members[take]]).sum(0)
    residuals=[-target+pi*o0[group],pop[c]*prior[group,rep]*z[rep]-target-o0[group]*(pop[c]*prior[group,rep]-pi),hv-target-o0[group]*(hm-pi),torch.zeros(d,device='cuda')]
-   e=torch.stack([x.square().sum() for x in residuals]);e[1]=torch.inf if observed[rep] else e[1];e[2]=torch.inf if not take.any() else e[2];e[3]=torch.inf if not allowed[group,c] else 0.
+   e=torch.stack([x.square().sum() for x in residuals]);e[2]=torch.inf if not take.any() else e[2];e[3]=torch.inf if not allowed[group,c] else 0.
+   # A previously retained representative remains a legal Rep candidate.
    expected[group,c]=e;ec[group,c]=torch.tensor([0,1,int(take.sum()),int(pop[c])],device='cuda')
  finite=torch.isfinite(expected);assert torch.equal(torch.isfinite(errors),finite);assert rel(expected[finite],errors[finite])<1e-5
  assert torch.equal(costs,ec) and torch.equal(qualified,qual)
