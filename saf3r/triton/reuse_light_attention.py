@@ -11,7 +11,7 @@ from .reuse_split_fused_history import _merge
 def _attention(Q,K,V,IDS,BIAS,SPECIAL,O,LSE,RAW,RLSE,SLSE,
  H:tl.constexpr,R:tl.constexpr,A:tl.constexpr,S:tl.constexpr,D:tl.constexpr,
  QH:tl.constexpr,KH:tl.constexpr,SCALE:tl.constexpr,PARTS:tl.constexpr,
- PER:tl.constexpr,BD:tl.constexpr,BK:tl.constexpr,EVIDENCE:tl.constexpr,P:tl.constexpr,RAW_ONLY:tl.constexpr):
+ PER:tl.constexpr,BD:tl.constexpr,BK:tl.constexpr,EVIDENCE:tl.constexpr,P:tl.constexpr):
  g=tl.program_id(0);h=tl.program_id(1);part=tl.program_id(2)
  row=tl.arange(0,32);rr=g*32+row;d=tl.arange(0,BD);j=tl.arange(0,BK);p=tl.arange(0,P)
  probe=tl.minimum(p*8+4 if P==4 else p*0+16,R-g*32-1)
@@ -30,9 +30,8 @@ def _attention(Q,K,V,IDS,BIAS,SPECIAL,O,LSE,RAW,RLSE,SLSE,
    dot=tl.dot(q,k,allow_tf32=False)*SCALE
    if EVIDENCE:
     zraw=tl.where(valid[None,:],dot,-float('inf'));value=tl.gather(zraw,tl.broadcast_to(probe[:,None],(P,BK)),0)
-    if not RAW_ONLY or bank==0:
-     mx=tl.maximum(rawmax,tl.max(value,1));safe=tl.where(mx==-float('inf'),0.,mx)
-     rawden=rawden*tl.exp(rawmax-safe)+tl.sum(tl.exp(value-safe[:,None]),1);rawmax=mx
+    mx=tl.maximum(rawmax,tl.max(value,1));safe=tl.where(mx==-float('inf'),0.,mx)
+    rawden=rawden*tl.exp(rawmax-safe)+tl.sum(tl.exp(value-safe[:,None]),1);rawmax=mx
     if bank==1:tl.store(RAW+((g*H+h)*P+p[:,None])*A+col[None,:],value,col[None,:]<A)
    z=tl.where(valid[None,:],dot+bias[None,:],-float('inf'));mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx)
    correction=tl.exp(maximum-safe);prob=tl.exp(z-safe[:,None])
@@ -40,12 +39,11 @@ def _attention(Q,K,V,IDS,BIAS,SPECIAL,O,LSE,RAW,RLSE,SLSE,
   if EVIDENCE:
    if bank==0:
     if part==0:tl.store(SLSE+(g*H+h)*P+p,rawmax+tl.log(rawden))
-   else:
-    if not RAW_ONLY:tl.store(RLSE+((g*H+h)*PARTS+part)*P+p,rawmax+tl.log(rawden))
+   else:tl.store(RLSE+((g*H+h)*PARTS+part)*P+p,rawmax+tl.log(rawden))
  tl.store(O+(((g*H+h)*PARTS+part)*32+row[:,None])*BD+d[None,:],tl.where(den[:,None]>0,acc/tl.maximum(den[:,None],1.e-30),0.),d[None,:]<D)
  tl.store(LSE+((g*H+h)*PARTS+part)*32+row,maximum+tl.log(den))
 
-def weighted_attention(q,k,v,indices,log_weights,specials,scale,parts=4,block_keys=64,stages=1,warps=4,emit_evidence=True,probe_count=4,fast_evidence=False):
+def weighted_attention(q,k,v,indices,log_weights,specials,scale,parts=4,block_keys=64,stages=1,warps=4,emit_evidence=True,probe_count=4):
  h,r,d=q.shape;g,a=indices.shape
  if g!=triton.cdiv(r,32):raise ValueError('32-query shared mask required')
  if not all(t.is_contiguous() for t in [k,v,indices,log_weights,specials]):raise ValueError('Contiguous banks required')
@@ -54,6 +52,6 @@ def weighted_attention(q,k,v,indices,log_weights,specials,scale,parts=4,block_ke
  raw=torch.empty((g,h,probe_count,a),device=q.device) if emit_evidence else lse
  rawlse=torch.empty((g,h,parts,probe_count),device=q.device) if emit_evidence else lse
  speciallse=torch.empty((g,h,probe_count),device=q.device) if emit_evidence else lse
- _attention[(g,h,parts)](q,k,v,indices,log_weights,specials,tmp,tlse,raw,rawlse,speciallse,h,r,a,len(specials),d,q.stride(0),k.stride(0),scale,parts,triton.cdiv(triton.cdiv(a,block_keys),parts),bd,block_keys,emit_evidence,probe_count,fast_evidence,num_warps=warps,num_stages=stages)
+ _attention[(g,h,parts)](q,k,v,indices,log_weights,specials,tmp,tlse,raw,rawlse,speciallse,h,r,a,len(specials),d,q.stride(0),k.stride(0),scale,parts,triton.cdiv(triton.cdiv(a,block_keys),parts),bd,block_keys,emit_evidence,probe_count,num_warps=warps,num_stages=stages)
  _merge[(g,h,32)](tmp,tlse,output,lse,h,r,d,bd,parts,triton.next_power_of_2(parts),num_warps=4)
- return output,dict(raw=raw,selected_lse=(raw.logsumexp(-1) if fast_evidence else rawlse.logsumexp(2)) if emit_evidence else None,special_lse=speciallse)
+ return output,dict(raw=raw,selected_lse=rawlse.logsumexp(2) if emit_evidence else None,special_lse=speciallse)
