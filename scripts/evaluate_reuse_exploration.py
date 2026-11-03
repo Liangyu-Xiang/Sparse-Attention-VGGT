@@ -77,6 +77,11 @@ def run(args):
         'scripts/quality_metrics.py','scripts/unified_diagnostic_runtime.py',
         'scripts/evaluate_all_edge_history.py','configs/evaluation/reuse_residual_exploration.json',
         'configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json']
+    if config is not None and config.history_probability_mode=='sparse_transport':
+        sources.extend([
+            'saf3r/patch/reuse_history_transport.py',
+            'configs/evaluation/reuse_residual_exploration_sparse_transport.json',
+        ])
     hashes={}
     for name in sources:
         data=(ROOT/name).read_bytes();hashes[name]=hashlib.sha256(data).hexdigest()
