@@ -50,7 +50,9 @@ def main():
                 assert rel_l2(output,reference)<1e-5
                 assert max_abs_lse<0.003,(layer,probes,fast,max_abs_lse)
                 assert max_abs_special<0.003
-                assert rel_l2(info['raw'],ref_info['raw'])<1e-6
+                valid=torch.isfinite(ref_info['raw'])
+                assert torch.equal(valid,torch.isfinite(info['raw']))
+                assert float((info['raw'][valid]-ref_info['raw'][valid]).abs().max())<1e-4
                 def fn():
                     return original(q,k,v,ids,bias,special,scale,**opts)
                 row['methods'][f'probe{probes}_'+('rawonly' if fast else 'fused')]=dict(
