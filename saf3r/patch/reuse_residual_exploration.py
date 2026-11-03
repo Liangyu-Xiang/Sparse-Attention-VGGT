@@ -53,6 +53,23 @@ def canonical_layout(frames,height,width,gy,gx,device):
     return labels,frames*gy*gx
 
 
+def count_history_rep_overlap(ids,valid,labels,reps):
+    """Count distinct Fine-cluster representatives in previous History support.
+
+    The prior diagnostic created an [query_groups, num_patches] hit table even
+    though only one representative per Fine cluster is queried.  Group directly
+    into Fine clusters instead; multiple occurrences of one ID still count once.
+    This is a diagnostic-only statistic and does not affect state selection.
+    """
+    g=ids.shape[0]
+    safe=ids.long().clamp_min(0)
+    cluster=labels[safe]
+    is_rep=valid & (safe==reps[cluster])
+    hit=torch.zeros((g,len(reps)),device=ids.device,dtype=torch.int32)
+    hit.scatter_add_(1,cluster,is_rep.to(torch.int32))
+    return (hit>0).sum(1)
+
+
 def budget_states(errors,costs,budget,iterations=16):
     """Discrete operating-point budget search; feasible <=B, no fixed split.
 
@@ -632,6 +649,12 @@ class ReuseExploreState:
         self.fine=FullCoverageValue(frames,height*width,self.budget,device,c.source_width,c.local_iterations)
         self.grid,self.regions=canonical_layout(frames,height,width,c.grid_y,c.grid_x,device)
         self.grid_sizes=torch.bincount(self.grid,minlength=self.regions).float()
+        # Cache fixed quantities across the 24 global attention layers and all
+        # windows: neither the canonical-region sizes nor probe IDs change.
+        self.grid_log_sizes=self.grid_sizes.log()
+        offsets=torch.tensor([4,12,20,28],device=device)
+        self.probe_indices=(torch.arange(self.groups,device=device)[:,None]*32+
+                            offsets[None]).clamp_max(self.n-1)
         self.history_ids=None;self.history_weights=None;self.previous_grid=None
         self.previous_layer=-1;self.records=[];self.captured={};self.profile_events=[]
 
@@ -671,11 +694,10 @@ class ReuseResidualExploration(nn.Module):
         exact_count=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
         for start in range(0,s.groups,c.window_groups):
             g=min(c.window_groups,s.groups-start);first=start*32;end=min(s.n,(start+g)*32)
-            probe=(torch.arange(start,start+g,device=x.device)[:,None]*32+
-                   torch.tensor([4,12,20,28],device=x.device)).clamp_max(s.n-1)
+            probe=s.probe_indices[start:start+g]
             pq=q[:,probe]
             with stage(s,'coarse_observation'):
-                z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+s.grid_sizes.log()
+                z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+s.grid_log_sizes
                 probability=z.softmax(-1).mean((0,2))
                 pi=torch.sparse.mm(overlap,probability.T).T.contiguous()
             if self.layer==0:
@@ -699,9 +721,8 @@ class ReuseResidualExploration(nn.Module):
                     old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                     old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
                     hids,hgain,hvalid=history_relation_items(old_ids,old_weights,beta,probability,s.grid)
-                    history_hits=torch.zeros((g,len(s.patches)),device=x.device,dtype=torch.int32)
-                    history_hits.scatter_add_(1,hids.clamp_min(0),hvalid.int())
-                    history_rep_candidate_overlap=(history_hits[:,s.fine.reps]>0).sum(1)
+                    history_rep_candidate_overlap=count_history_rep_overlap(
+                        hids,hvalid,s.fine.labels,s.fine.reps)
                     if c.joint_history_exploration:
                         chids,chgains,chvalid=history_cluster_prefixes(
                             hids,hgain,hvalid,s.fine.labels,len(s.fine.reps))
