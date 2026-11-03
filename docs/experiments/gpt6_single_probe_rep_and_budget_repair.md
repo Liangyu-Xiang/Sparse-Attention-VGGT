@@ -41,3 +41,7 @@ python scripts/evaluate_zdrop_history_states.py --dataset 7scenes --method light
 Also evaluate the 4-probe repaired configuration with the same exact frame list for causal comparison, and inspect `counts_mean`, `state_0_clusters_mean`, and the six geometric metrics before treating the fix as quality-preserving. Use the repository's strict GPU lease wrapper where appropriate. Benchmark original and repaired methods with *matched* GPU inputs; do not label historical timings as paired speedups. Do not silently rerun unchanged Dense or SAF3R controls.
 
 These patches diagnose and mitigate the specific observed faults. The severe regression must be considered **unresolved** until the complete GPU validation and controlled ablations pass.
+
+## GPU evaluation on the RTX5090 D host
+
+The above GPU-unavailable status records the original remote development environment. The separate GPU4–7 evaluation campaign tests commit bb59688b without changing its model implementation or configurations. CPU budget tests and FP32/BF16 numerical validation passed. Fixed heads128 full-forward warmed medians: single_probe_repaired14.634211s; full_repaired15.532334s. See [the complete campaign report](../../outputs/gpt6_history_fix_eval_20261103/report.md) for all six metrics, all-scene macros, source hashes, actual layer retention, exclusive stage timings and strict single-CUDA-process monitors. Dense and SAF3R were not rerun; paired Dense speedups remain unavailable.

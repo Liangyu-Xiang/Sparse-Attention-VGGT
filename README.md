@@ -1,3 +1,5 @@
+> History-fix evaluation: repaired single-probe heads128 warmed median **14.634211 s**, four-probe **15.532334 s**. Complete quality results, limitations, and stage timings: [GPU evaluation report](outputs/gpt6_history_fix_eval_20261103/report.md). Historical failed12.83s snapshot remains archived separately.
+
 > Experimental fastest sparse snapshot: heads128 warmed median **12.832573 s**; **severe quality regression**. See [results and limitations](outputs/fastest_single_probe_snapshot_20261103/report.md).
 
 <div align="center">
