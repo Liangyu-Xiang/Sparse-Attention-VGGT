@@ -1,3 +1,5 @@
+> **Experimental v6 snapshot:** heads128 warmed full-forward median18.1096s; ETH3D quality regression is unresolved. See [snapshot report](outputs/efficiency_v6_snapshot_20261103/report.md) and [reproduction notes](docs/experiments/inference_efficiency_v6.md). This is not an approved quality-equivalent optimization.
+
 <div align="center">
 
 <h1>SAF3R: Dynamic Sparse Attention for Feed-Forward 3D Reconstruction Transformers</h1>
