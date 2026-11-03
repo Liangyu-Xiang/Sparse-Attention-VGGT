@@ -28,24 +28,27 @@ class BudgetRepairTest(unittest.TestCase):
             [3.0, 2.0, 1.0, 0.0],
         ]).expand(2, 6, 4).clone()
         selected = torch.zeros((2, 6), dtype=torch.int64)
-        corrected = repair_underfilled(errors, costs, selected, budget=12)
-        self.assertTrue(torch.all(costs.gather(2, corrected[..., None]).sum(1) <= 12))
-        self.assertTrue(torch.all(errors.gather(2, corrected[..., None]).sum(1) <
-                                  errors.gather(2, selected[..., None]).sum(1)))
+        for passes in (1, 2):
+            corrected = repair_underfilled(errors, costs, selected, budget=12, passes=passes)
+            self.assertTrue(torch.all(costs.gather(2, corrected[..., None]).sum(1) <= 12))
+            self.assertTrue(torch.all(errors.gather(2, corrected[..., None]).sum(1) <
+                                      errors.gather(2, selected[..., None]).sum(1)))
         self.assertTrue(torch.equal(selected, torch.zeros_like(selected)))
 
     def test_full_budget_selection_is_unchanged(self):
         costs = torch.tensor([[[0., 1., 2., 3.], [0., 1., 2., 3.]]])
         errors = torch.tensor([[[4., 3., 2., 0.], [4., 3., 2., 0.]]])
         selected = torch.tensor([[3, 3]])
-        corrected = repair_underfilled(errors, costs, selected, budget=6)
-        self.assertTrue(torch.equal(corrected, selected))
+        for passes in (1, 2):
+            corrected = repair_underfilled(errors, costs, selected, budget=6, passes=passes)
+            self.assertTrue(torch.equal(corrected, selected))
 
     def test_no_finite_improvement_is_unchanged(self):
         costs = torch.tensor([[[0., 1., 2., 3.]]])
         errors = torch.tensor([[[0., 2., float("inf"), 1.]]])
         selected = torch.tensor([[0]])
-        self.assertTrue(torch.equal(repair_underfilled(errors, costs, selected, 3), selected))
+        for passes in (1, 2):
+            self.assertTrue(torch.equal(repair_underfilled(errors, costs, selected, 3, passes=passes), selected))
 
 
 if __name__ == "__main__":
