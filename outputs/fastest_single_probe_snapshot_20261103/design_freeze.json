@@ -1,0 +1,22 @@
+{
+  "base_commit": "99bbb99b",
+  "quality_truth_used_for_parameter_selection": false,
+  "retention": 0.2,
+  "dual_iterations": 16,
+  "clustering": "unchanged adaptive_local, 32 neighbors, 2 iterations",
+  "execution_tuning": "8 support partitions, key tile64, 4 warps from no-GT Q/K/V microbenchmarks",
+  "engineering_rejections": [
+    "shared-exp probe evidence slowed full forward",
+    "8 warps slower",
+    "selection graph slower; disabled in all production configurations"
+  ],
+  "variants": [
+    "calibration",
+    "simple",
+    "all_exact",
+    "full",
+    "global",
+    "single_probe"
+  ],
+  "single_probe_note": "Independent evidence-sampling approximation; not silently substituted for 4-probe models"
+}

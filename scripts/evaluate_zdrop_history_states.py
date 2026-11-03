@@ -48,7 +48,12 @@ def run(args):
     if args.method!='saf3r':cfg.pop('patch_module');cfg.pop('sparse_config_path')
     model=build_model(cfg,'cuda');images=load_images(model,'vggt',scene.image_files).cuda()
     state=None;config=None
-    if args.method=='zdrop_history_states':
+    if args.method=='light_reuse':
+        from saf3r.patch.reuse_lightweight import LightweightConfig,install_lightweight_reuse
+        config=LightweightConfig(**json.loads(args.config.read_text()))
+        config=replace(config,capture=args.capture)
+        state=install_lightweight_reuse(model,config)
+    elif args.method=='zdrop_history_states':
         from saf3r.patch.reuse_residual_exploration import ReuseExploreConfig,install_reuse_residual_exploration
         config=ReuseExploreConfig(**json.loads(args.config.read_text()))
         config=replace(config,capture=args.capture)
@@ -67,6 +72,8 @@ def run(args):
         model=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,seed=0))
     sources=json.loads((ROOT/'baseline_source_hashes.json').read_text())
     names=set(sources)|{'saf3r/patch/reuse_inference_ops.py','saf3r/triton/reuse_inference_ops.py','saf3r/patch/reuse_window_graph.py','saf3r/triton/reuse_fused_states.py','saf3r/patch/reuse_grid_fused_history.py','saf3r/triton/reuse_grid_fused_normalizer.py','saf3r/triton/reuse_split_fused_history.py','saf3r/triton/reuse_split_grid_attention.py','saf3r/patch/reuse_probe_cache.py','configs/evaluation/reuse_efficiency_v6.json','saf3r/patch/reuse_grid_local_history.py','saf3r/triton/reuse_grid_local_history.py','saf3r/patch/reuse_headmean_history.py','saf3r/triton/reuse_headmean_history.py','saf3r/triton/reuse_single_qk_grid.py','configs/evaluation/reuse_grid_local_history.json','saf3r/patch/reuse_headmean_history.py','saf3r/triton/reuse_headmean_history.py','saf3r/triton/reuse_single_qk_grid.py','saf3r/patch/reuse_ready_history.py','saf3r/triton/reuse_ready_history.py','saf3r/triton/reuse_explore_av_ready.py','saf3r/patch/zdrop_history_cleanup.py','saf3r/triton/zdrop_history_cleanup.py','saf3r/patch/zdrop_history_states.py','saf3r/triton/zdrop_history_states.py','scripts/evaluate_zdrop_history_states.py','configs/evaluation/reuse_zdrop_history_states.json'}
+    names.update({'saf3r/patch/reuse_lightweight.py','saf3r/patch/reuse_light_graph.py','saf3r/patch/reuse_global_history.py','saf3r/triton/reuse_light_attention.py','saf3r/triton/reuse_global_history.py','saf3r/triton/reuse_light_states.py','saf3r/triton/reuse_coarse_observation.py','saf3r/triton/reuse_budget_graph.py'})
+    names.add(str(args.config.resolve().relative_to(ROOT.resolve())))
     hashes={};buffer=io.BytesIO()
     with tarfile.open(fileobj=buffer,mode='w') as archive:
         for name in sorted(names):
@@ -107,7 +114,7 @@ def run(args):
             cd_definition='(ACC+Comp)/2 unsquared metres',reconstruction='unposed'))
     save(out/'forward.json',common)
     if args.diagnostic:
-        q=quality_record({},'Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated')
+        q=quality_record({},'Explicit implementation diagnostic; pose/recon_unposed not evaluated')
         write_quality(out,q);save(out/'diagnostic.json',dict(common,quality=q))
         save(out/'status.json',dict(stage='diagnostic_complete'));return
     ext,intr=pose_encoding_to_extri_intri(raw['pose_enc'],images.shape[-2:])
@@ -146,7 +153,7 @@ def run(args):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--dataset',choices=['eth3d','7scenes'],default='eth3d')
-    p.add_argument('--method',choices=['zdrop_history_states'],required=True)
+    p.add_argument('--method',choices=['zdrop_history_states','light_reuse'],required=True)
     p.add_argument('--scene',required=True);p.add_argument('--frames',type=int,default=128)
     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')

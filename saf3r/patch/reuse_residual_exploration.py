@@ -352,7 +352,9 @@ class ReuseResidualExploration(nn.Module):
             s.query_order=order
             q=q[:,order].contiguous()
         if c.history_mode=='dense_m5c':
-            if c.history_evidence_backend=='grid_fused':
+            if c.history_evidence_backend=='global':
+                from . import reuse_global_history as m5c
+            elif c.history_evidence_backend=='grid_fused':
                 from . import reuse_grid_fused_history as m5c
             elif c.history_evidence_backend=='grid_local':
                 from . import reuse_grid_local_history as m5c
@@ -609,6 +611,8 @@ class ReuseResidualExploration(nn.Module):
                 seed_normalization_max_error=torch.stack(s.m5c_seed_errors).max() if s.m5c_seed_errors else torch.tensor(0.,device=x.device),
                 prior_patch_mass_max_error=torch.stack(s.m5c_prior_errors).max() if s.m5c_prior_errors else torch.tensor(0.,device=x.device),
                 extra_known_probe_qk_per_head=s.m5c_probe_qk,extra_coarse_probe_qk_per_head=4*s.groups*(s.regions+len(s.specials)))
+        if c.history_evidence_backend=='global':
+            s.records[-1].update(history_estimator='global_headmean_dense_probability_shrink',history_cache_dtype='float32_head_probe_mean',history='one group confidence; dense patch probabilities plus unobserved background; no head matching')
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
             query_order=None if order is None else order.clone(),canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
         if order is not None:

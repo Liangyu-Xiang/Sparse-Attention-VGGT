@@ -1,3 +1,5 @@
+> Experimental fastest sparse snapshot: heads128 warmed median **12.832573 s**; **severe quality regression**. See [results and limitations](outputs/fastest_single_probe_snapshot_20261103/report.md).
+
 <div align="center">
 
 <h1>SAF3R: Dynamic Sparse Attention for Feed-Forward 3D Reconstruction Transformers</h1>

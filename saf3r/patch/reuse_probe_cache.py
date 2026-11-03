@@ -2,7 +2,8 @@
 import torch
 
 def prepare(s):
-    positions=(torch.arange(s.groups,device=s.grid.device)[:,None]*32+torch.tensor([4,12,20,28],device=s.grid.device)).clamp_max(s.n-1)
+    offsets=[4,12,20,28] if getattr(s.config,'probe_count',4)==4 else [16]
+    positions=(torch.arange(s.groups,device=s.grid.device)[:,None]*32+torch.tensor(offsets,device=s.grid.device)).clamp_max(s.n-1)
     unique=torch.ones_like(positions,dtype=torch.bool);unique[:,1:]=positions[:,1:]!=positions[:,:-1]
     s.probe_positions=positions;s.probe_weights=unique.float()/unique.sum(-1,keepdim=True)
     s.grid_log_sizes=s.grid_sizes.log()
@@ -12,7 +13,7 @@ def observe(s,q,k,start,g,scale):
     probe_q=q[:,positions];pq=probe_q.permute(1,0,2,3).float()
     grid=torch.einsum('ghqd,hrd->ghqr',pq,s.history_pooled_fp32)*scale
     special=torch.einsum('ghqd,htd->ghqt',pq,k[:,s.specials].float())*scale
-    if getattr(getattr(s,'config',None),'fused_coarse',False):
+    if getattr(getattr(s,'config',None),'fused_coarse',False) and grid.shape[2]==4:
         from saf3r.triton.reuse_coarse_observation import m5c
         coarse,logz=m5c(grid,special,s.grid_sizes,s.grid_log_sizes)
     else:
