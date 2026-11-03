@@ -40,6 +40,7 @@ class LightweightConfig:
  anchor_count:int=256
  budget_graph:bool=True
  budget_repair:bool=False
+  budget_repair_passes:int=2
  fused_coarse:bool=True
  cache_probe_indices:bool=True
  capture:bool=False
@@ -51,6 +52,7 @@ class LightweightConfig:
   if self.anchor_mode not in ('partition','sampled') or (self.anchor_mode=='sampled' and (self.denominator!='global' or self.mode!='full')):raise ValueError('Sampled anchors require global denominator/full execution')
   if not self.cache_probe_indices or self.capture:raise ValueError('Shape probe caching required; use diagnostic_hook for scoped captures')
   if self.budget_repair and self.selection_graph:raise ValueError('Budget repair currently requires eager selection')
+   if self.budget_repair_passes not in (1,2):raise ValueError('Budget repair passes must be 1 or 2')
 
 class LightweightState(ReuseExploreState):
  def reset(self,frames,height,width,device):
@@ -128,7 +130,7 @@ class LightweightAttention(nn.Module):
       selected,_=(graph_budget if c.budget_graph else budget)(errors,costs,errors[:,:,0].amax(1)+1.e-12,s.budget,c.dual_iterations)
       if c.budget_repair:
        from .reuse_budget_repair import repair_underfilled
-       selected=repair_underfilled(errors,costs,selected,s.budget)
+       selected=repair_underfilled(errors,costs,selected,s.budget,passes=c.budget_repair_passes)
      with stage(s,'light_pack'),torch.autocast('cuda',enabled=False):
       ids,weights,counts=rule.pack(selected,costs,s.fine.reps,population,qualified,geometry,s.budget)
       rec={f'state_{state}_clusters':(selected==i).sum(1) for i,state in enumerate([0,1,5,10])}
