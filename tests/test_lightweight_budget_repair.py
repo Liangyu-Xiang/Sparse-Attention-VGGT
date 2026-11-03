@@ -35,6 +35,24 @@ class BudgetRepairTest(unittest.TestCase):
                                       errors.gather(2, selected[..., None]).sum(1)))
         self.assertTrue(torch.equal(selected, torch.zeros_like(selected)))
 
+    def test_second_pass_topk_matches_stable_full_sort(self):
+        # Includes ties, invalid states, enough slack for fallback and groups
+        # whose remaining budget is smaller than the chosen shortlist.
+        torch.manual_seed(7)
+        groups, clusters = 4, 97
+        costs = torch.randint(1, 6, (groups, clusters, 4)).float()
+        costs[:, :, 0] = 0.
+        errors = torch.randint(0, 20, (groups, clusters, 4)).float()
+        errors[:, :, 3] = float("inf")
+        chosen = torch.zeros((groups, clusters), dtype=torch.int64)
+        for budget in (12, 80, 220):
+            expected = repair_underfilled(errors, costs, chosen, budget=budget, passes=2)
+            for shortlist in (1, 8, 32, 64):
+                observed = repair_underfilled(
+                    errors, costs, chosen, budget=budget, passes=2,
+                    second_pass_topk=shortlist)
+                self.assertTrue(torch.equal(observed, expected))
+
     def test_full_budget_selection_is_unchanged(self):
         costs = torch.tensor([[[0., 1., 2., 3.], [0., 1., 2., 3.]]])
         errors = torch.tensor([[[4., 3., 2., 0.], [4., 3., 2., 0.]]])
