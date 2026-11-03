@@ -36,6 +36,9 @@ class ReuseExploreConfig:
     dual_iterations:int=16
     joint_history_exploration:bool=True
     physical_overlap_accounting:bool=True  # legacy independent-loss control
+    history_probability_mode:str="legacy"
+    transport_eta_down:float=1.0
+    transport_eta_up:float=0.0
     capture:bool=False
 
     def __post_init__(self):
@@ -44,6 +47,12 @@ class ReuseExploreConfig:
             raise ValueError('Positive grid/window/iteration sizes required')
         if not 0<self.candidate_fraction<=1:
             raise ValueError('Invalid candidate fraction')
+        if self.history_probability_mode not in ('legacy','sparse_transport'):
+            raise ValueError('Invalid History probability mode')
+        if not (math.isfinite(self.transport_eta_down) and
+                math.isfinite(self.transport_eta_up) and
+                self.transport_eta_down>=0 and self.transport_eta_up>=0):
+            raise ValueError('Invalid M5c confidence exponents')
 
 
 def canonical_layout(frames,height,width,gy,gx,device):
@@ -720,7 +729,24 @@ class ReuseResidualExploration(nn.Module):
                 with stage(s,'reuse_and_budget'),torch.autocast(x.device.type,enabled=False):
                     old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                     old_weights=None if s.history_weights is None else s.history_weights[start:start+g]
-                    hids,hgain,hvalid=history_relation_items(old_ids,old_weights,beta,probability,s.grid)
+                    if c.history_probability_mode=='sparse_transport':
+                        # Experimental alternative: inherit the measured sparse
+                        # single-key probability, smooth by M5c confidence, then
+                        # normalize jointly with *unobserved* Grid members.
+                        from .reuse_history_transport import direct_sparse_history_transport
+                        if old_ids is None:
+                            hids=torch.empty((g,0),device=x.device,dtype=torch.long)
+                            old_weights=torch.empty((g,0),device=x.device)
+                        else:
+                            hids=old_ids.long()
+                        hvalid=hids>=0
+                        hgain,_,_ = direct_sparse_history_transport(
+                            hids,old_weights,s.grid,s.grid_sizes,
+                            s.previous_grid[start:start+g],probability,
+                            c.transport_eta_down,c.transport_eta_up)
+                    else:
+                        hids,hgain,hvalid=history_relation_items(
+                            old_ids,old_weights,beta,probability,s.grid)
                     history_rep_candidate_overlap=count_history_rep_overlap(
                         hids,hvalid,s.fine.labels,s.fine.reps)
                     if c.joint_history_exploration:
@@ -824,6 +850,7 @@ class ReuseResidualExploration(nn.Module):
                       if c.joint_history_exploration else
                       'shared History/Value dual budget with physical History-current-Rep overlap accounting'),
             history='all previously executed sparse-mask patch edges; gain=current coarse importance x persistence x old within-region salience',
+            history_probability_mode=c.history_probability_mode,
             evidence='4/32-query probe evidence for next-layer salience; full repeated selected-QK evidence removed'))
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
             canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
