@@ -35,7 +35,7 @@ Base: `codex/fastest-single-probe-snapshot-20261103` (`b0d4c46767555d837c5e79061
 ```bash
 python -m unittest discover -s tests -p 'test_lightweight_budget_repair.py'
 python scripts/validate_lightweight_reuse.py --output-dir /tmp/light-gpt6-validation
-python scripts/evaluate_zdrop_history_states.py --dataset 7scenes --method zdrop_history_states --scene heads --frames 128 --warmup 1 --repeats 3 --config configs/evaluation/reuse_light_single_probe_repaired.json --output-dir /tmp/light-gpt6-heads
+python scripts/evaluate_zdrop_history_states.py --dataset 7scenes --method light_reuse --scene heads --frames 128 --warmup 1 --repeats 3 --config configs/evaluation/reuse_light_single_probe_repaired.json --output-dir /tmp/light-gpt6-heads
 ```
 
 Also evaluate the 4-probe repaired configuration with the same exact frame list for causal comparison, and inspect `counts_mean`, `state_0_clusters_mean`, and the six geometric metrics before treating the fix as quality-preserving. Use the repository's strict GPU lease wrapper where appropriate. Benchmark original and repaired methods with *matched* GPU inputs; do not label historical timings as paired speedups. Do not silently rerun unchanged Dense or SAF3R controls.
