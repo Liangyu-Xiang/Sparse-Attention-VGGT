@@ -40,7 +40,7 @@ class LightweightConfig:
  anchor_count:int=256
  budget_graph:bool=True
  budget_repair:bool=False
-  budget_repair_passes:int=2
+ budget_repair_passes:int=2
  fused_coarse:bool=True
  cache_probe_indices:bool=True
  capture:bool=False
@@ -52,7 +52,7 @@ class LightweightConfig:
   if self.anchor_mode not in ('partition','sampled') or (self.anchor_mode=='sampled' and (self.denominator!='global' or self.mode!='full')):raise ValueError('Sampled anchors require global denominator/full execution')
   if not self.cache_probe_indices or self.capture:raise ValueError('Shape probe caching required; use diagnostic_hook for scoped captures')
   if self.budget_repair and self.selection_graph:raise ValueError('Budget repair currently requires eager selection')
-   if self.budget_repair_passes not in (1,2):raise ValueError('Budget repair passes must be 1 or 2')
+  if self.budget_repair_passes not in (1,2):raise ValueError('Budget repair passes must be 1 or 2')
 
 class LightweightState(ReuseExploreState):
  def reset(self,frames,height,width,device):
