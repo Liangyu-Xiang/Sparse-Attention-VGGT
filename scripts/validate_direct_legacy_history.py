@@ -8,8 +8,8 @@ from saf3r.triton import reuse_serial_tuned as old,reuse_grid_local_history as r
 from saf3r.triton.reuse_ready_history import decode
 p=argparse.ArgumentParser();p.add_argument('--output-dir',type=Path,required=True);a=p.parse_args();a.output_dir.mkdir(exist_ok=False,parents=True)
 torch.manual_seed(13);torch.backends.cuda.matmul.allow_tf32=False;checks=[];start=time.perf_counter()
-for dtype in [torch.float16,torch.bfloat16]:
- h,n,d,s,g,rows,cap,regions=3,93,64,5,3,79,55,7;q=torch.randn(h,rows+5,d,device='cuda',dtype=dtype)[:,:rows];k=torch.randn(h,n+s,d,device='cuda',dtype=dtype);v=torch.randn_like(k);specials=torch.arange(n,n+s,device='cuda');grid=torch.arange(n,device='cuda')%regions;sizes=torch.bincount(grid,minlength=regions).float();pooled=torch.stack([k[:,:n][:,grid==r].float().mean(1) for r in range(regions)],1)
+for dtype,stress in [(torch.float16,1),(torch.bfloat16,1),(torch.float16,10),(torch.bfloat16,10)]:
+ h,n,d,s,g,rows,cap,regions=3,93,64,5,3,79,55,7;q=torch.randn(h,rows+5,d,device='cuda',dtype=dtype)[:,:rows]*stress;k=torch.randn(h,n+s,d,device='cuda',dtype=dtype);v=torch.randn_like(k);specials=torch.arange(n,n+s,device='cuda');grid=torch.arange(n,device='cuda')%regions;sizes=torch.bincount(grid,minlength=regions).float();pooled=torch.stack([k[:,:n][:,grid==r].float().mean(1) for r in range(regions)],1)
  positions=(torch.arange(g,device='cuda')[:,None]*32+torch.arange(4,device='cuda')[None]*8+4).clamp_max(rows-1).int();pq=q[:,positions].permute(1,0,2,3).float();base=torch.einsum('ghpd,hrd->ghpr',pq,pooled)*.125;special=torch.einsum('ghpd,hsd->ghps',pq,k[:,specials].float())*.125
  ids=torch.stack([torch.randperm(n,device='cuda')[:cap].sort().values for _ in range(g)]).int();ids[:,-13:]=-1;ids[-1,:]=-1;ids[0,11]=-1;kg=grid[ids.long().clamp_min(0)].contiguous();bias=(torch.rand(g,cap,device='cuda')*3).masked_fill(ids<0,-torch.inf);layout={}
  ro,rs,raw=old.weighted_attention(q,k,v,ids,bias,specials,.125,kg,regions,evidence_layout=layout)
@@ -21,6 +21,6 @@ for dtype in [torch.float16,torch.bfloat16]:
  reference.store(raw,rd,rz,ids,grid,base,old_cache,uniform,1e-30)
  new.store(q,k,ids,kg,positions,den,nz,new_cache,.125)
  avalues=decode(old_cache,cap);bvalues=decode(new_cache,cap);error=float((avalues-bvalues).abs().max());assert torch.allclose(avalues,bvalues,atol=2e-7,rtol=.002),error
- checks.append(dict(dtype=str(dtype),grid_summary_max_abs=summary_error,grid_denominator_max_abs=den_error,conditional_cache_max_abs=error,raw_head_probe_logits_materialized=False,new_grid_sort=False,includes_padding_holes=True))
+ checks.append(dict(dtype=str(dtype),stress_scale=stress,grid_summary_max_abs=summary_error,grid_denominator_max_abs=den_error,conditional_cache_max_abs=error,raw_head_probe_logits_materialized=False,new_grid_sort=False,includes_padding_holes=True))
 result=dict(complete=True,checks=checks,diagnostic_wall_seconds=time.perf_counter()-start,quality={k:None for k in ['auc03','auc30','acc','comp','cd','f1']},quality_reason='Original-v8 history-definition numerical oracle;no geometry evaluated',dense_speedup=None,dense_reason='Diagnostic only,not full-forward timing')
 (a.output_dir/'result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2),flush=True)

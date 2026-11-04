@@ -3,7 +3,7 @@ import torch
 from contextlib import nullcontext
 from . import reuse_headmean_history as old
 from . import reuse_ready_history as cache
-from .reuse_probe_cache import observe as original_observe
+from .reuse_direct_coarse_observation import observe as original_observe
 from saf3r.triton import reuse_direct_legacy_observation as kernels
 from saf3r.triton import reuse_grid_local_history as local
 
@@ -16,16 +16,18 @@ device_bytes=old.device_bytes
 
 def observe(s,q,k,start,g,scale):
     obs=original_observe(s,q,k,start,g,scale)
-    # Same pooled FP32 Key/probe logits; two required normalization domains.
-    patch=(obs['grid_logits']+s.grid_log_sizes).softmax(-1).mean((1,2))
-    obs['patch_probability']=patch
+    tag=(s._forward_serial,s.previous_layer+1)
+    if getattr(s,'direct_norm_tag',None)!=tag:
+        s.direct_max_key_norm=torch.linalg.vector_norm(k,dim=-1,dtype=torch.float32).amax(-1)
+        s.direct_norm_tag=tag
+    obs['direct_max_key_norm']=s.direct_max_key_norm
     return obs
 
 def observe_execution(s,q,k,start,ids,actual,bias,obs,scale,evidence):
     scope=getattr(s,'direct_scope',lambda name:nullcontext());first=start*32;end=min(s.n,(start+len(ids))*32);qw=q[:,first:end]
     positions=(obs['positions']-first).int().contiguous();grid=s.grid[ids.long().clamp_min(0)].contiguous()
     with scope('legacy_full_query_grid_and_probe_observation'):
-        summary,den,counts=kernels.observe(qw,k,actual,grid,bias,positions,evidence['lse'],obs['grid_logits'].contiguous(),s.grid_sizes,scale)
+        summary,den,counts=kernels.observe(qw,k,actual,grid,bias,positions,evidence['lse'],obs['grid_logits'].contiguous(),s.grid_sizes,scale,obs['direct_max_key_norm'],obs['probe_q'])
     obs.update(direct_den=den,direct_positions=positions,direct_grid=grid,direct_counts=counts)
     return summary
 
