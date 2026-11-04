@@ -40,3 +40,10 @@ a user requirement, not an optional reporting preference.
 
 - By default, rerun only the method changed by the user. Reuse existing complete results for unchanged Dense, SAF3R and other controls; do not rerun them merely to obtain contemporaneous timings.
 - Rerun an unchanged control only when the user explicitly requests that rerun. Missing contemporaneous speed comparisons must be N/A with a reason; historical timing references must be labeled with their batch and never presented as paired measurements.
+
+## Default scope during method validation (user update, 2026-11-04)
+
+- Use the fixed difficult-sequence subset in `configs/evaluation/validation_subset.json`: 7Scenes `stairs`, `pumpkin`; ETH3D `relief`, `relief_2`. Do not run complete datasets unless explicitly requested.
+- This subset was selected as the two lowest-F1 sequences per dataset from the existing sampled32 baseline, without using current candidate results to select sequences. Keep it fixed across later validations.
+- Recompute every baseline/control average using exactly the same selected sequences. Never compare a candidate subset mean with a historical full-dataset mean.
+- Report all six quality metrics, per-scene rows and equal-scene subset means. Label these as validation subset results, not all-seven-scene 7Scenes or full ETH3D dataset macro results. Retain all existing protocol, unit, missing-metric and runtime rules above.

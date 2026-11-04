@@ -27,7 +27,7 @@ def prepare_geometry(z,labels,reps,population,l2=False):
     width=triton.next_power_of_2(int(population.max()))
     # A pathological oversized cluster falls back to the original kernels;
     # this is an implementation-memory guard, never a state/quality change.
-    if width>256:return None
+    if width>512:return None
     order=labels.argsort(stable=True)
     starts=population.long().cumsum(0)-population.long()
     rank=torch.empty(p,device=z.device,dtype=torch.int32)

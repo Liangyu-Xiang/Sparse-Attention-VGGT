@@ -1,0 +1,30 @@
+{
+  "purpose": "Fixed difficult-sequence subset for method validation, not a full dataset benchmark",
+  "scenes": {
+    "7scenes": [
+      "stairs",
+      "pumpkin"
+    ],
+    "eth3d": [
+      "relief",
+      "relief_2"
+    ]
+  },
+  "selection": "Two lowest F1 scenes per dataset in the already completed sampled32 baseline; selected before inspecting current candidate results",
+  "selection_reference_batch": "sampled_history_quality_20261104/quality/32",
+  "selection_baseline_f1_fraction": {
+    "7scenes/stairs": 0.1653137744557873,
+    "7scenes/pumpkin": 0.2667310654376331,
+    "eth3d/relief": 0.05628231776564892,
+    "eth3d/relief_2": 0.16356339368456785
+  },
+  "frames": 128,
+  "quality_tasks": [
+    "pose",
+    "recon_unposed"
+  ],
+  "averaging": "Equal-scene means within each dataset over exactly these two scenes; identical subset for every candidate and baseline",
+  "controls": "Reuse existing matched per-scene complete results; no unchanged control reruns",
+  "parameter_tuning": "Scene selection sets validation scope only; do not tune method parameters against 7Scenes test truth",
+  "dataset_macro": false
+}

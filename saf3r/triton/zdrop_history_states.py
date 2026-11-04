@@ -23,7 +23,9 @@ def _history(DIST,MEM,LABEL,QUAL,PRIOR,LOSS,OWNER,N:tl.constexpr,F:tl.constexpr,
 def history_loss(prior,labels,geometry,qualified,clusters):
     g,n=prior.shape;loss=torch.zeros((g,clusters),device=prior.device)
     owner=torch.empty((g,n),device=prior.device,dtype=torch.int32)
-    _history[(g,triton.cdiv(n,64))](geometry['distances'],geometry['members'],labels,qualified,prior,loss,owner,n,clusters,geometry['width'],64,num_warps=4,enable_fp_fusion=False)
+    # Preserve the original launch for width<=128; cap wider tiles at8192 elements.
+    block=min(64,max(8,8192//geometry['width']))
+    _history[(g,triton.cdiv(n,block))](geometry['distances'],geometry['members'],labels,qualified,prior,loss,owner,n,clusters,geometry['width'],block,num_warps=4,enable_fp_fusion=False)
     return loss,owner
 
 @triton.jit

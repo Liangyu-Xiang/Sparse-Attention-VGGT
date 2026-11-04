@@ -1,0 +1,114 @@
+{
+  "complete": true,
+  "median_seconds": 20.38807929493487,
+  "samples": [
+    {
+      "seconds": 20.406122067943215,
+      "peak_allocated_gib": 15.794118404388428,
+      "peak_reserved_gib": 19.150390625
+    },
+    {
+      "seconds": 20.38807929493487,
+      "peak_allocated_gib": 15.795390129089355,
+      "peak_reserved_gib": 19.21484375
+    },
+    {
+      "seconds": 20.272130103316158,
+      "peak_allocated_gib": 15.790707111358643,
+      "peak_reserved_gib": 19.884765625
+    }
+  ],
+  "cold": {
+    "seconds": 21.869401453994215,
+    "peak_allocated_gib": 15.794137477874756,
+    "peak_reserved_gib": 19.884765625
+  },
+  "config": {
+    "retention": 0.2,
+    "state_l2": true,
+    "direction_drop": true,
+    "clustering_mode": "adaptive_local",
+    "cluster_neighbors": 32,
+    "hierarchical": false,
+    "parent_arity": 4,
+    "parent_passes": 2,
+    "parent_moment_mode": "exact",
+    "cluster_fraction": 0.05,
+    "disable_population_compensation": false,
+    "grid_y": 2,
+    "grid_x": 2,
+    "source_width": 32,
+    "local_iterations": 2,
+    "window_groups": 64,
+    "history_per_cluster": 4,
+    "candidate_fraction": 0.25,
+    "dual_iterations": 16,
+    "capture": false,
+    "query_shift": 0,
+    "allocation_objective": "min_error",
+    "evidence_mode": "fused_grid",
+    "state_loss": "cosine_distortion",
+    "prior_floor_fraction": 1e-06,
+    "drop_multiplier": 1.0,
+    "history_mode": "dense_m5c",
+    "mass_transfer": true,
+    "rep_gain": true,
+    "compact": true,
+    "attention_backend": "indexed",
+    "layer_retentions": null,
+    "refresh_interval": 1,
+    "reference_dual_iterations": 16,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "history_evidence_backend": "direct_sampled",
+    "history_cache_format": "compact_sampled_log_fp16",
+    "execution_kernel": "direct_sparse",
+    "fuse_mask_ops": true,
+    "budget_graph": false,
+    "window_graph": true,
+    "cache_probe_indices": true,
+    "fuse_state_kernel": true,
+    "reuse_window_graphs": true,
+    "attention_stages": 1,
+    "attention_warps": 4,
+    "fused_coarse": true,
+    "graph_cache_capacity": 24,
+    "history_query_interval": 32
+  },
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Performance-only full-forward diagnostic",
+  "dense_speedup": null,
+  "dense_reason": "User prohibited unchanged Dense rerun; historical heads128 Dense 12.216022619977593 s is not paired",
+  "historical_dense_seconds": 12.216022619977593,
+  "profile": {
+    "wall_seconds": 21.392084697727114,
+    "exclusive_seconds": {
+      "value_update": 0.5632152004241943,
+      "pooling": 0.09420646405220032,
+      "cluster_seed_prepare": 0.0003195199966430664,
+      "m5c_coarse_observation": 0.13184921691566653,
+      "execution_and_evidence": 3.6231171866059313,
+      "sampled_probe_grid_summary": 0.21854063853621436,
+      "m5c_evidence_and_host_copy": 0.2521319968402382,
+      "history_summary": 0.03812416002433738,
+      "coarse_observation": 0.02983094383962455,
+      "residual_fine_probe": 0.13289811251312525,
+      "reuse_and_budget": 11.093395901203152
+    },
+    "unattributed_seconds": 5.214455356775787,
+    "scope": "Disjoint top-level stages; direct_parts are nested inside execution_and_evidence,never added twice",
+    "direct_parts": {
+      "sampled_direct_av": 3.5611659692525897,
+      "sampled_probability_export": 0.053077312316745534
+    },
+    "direct_calls": 0
+  },
+  "kernel_resources": {}
+}

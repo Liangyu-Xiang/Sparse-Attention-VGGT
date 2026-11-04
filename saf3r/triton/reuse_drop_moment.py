@@ -23,8 +23,8 @@ def prepare(population):
     """O(F) once per layer; bins change work layout, never cluster membership."""
     bins=[];lower=0
     width=triton.next_power_of_2(int(population.max()))
-    if width>256:raise ValueError('Compact geometry supports at most 256 members')
-    for size in [1,2,4,8,16,32,64,128,256]:
+    if width>512:raise ValueError('Compact geometry supports at most 512 members')
+    for size in [1,2,4,8,16,32,64,128,256,512]:
         if size>width:break
         ids=torch.where(((population>lower)|((population==0)&(lower==0)))&(population<=size))[0].int().contiguous()
         if ids.numel():bins.append((size,ids))

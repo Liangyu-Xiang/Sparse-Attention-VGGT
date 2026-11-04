@@ -1,0 +1,35 @@
+*** Aborted at 1793795176 (unix time) try "date -d @1793795176" if you are using GNU date ***
+PC: @     0x7f369a875970 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x22096f)
+*** SIGTERM (@0xeb3f4) received by PID 964240 (TID 0x7f37aedc8740) from PID 963572; stack trace: ***
+    @     0x7f37aee64ee8 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x99ee7)
+    @     0x7f34279a25d8 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/pycolmap/_core.cpython-311-x86_64-linux-gnu.so+0x9945d7)
+    @     0x7f37aee0d520 (/usr/lib/x86_64-linux-gnu/libc.so.6+0x4251f)
+    @     0x7f369a875970 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x22096f)
+    @     0x7f369a904d7a (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x2afd79)
+    @     0x7f369aa2817e (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x3d317d)
+    @     0x7f369aa29b10 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x3d4b0f)
+    @     0x7f369b7e4498 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x118f497)
+    @     0x7f369a82739d (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1d239c)
+    @     0x7f369a827a4a (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1d2a49)
+    @     0x7f369a828024 (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x1d3023)
+    @     0x7f369a9d43aa (/usr/lib/x86_64-linux-gnu/libcuda.so.595.71.05+0x37f3a9)
+    @     0x7f369a9bceba cuMemcpyHtoDAsync_v2
+    @     0x7f37a7c481a9 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12+0x481a8)
+    @     0x7f37a7c17058 (/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12+0x17057)
+    @     0x7f37a7c7693c cudaMemcpyAsync
+    @     0x7f374a0b8f94 at::native::copy_kernel_cuda(at::TensorIterator&, bool)
+    @     0x7f378684fd33 at::native::copy_impl(at::Tensor&, at::Tensor const&, bool) [clone .isra.0]
+    @     0x7f37868519b7 at::native::copy_(at::Tensor&, at::Tensor const&, bool)
+    @     0x7f378750dd27 at::_ops::copy_::call(at::Tensor&, at::Tensor const&, bool)
+    @     0x7f3786b2fa2f at::native::_to_copy(at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f378791a22c c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, E
+    @     0x7f3786fe3b72 at::_ops::_to_copy::redispatch(c10::DispatchKeySet, at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f37876e1c1b c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, E
+    @     0x7f3786fe3b72 at::_ops::_to_copy::redispatch(c10::DispatchKeySet, at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f37897e112c torch::autograd::VariableType::(anonymous namespace)::_to_copy(c10::DispatchKeySet, at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f37897e158f c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (c10::DispatchKeySet, at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, E
+    @     0x7f3787085b4d at::_ops::_to_copy::call(at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f3786b2d3ce at::native::to(at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f3787a14732 c10::impl::wrap_kernel_functor_unboxed_<c10::impl::detail::WrapFunctionIntoFunctor_<c10::CompileTimeFunctionPointer<at::Tensor (at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, E
+    @     0x7f3787220537 at::_ops::to_dtype_layout::call(at::Tensor const&, std::optional<c10::ScalarType>, std::optional<c10::Layout>, std::optional<c10::Device>, std::optional<bool>, bool, bool, std::optional<c10::MemoryFormat>)
+    @     0x7f3799aae499 at::Tensor::to(c10::TensorOptions, bool, bool, std::optional<c10::MemoryFormat>) const

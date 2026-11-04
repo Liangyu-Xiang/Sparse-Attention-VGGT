@@ -278,7 +278,7 @@ class ReuseExploreState:
         self.budget=math.floor(c.retention*self.n)-len(self.specials)
         if self.budget<frames:raise ValueError('Budget must accommodate one fine cluster per frame')
         cluster_count=self.budget if c.cluster_fraction is None else math.floor(c.cluster_fraction*len(self.patches))
-        if cluster_count<self.budget:raise ValueError('Cluster count must cover the initial patch budget')
+        if not frames<=cluster_count<=len(self.patches):raise ValueError('Cluster count must be between frame count and patch count')
         if c.clustering_mode=='source_anchored':self.fine=FullCoverageValue(frames,height*width,cluster_count,device,c.source_width,c.local_iterations)
         else:
             from .adaptive_value_clustering import AdaptiveFullCoverageValue
@@ -375,6 +375,10 @@ class ReuseResidualExploration(nn.Module):
             s.m5c_next={};s.m5c_count_errors=[];s.m5c_reconstruction_qk=0;s.m5c_prior_errors=[];s.m5c_seed_errors=[];s.m5c_probe_qk=0
         s.sampled_scratch_peak=0
         output=torch.empty_like(v);history=[];grids=[];real_grids=[];stats=[];capture=[];relative_evidence=[]
+        if self.layer==0:
+            from .reuse_cluster_seed import prepare_seed
+            with stage(s,'cluster_seed_prepare'):
+                seed_ids,seed_pops,seed_real=prepare_seed(s.fine.reps,s.fine.labels,population,s.budget)
         candidates=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
         for start in range(0,s.groups,c.window_groups):
             g=min(c.window_groups,s.groups-start);first=start*32;end=min(s.n,(start+g)*32)
@@ -385,11 +389,10 @@ class ReuseResidualExploration(nn.Module):
                         from .reuse_probe_cache import observe as observer
                     m5c_observation=observer(s,q,k,start,g,o.scale)
             if self.layer==0:
-                seed=torch.arange(s.budget,device=x.device)*s.fine.base_count//s.budget
-                ids=s.fine.reps[seed][None].expand(g,-1).contiguous()
-                pops=population[seed][None].expand(g,-1).contiguous();real=torch.zeros_like(ids,dtype=torch.bool)
-                record=dict(reuse_edges=torch.zeros(g,device=x.device),representatives=torch.full((g,),s.budget,device=x.device),
-                    exact_edges=torch.zeros(g,device=x.device),dropped_clusters=torch.full((g,),s.fine.base_count-s.budget,device=x.device),
+                ids=seed_ids[None].expand(g,-1).contiguous()
+                pops=seed_pops[None].expand(g,-1).contiguous();real=seed_real[None].expand(g,-1).contiguous()
+                record=dict(reuse_edges=torch.zeros(g,device=x.device),representatives=torch.full((g,),min(s.budget,s.fine.base_count),device=x.device),
+                    exact_edges=torch.full((g,),max(0,s.budget-s.fine.base_count),device=x.device),dropped_clusters=torch.full((g,),max(0,s.fine.base_count-s.budget),device=x.device),
                     counts=torch.full((g,),s.budget,device=x.device),history_cap_discarded=torch.zeros(g,device=x.device))
             else:
                 if c.cache_probe_indices:
@@ -605,13 +608,15 @@ class ReuseResidualExploration(nn.Module):
         if self.layer==0:
             for record in stats:
                 for state_id in range(11):
-                    record[f'state_{state_id}_clusters']=record['counts'] if state_id==1 else torch.zeros_like(record['counts'])
+                    record[f'state_{state_id}_clusters']=record['representatives'] if state_id==1 else torch.zeros_like(record['counts'])
         s.previous_grid=torch.cat(grids);s.previous_real_grid=torch.cat(real_grids)
         s.previous_layer=self.layer
         joined={key:torch.cat([r[key] for r in stats]) for key in stats[0]}
         rows=(s.n-torch.arange(s.groups,device=x.device)*32).clamp_max(32)
         s.records.append(dict(layer=self.layer,query_offset=(self.layer*c.query_shift)%32,patch_budget=s.budget,special_keys=len(s.specials),
             fine_clusters=s.fine.base_count,canonical_regions=s.regions,
+            initial_seed_extra_members=max(0,s.budget-s.fine.base_count) if self.layer==0 else 0,
+            initial_seed_semantics='all representatives plus deterministic real members; representative masses exclude selected members' if self.layer==0 and s.fine.base_count<s.budget else None,
             **{key+'_mean':val.float().mean() for key,val in joined.items()},
             actual_unique_density=((joined['counts']+len(s.specials))*rows).sum()/s.n**2,
             unused_budget_mean=(s.budget-joined['counts']).float().mean(),
