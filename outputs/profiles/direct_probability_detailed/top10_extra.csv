@@ -1,0 +1,11 @@
+operation,seconds,kind,source,reuse,fusion,risk
+融合四状态损失,2.0975273089999917,GPU kernel self,saf3r/triton/reuse_fused_states.py::_states,同一层距离/Value跨Group共享已在全局内存中存在，可研究CTA内多Group复用,已融合Drop/Rep/History/Owner/Exact；进一步需保持归约/owner同分规则,中：浮点与离散同分敏感
+四Probe概率导出,0.8862487025000138,GPU phase,saf3r/triton/reuse_direct_sparse_attention.py::_probe,与正式AV重复QK；LSE已复用,可研究从AV导出必要统计；不能改变log域Debias/Head归约,高：寄存器/访存/分母及误差
+32邻簇图,0.44993190383911125,GPU phase,saf3r/patch/adaptive_value_clustering.py::center_graph,当前层中心两轮更新，不能直接冻结跨层图,分块TopK/访存组织,中：距离精度和同分
+局部分配,0.4211000652313232,GPU phase,saf3r/patch/adaptive_value_clustering.py::local_assignment,候选中心跨token共享,距离/argmin/索引融合,中：相等距离标签保持
+Probe→Grid摘要,0.41434918367862716,GPU phase,saf3r/patch/reuse_probability_history.py::observe_execution,两次score指数、grid索引与cache校准存在共享机会,可把weighted/unweighted摘要与分段统计融合,中：atomic和求和次序
+缓存校准,0.4000207999274135,GPU phase,saf3r/patch/reuse_probability_history.py::save_evidence; saf3r/triton/reuse_probability_history.py::store,grid count/selected max/sum与摘要共享索引,归约与FP16 log写回,中：log域稳定性、量化
+Prior与Beta,0.3862932447791081,GPU phase,saf3r/patch/reuse_probability_history.py::build_prior,current.mean和ratio/Beta在Python与_predict均计算,prior填充、校正、pi汇总；不可用簇均值代替token prior,中：浮点次序和状态选择
+Mask Packing基础kernels,0.3785403720000001,GPU kernel self lower bound,saf3r/patch/reuse_inference_ops.py::pack,flag/prefix/计数/索引可减少全Patch读写,prefix与emit需跨CTA协调,中：顺序、padding、预算
+Exact候选筛选,0.3529058230146762,GPU phase,saf3r/patch/reuse_residual_exploration.py::ReuseResidualExploration.forward,保留已有共享coarse QK；不要再计算一套,稀疏MM、topk、allowed写回,高：不得取消候选资格改变算法
+Budget两类kernel,0.28335754499999927,GPU kernel self,saf3r/triton/reuse_compact.py::budget/_choose/_dual,Cost的0/1/population结构可研究隐式表达,需要全Group归约；不能少轮迭代,中高：binary search及tie break必须一致

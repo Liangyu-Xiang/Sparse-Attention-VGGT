@@ -1,0 +1,8 @@
+variant,seconds,probe_qk_edges,kernels,output_bytes,probability_relative_l1,scope,logical_qk_flops,additional_probe_edges
+Direct AV only,0.0004859200119972229,0,1,270336,,Independent microbenchmark;4 fixed groups; full K/V bank; no writeback,,
+4 Probe export,8.979199826717377e-05,6822144,1,1705536,0.5344148278236389,QK+LSE read+logmeanexp+store are fused; allocations included in wrapper event interval,873234432,
+1 Probe export,8.691199868917465e-05,1705536,1,426384,0.514671802520752,QK+LSE read+logmeanexp+store are fused; allocations included in wrapper event interval,218308608,
+Mean Query independent QK,8.931200206279755e-05,1705536,1,426384,0.7596635818481445,Mean Q and its own sparse LSE prepared outside timing; compares to four-probe Dense mean; approximation only,218308608,
+Direct AV +4 Probe,0.0005256320238113403,6822144,2,1975872,,Two kernels and wrapper allocation; same QKV/mask/bias,,
+Legacy all32 history observation,0.00036793598532676696,53266432,Multiple;see source,,,Actual legacy observation implementation; no model writeback,,Legacy conditional fallback may execute additional four-probe QK
+4 Probe Grid conditional and cache,0.0003856639862060547,0,,832288,1.2410880327224731,Same-input conditional diagnostic; score exponent/log introduces extra roundoff; model cache unchanged,,

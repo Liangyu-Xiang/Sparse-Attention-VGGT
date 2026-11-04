@@ -1,0 +1,350 @@
+operation,category,calls,gpu_inclusive_seconds,gpu_exclusive_seconds,includes_children,memory_bytes,memory_kind,mean_call_seconds
+"C/forward/L2/o, s = (self.original, self.state)",C,24,2.8992000000000003e-05,2.8992000000000003e-05,True,,N/A: no hardware counters,1.2080000000000001e-06
+C/forward/L2/c = s.config,C,24,3.0143999999999998e-05,3.0143999999999998e-05,True,,N/A: no hardware counters,1.256e-06
+C/forward/L3/if self.training or len(x) != 1 or self.layer != s.previous_layer + 1:,C,24,2.9536e-05,2.9536e-05,True,,N/A: no hardware counters,1.2306666666666667e-06
+C/forward/L4/if c.capture:,C,24,2.912e-05,2.912e-05,True,,N/A: no hardware counters,1.2133333333333333e-06
+C/forward/L5/if c.history_mode != 'dense_m5c' or not c.state_l2 or (not c.direction_drop) or (not c.compact) or c.query_shift or c.hierarchical:,C,24,2.8544000000000007e-05,2.8544000000000007e-05,True,,N/A: no hardware counters,1.1893333333333336e-06
+C/forward/L6/rule = history_rule,C,24,2.8896000000000003e-05,2.8896000000000003e-05,True,,N/A: no hardware counters,1.204e-06
+C/forward/L7/if c.fuse_mask_ops:,C,24,2.9055999999999998e-05,2.9055999999999998e-05,True,,N/A: no hardware counters,1.2106666666666665e-06
+A/QKV_LayerNorm_RoPE,A,24,0.495964128,0.495964128,True,,N/A: no hardware counters,0.020665172
+"C/forward/L9/q, k, v = prepare_qkv(o, x, pos)",C,24,0.49612880000000004,0.00016467199999999418,True,,N/A: no hardware counters,0.020672033333333336
+C/forward/L9/q = q.to(v.dtype).contiguous(),C,24,0.012206975999999998,0.012206975999999998,True,,N/A: no hardware counters,0.000508624
+C/forward/L9/k = k.to(v.dtype).contiguous(),C,24,0.012459968,0.012459968,True,,N/A: no hardware counters,0.0005191653333333333
+"C/forward/L11/features = v.mean(0, dtype=torch.float32)[s.patches]",C,24,0.006243808000000001,0.006243808000000001,True,,N/A: no hardware counters,0.0002601586666666667
+"C/forward/L12/s.fine.update(features, self.layer)",C,24,1.0734841279999998,1.0734841279999998,True,,N/A: no hardware counters,0.04472850533333333
+C/stage/value_update,C,24,1.0826811519999997,0.0029532160000000363,True,,N/A: no hardware counters,0.04511171466666666
+"C/forward/L10/with stage(s, 'value_update'), torch.autocast(x.device.type, enabled=False):",C,24,1.084191584,0.0015104319999999644,True,,N/A: no hardware counters,0.04517464933333334
+C/C1_C2/prepare/L2/f = self.fine.base_count,C,24,0.00046083200000000005,0.00046083200000000005,True,,N/A: no hardware counters,1.9201333333333335e-05
+C/C1_C2/prepare/L2/r = self.regions,C,24,0.0004471999999999999,0.0004471999999999999,True,,N/A: no hardware counters,1.863333333333333e-05
+"C/C1_C2/prepare/L3/population = torch.bincount(self.fine.labels, minlength=f).float()",C,24,0.002828672,0.002828672,True,,N/A: no hardware counters,0.00011786133333333334
+C/C1_C2/prepare/L4/means = None,C,24,0.00044272,0.00044272,True,,N/A: no hardware counters,1.8446666666666667e-05
+"C/C1_C2/prepare/L5/pooled = torch.zeros((len(k), r, k.shape[-1]), device=k.device)",C,24,0.0009405119999999998,0.0009405119999999998,True,,N/A: no hardware counters,3.918799999999999e-05
+"C/C1_C2/prepare/L6/pooled.index_add_(1, self.grid, k[:, self.patches].float())",C,24,0.040248736,0.040248736,True,,N/A: no hardware counters,0.0016770306666666667
+"C/C1_C2/prepare/L7/pooled = pooled / self.grid_sizes[None, :, None]",C,24,9.676799999999999e-05,9.676799999999999e-05,True,,N/A: no hardware counters,4.032e-06
+C/C1_C2/prepare/L8/if self.config.history_mode == 'dense_m5c':,C,24,2.9727999999999997e-05,2.9727999999999997e-05,True,,N/A: no hardware counters,1.2386666666666665e-06
+C/C1_C2/prepare/L9/pooled = pooled.to(k.dtype).contiguous(),C,24,6.451200000000001e-05,6.451200000000001e-05,True,,N/A: no hardware counters,2.6880000000000004e-06
+C/C1_C2/prepare/L10/overlap = None,C,24,2.9152e-05,2.9152e-05,True,,N/A: no hardware counters,1.2146666666666668e-06
+C/C1_C2/prepare/L11/if self.previous_layer >= 0:,C,24,0.010333055999999998,0.010333055999999998,True,,N/A: no hardware counters,0.00043054399999999994
+"C/forward/L14/population, means, pooled, overlap = s.prepare(k, features)",C,24,0.068297984,0.012376096,True,,N/A: no hardware counters,0.0028457493333333334
+C/forward/L17/zvalues = (features.float() / features.float().square().sum(-1).mean().clamp_min(1e-12).sqrt()).contiguous() if self.layer else None,C,24,0.0023658880000000005,0.0023658880000000005,True,,N/A: no hardware counters,9.857866666666669e-05
+C/forward/L15/if c.state_loss == 'cosine_distortion':,C,24,0.004900000000000001,0.002534112,True,,N/A: no hardware counters,0.0002041666666666667
+C/forward/L18/geometry = None,C,24,0.00043087999999999997,0.00043087999999999997,True,,N/A: no hardware counters,1.7953333333333333e-05
+C/forward/L19/if self.layer and c.compact and q.is_cuda:,C,24,0.06017283200000001,0.003149888000000001,True,,N/A: no hardware counters,0.0025072013333333337
+C/forward/L24/if self.layer and (c.state_l2 or c.direction_drop) and (geometry is None):,C,24,0.0004447679999999999,0.0004447679999999999,True,,N/A: no hardware counters,1.8531999999999995e-05
+C/forward/L25/if geometry is not None:,C,24,0.0025878719999999997,0.0021571519999999994,True,,N/A: no hardware counters,0.00010782799999999998
+C/forward/L26/token_grid = None,C,24,0.00042550400000000005,0.00042550400000000005,True,,N/A: no hardware counters,1.7729333333333337e-05
+C/forward/L27/if c.history_mode == 'all_relative_logit':,C,24,0.000429248,0.000429248,True,,N/A: no hardware counters,1.7885333333333333e-05
+C/stage/pooling,C,24,0.152492512,0.014803424000000003,True,,N/A: no hardware counters,0.006353854666666666
+"C/forward/L13/with stage(s, 'pooling'), torch.autocast(x.device.type, enabled=False):",C,24,0.15485439999999998,0.0023618880000000017,True,,N/A: no hardware counters,0.006452266666666665
+C/forward/L30/s.parent_prepared = None,C,24,0.00043273599999999997,0.00043273599999999997,True,,N/A: no hardware counters,1.8030666666666667e-05
+C/forward/L31/if c.hierarchical and self.layer:,C,24,0.0004300160000000001,0.0004300160000000001,True,,N/A: no hardware counters,1.7917333333333335e-05
+C/forward/L36/order = None,C,24,0.000422464,0.000422464,True,,N/A: no hardware counters,1.7602666666666667e-05
+C/forward/L37/if c.query_shift:,C,24,0.00045152000000000007,0.00045152000000000007,True,,N/A: no hardware counters,1.8813333333333335e-05
+C/forward/L43/if c.history_evidence_backend == 'direct_probability':,C,24,0.0005682239999999999,0.0005682239999999999,True,,N/A: no hardware counters,2.3675999999999995e-05
+C/C4_cache/ensure_cache/L2/h = q.shape[0],C,1,2.0384e-05,2.0384e-05,True,,N/A: no hardware counters,2.0384e-05
+"C/C4_cache/ensure_cache/L2/dtype = getattr(s, 'ready_cache_dtype', torch.float16)",C,1,1.9232e-05,1.9232e-05,True,,N/A: no hardware counters,1.9232e-05
+"C/C4_cache/ensure_cache/L3/packed = dtype == torch.float16 and (not getattr(s, 'ready_cache_plain', False))",C,1,1.952e-05,1.952e-05,True,,N/A: no hardware counters,1.952e-05
+C/C4_cache/ensure_cache/L3/stride = (s.budget * 14 + 7) // 8 if packed else s.budget,C,1,1.9488e-05,1.9488e-05,True,,N/A: no hardware counters,1.9488e-05
+C/C4_cache/ensure_cache/L4/dtype = torch.uint8 if packed else dtype,C,1,1.8752e-05,1.8752e-05,True,,N/A: no hardware counters,1.8752e-05
+"C/C4_cache/ensure_cache/L5/row_bytes = h * 4 * stride * torch.empty((), dtype=dtype).element_size()",C,1,2.9184e-05,2.9184e-05,True,,N/A: no hardware counters,2.9184e-05
+"C/C4_cache/ensure_cache/L6/limit = getattr(s, 'ready_gpu_limit_bytes', 8 * 2 ** 30)",C,1,1.9616e-05,1.9616e-05,True,,N/A: no hardware counters,1.9616e-05
+"C/C4_cache/ensure_cache/L7/window = getattr(getattr(s, 'config', None), 'window_groups', 64)",C,1,2.1152e-05,2.1152e-05,True,,N/A: no hardware counters,2.1152e-05
+C/C4_cache/ensure_cache/L8/resident = s.groups if s.groups * row_bytes <= limit else limit // row_bytes // window * window,C,1,1.8304e-05,1.8304e-05,True,,N/A: no hardware counters,1.8304e-05
+"C/C4_cache/ensure_cache/L9/resident = min(resident, s.groups)",C,1,1.9552e-05,1.9552e-05,True,,N/A: no hardware counters,1.9552e-05
+C/C4_cache/ensure_cache/L9/s.ready_resident_groups = resident,C,1,1.9136e-05,1.9136e-05,True,,N/A: no hardware counters,1.9136e-05
+C/C4_cache/ensure_cache/L9/s.ready_window = window,C,1,1.9136e-05,1.9136e-05,True,,N/A: no hardware counters,1.9136e-05
+"C/C4_cache/ensure_cache/L10/s.ready_edges = torch.empty((resident, h, 4, stride), device=q.device, dtype=dtype)",C,1,3.1104e-05,3.1104e-05,True,,N/A: no hardware counters,3.1104e-05
+"C/C4_cache/ensure_cache/L11/s.ready_coarse = torch.empty((s.groups, h, 4, s.regions), device=q.device, dtype=torch.float32)",C,1,2.48e-05,2.48e-05,True,,N/A: no hardware counters,2.48e-05
+C/C4_cache/ensure_cache/L12/s.ready_uniform = torch.empty_like(s.ready_coarse),C,1,2.8064e-05,2.8064e-05,True,,N/A: no hardware counters,2.8064e-05
+C/C4_cache/ensure_cache/L13/spill = s.groups - resident,C,1,1.7888e-05,1.7888e-05,True,,N/A: no hardware counters,1.7888e-05
+"C/C4_cache/ensure_cache/L13/host_shape = (spill, h, 4, stride)",C,1,1.9648e-05,1.9648e-05,True,,N/A: no hardware counters,1.9648e-05
+"C/C4_cache/ensure_cache/L14/host = getattr(s, 'ready_host', None)",C,1,2.16e-05,2.16e-05,True,,N/A: no hardware counters,2.16e-05
+C/C4_cache/ensure_cache/L15/if spill:,C,1,2.0416e-05,2.0416e-05,True,,N/A: no hardware counters,2.0416e-05
+C/C4_cache/ensure_cache/L23/s.ready_host_events = {},C,1,1.984e-05,1.984e-05,True,,N/A: no hardware counters,1.984e-05
+"C/C4_cache/ensure_cache/L23/s.ready_stage_free = [None, None]",C,1,1.9008e-05,1.9008e-05,True,,N/A: no hardware counters,1.9008e-05
+C/C4_cache/ensure_cache/L23/s.ready_uploaded = {},C,1,1.808e-05,1.808e-05,True,,N/A: no hardware counters,1.808e-05
+"C/forward/L54/m5c.ensure_cache(s, q)",C,1,0.002048704,0.0015848000000000004,True,,N/A: no hardware counters,0.002048704
+C/forward/L54/if self.layer == 0:,C,24,0.0026035199999999994,0.0005548159999999996,True,,N/A: no hardware counters,0.00010847999999999998
+C/forward/L55/s.m5c_next = {},C,24,0.00043727999999999996,0.00043727999999999996,True,,N/A: no hardware counters,1.822e-05
+C/forward/L55/s.m5c_count_errors = [],C,24,0.0024415040000000006,0.0024415040000000006,True,,N/A: no hardware counters,0.00010172933333333336
+C/forward/L55/s.m5c_reconstruction_qk = 0,C,24,0.000455904,0.000455904,True,,N/A: no hardware counters,1.8996e-05
+C/forward/L55/s.m5c_prior_errors = [],C,24,0.002299968,0.002299968,True,,N/A: no hardware counters,9.5832e-05
+C/forward/L55/s.m5c_seed_errors = [],C,24,0.0023665280000000006,0.0023665280000000006,True,,N/A: no hardware counters,9.860533333333336e-05
+C/forward/L55/s.m5c_probe_qk = 0,C,24,0.000433472,0.000433472,True,,N/A: no hardware counters,1.8061333333333333e-05
+C/forward/L42/if c.history_mode == 'dense_m5c':,C,24,0.026495296,0.014888896000000002,True,,N/A: no hardware counters,0.0011039706666666667
+C/forward/L56/output = torch.empty_like(v),C,24,0.0006850879999999999,0.0006850879999999999,True,,N/A: no hardware counters,2.854533333333333e-05
+C/forward/L56/history = [],C,24,0.00044284799999999997,0.00044284799999999997,True,,N/A: no hardware counters,1.8452e-05
+C/forward/L56/grids = [],C,24,0.00044422399999999995,0.00044422399999999995,True,,N/A: no hardware counters,1.8509333333333333e-05
+C/forward/L56/real_grids = [],C,24,0.00043999999999999996,0.00043999999999999996,True,,N/A: no hardware counters,1.8333333333333333e-05
+C/forward/L56/stats = [],C,24,0.000443168,0.000443168,True,,N/A: no hardware counters,1.8465333333333334e-05
+C/forward/L56/capture = [],C,24,0.00042953599999999995,0.00042953599999999995,True,,N/A: no hardware counters,1.7897333333333332e-05
+C/forward/L56/relative_evidence = [],C,24,0.0004374400000000001,0.0004374400000000001,True,,N/A: no hardware counters,1.822666666666667e-05
+"C/forward/L57/candidates = max(1, math.ceil(s.fine.base_count * c.candidate_fraction))",C,24,0.0005159360000000002,0.0005159360000000002,True,,N/A: no hardware counters,2.149733333333334e-05
+"C/forward/L59/g = min(c.window_groups, s.groups - start)",C,1584,0.027838559999999974,0.027838559999999974,True,,N/A: no hardware counters,1.7574848484848467e-05
+C/forward/L59/first = start * 32,C,1584,0.026259615999999996,0.026259615999999996,True,,N/A: no hardware counters,1.65780404040404e-05
+"C/forward/L59/end = min(s.n, (start + g) * 32)",C,1584,0.02712812799999993,0.02712812799999993,True,,N/A: no hardware counters,1.7126343434343388e-05
+C/forward/L62/observer = m5c.observe,C,1584,0.025768319999999897,0.025768319999999897,True,,N/A: no hardware counters,1.626787878787872e-05
+"C/forward/L63/if c.cache_probe_indices and c.history_evidence_backend not in ('direct_legacy', 'direct_probability'):",C,1584,0.02833273599999993,0.02833273599999993,True,,N/A: no hardware counters,1.788682828282824e-05
+C/C2/observe/L2/positions = s.probe_positions[start:start + g],C,1584,0.03327215999999996,0.03327215999999996,True,,N/A: no hardware counters,2.100515151515149e-05
+C/C2/observe/L2/weights = s.probe_weights[start:start + g],C,1584,0.031234432000000013,0.031234432000000013,True,,N/A: no hardware counters,1.971870707070708e-05
+"C/C2/observe/L3/probe_q = q[:, positions]",C,1584,0.07010902399999994,0.07010902399999994,True,,N/A: no hardware counters,4.4260747474747435e-05
+"C/C2/observe/L3/pq = probe_q.permute(1, 0, 2, 3).float()",C,1584,0.057259168000000145,0.057259168000000145,True,,N/A: no hardware counters,3.614846464646474e-05
+"C/C2/observe/L4/grid = torch.einsum('ghqd,hrd->ghqr', pq, s.history_pooled_fp32) * scale",C,1584,0.17520368000000006,0.17520368000000006,True,,N/A: no hardware counters,0.00011060838383838387
+"C/C2/observe/L5/special = torch.einsum('ghqd,htd->ghqt', pq, k[:, s.specials].float()) * scale",C,1584,0.16558508799999994,0.16558508799999994,True,,N/A: no hardware counters,0.00010453604040404036
+"C/C2/observe/L6/if getattr(getattr(s, 'config', None), 'fused_coarse', False):",C,1584,0.13796259200000024,0.13796259200000024,True,,N/A: no hardware counters,8.709759595959611e-05
+"C/C2/observe/L2/obs = _observe(s, q, k, start, g, scale)",C,1584,1.5274853120000003,0.8568591679999993,True,,N/A: no hardware counters,0.0009643215353535356
+"C/C2/observe/L3/obs['patch_probability'] = (obs['grid_logits'] + s.grid_log_sizes).softmax(-1).mean((1, 2))",C,1584,0.12972160000000024,0.12972160000000024,True,,N/A: no hardware counters,8.189494949494965e-05
+"C/forward/L65/m5c_observation = observer(s, q, k, start, g, o.scale)",C,1584,1.9623003199999998,0.305093408,True,,N/A: no hardware counters,0.0012388259595959594
+C/stage/m5c_coarse_observation,C,1584,2.4104679359999994,0.39406655999999973,True,,N/A: no hardware counters,0.0015217600606060601
+"C/forward/L61/with stage(s, 'm5c_coarse_observation'), torch.autocast(x.device.type, enabled=False):",C,1584,2.546483071999999,0.13601513599999987,True,,N/A: no hardware counters,0.0016076282020202014
+C/forward/L60/if c.history_mode == 'dense_m5c':,C,1584,2.684325856000003,0.1378427839999999,True,,N/A: no hardware counters,0.0016946501616161636
+"C/forward/L67/seed = torch.arange(s.budget, device=x.device) * s.fine.base_count // s.budget",C,66,0.0045728,0.0045728,True,,N/A: no hardware counters,6.928484848484849e-05
+"C/forward/L68/ids = s.fine.reps[seed][None].expand(g, -1).contiguous()",C,66,0.0038274879999999987,0.0038274879999999987,True,,N/A: no hardware counters,5.7992242424242406e-05
+"C/forward/L69/pops = population[seed][None].expand(g, -1).contiguous()",C,66,0.0031176960000000005,0.0031176960000000005,True,,N/A: no hardware counters,4.723781818181819e-05
+"C/forward/L69/real = torch.zeros_like(ids, dtype=torch.bool)",C,66,0.002255392,0.002255392,True,,N/A: no hardware counters,3.417260606060606e-05
+"C/forward/L70/record = dict(reuse_edges=torch.zeros(g, device=x.device), representatives=torch.full((g,), s.budget, device=x.device), exact_edges=torch.ze",C,66,0.0051199999999999996,0.0051199999999999996,True,,N/A: no hardware counters,7.757575757575757e-05
+C/forward/L66/if self.layer == 0:,C,1584,11.573302143999989,0.4223623999999993,True,,N/A: no hardware counters,0.007306377616161609
+"C/forward/L196/actual = s.patches[ids.clamp_min(0)].masked_fill(ids < 0, -1).int().contiguous()",C,1584,0.06910166400000008,0.06910166400000008,True,,N/A: no hardware counters,4.362478787878793e-05
+C/forward/L197/if c.disable_population_compensation:,C,1584,0.003431072000000069,0.003431072000000069,True,,N/A: no hardware counters,2.1660808080808516e-06
+C/forward/L199/bias = pops.log().contiguous(),C,1584,0.013313344000000001,0.013313344000000001,True,,N/A: no hardware counters,8.40488888888889e-06
+C/forward/L203/probability_history = c.history_evidence_backend == 'direct_probability',C,1584,0.0033910720000000826,0.0033910720000000826,True,,N/A: no hardware counters,2.140828282828335e-06
+B/direct_av,B,1584,2.7297505920000025,2.7297505920000025,True,,N/A: no hardware counters,0.0017233273939393954
+C/C3/direct_probability_export,C,1584,0.8847584000000004,0.8847584000000004,True,,N/A: no hardware counters,0.0005585595959595962
+"C/forward/L204/result, direct_evidence = direct_sparse_attention(q[:, first:end], k, v, actual, s.specials, o.scale, logit_bias=bias, probe_positions=(m5c_",C,1584,3.6471139200000025,0.03260492800000001,True,,N/A: no hardware counters,0.0023024709090909107
+C/forward/L207/ready_logits = None,C,1584,0.0019797759999999756,0.0019797759999999756,True,,N/A: no hardware counters,1.2498585858585705e-06
+C/forward/L201/if q.is_cuda and c.execution_kernel == 'direct_sparse':,C,1584,3.688123647999996,0.035638879999999706,True,,N/A: no hardware counters,0.0023283608888888863
+C/stage/execution_and_evidence,C,1584,3.7051921599999997,0.017068512000000004,True,,N/A: no hardware counters,0.0023391364646464644
+"C/forward/L200/with stage(s, 'execution_and_evidence'):",C,1584,3.720987072000003,0.01579491199999999,True,,N/A: no hardware counters,0.0023491080000000017
+C/C5_C4/observe_execution/L4/scores = evidence['debiased_log_patch_probability'].contiguous(),C,1584,0.02700643199999996,0.02700643199999996,True,,N/A: no hardware counters,1.7049515151515127e-05
+C/C5_C4/observe_execution/L5/evidence['debiased_log_patch_probability'] = scores,C,1584,0.0023159040000000214,0.0023159040000000214,True,,N/A: no hardware counters,1.4620606060606196e-06
+"C/C5_C4/observe_execution/L6/probability = (scores + bias[:, None, :]).exp().masked_fill(ids[:, None, :] < 0, 0.0)",C,1584,0.09599321600000021,0.09599321600000021,True,,N/A: no hardware counters,6.060177777777791e-05
+C/C5_C4/observe_execution/L7/regions = s.grid[ids.long().clamp_min(0)],C,1584,0.04390502399999998,0.04390502399999998,True,,N/A: no hardware counters,2.771781818181817e-05
+"C/C5_C4/observe_execution/L8/per_grid = torch.zeros((len(ids), 4, s.regions), device=q.device)",C,1584,0.004438432000000043,0.004438432000000043,True,,N/A: no hardware counters,2.8020404040404315e-06
+"C/C5_C4/observe_execution/L9/per_grid.scatter_add_(2, regions[:, None, :].expand(-1, 4, -1), probability)",C,1584,0.08495020799999987,0.08495020799999987,True,,N/A: no hardware counters,5.363018181818174e-05
+C/C5_C4/observe_execution/L10/original = torch.zeros_like(per_grid),C,1584,0.003816192000000002,0.003816192000000002,True,,N/A: no hardware counters,2.4092121212121224e-06
+"C/C5_C4/observe_execution/L11/original.scatter_add_(2, regions[:, None, :].expand(-1, 4, -1), scores.exp().masked_fill(ids[:, None, :] < 0, 0.0))",C,1584,0.16309472,0.16309472,True,,N/A: no hardware counters,0.00010296383838383838
+"C/C5_C4/observe_execution/L12/mass = torch.stack(((per_grid * obs['weights'][:, :, None]).sum(1), (original * obs['weights'][:, :, None]).sum(1)), 1)",C,1584,0.018805504000000015,0.018805504000000015,True,,N/A: no hardware counters,1.1872161616161625e-05
+C/C5_C4/observe_execution/L13/obs['probability_evidence'] = evidence,C,1584,0.0024391360000000206,0.0024391360000000206,True,,N/A: no hardware counters,1.5398585858585988e-06
+"C/forward/L245/mass = m5c.observe_execution(s, q, k, start, ids, actual, bias, m5c_observation, o.scale, direct_evidence)",C,1584,0.5327274559999993,0.085962688,True,,N/A: no hardware counters,0.0003363178383838379
+C/stage/sparse_probe_grid_summary,C,1584,0.5470866880000004,0.014359231999999996,True,,N/A: no hardware counters,0.00034538301010101036
+"C/forward/L244/with stage(s, 'sparse_probe_grid_summary' if c.history_evidence_backend == 'direct_probability' else 'direct_independent_legacy_observation'",C,1584,0.5627552000000002,0.01566851199999998,True,,N/A: no hardware counters,0.0003552747474747476
+C/forward/L243/if c.execution_kernel == 'direct_sparse':,C,1584,0.5766512960000003,0.013896095999999991,True,,N/A: no hardware counters,0.00036404753535353553
+"C/forward/L246/output[:, first:end] = result",C,1584,0.013583040000000044,0.013583040000000044,True,,N/A: no hardware counters,8.575151515151544e-06
+C/forward/L248/m5c_observation['ready_logits'] = ready_logits,C,1518,0.0022672959999999937,0.0022672959999999937,True,,N/A: no hardware counters,1.493607378129113e-06
+C/C5_C4/save_evidence/L2/end = start + len(ids),C,1518,0.0026745280000000384,0.0026745280000000384,True,,N/A: no hardware counters,1.7618761528326998e-06
+C/C5_C4/save_evidence/L2/evidence = obs.pop('probability_evidence'),C,1518,0.00265456,0.00265456,True,,N/A: no hardware counters,1.748722002635046e-06
+C/C5_C4/save_evidence/L3/local = obs['positions'] - start * 32,C,1518,0.006682432000000108,0.006682432000000108,True,,N/A: no hardware counters,4.4021291172596235e-06
+"C/C5_C4/save_evidence/L6/lse = evidence['lse'][:, local].permute(1, 0, 2)",C,1518,0.012385439999999881,0.012385439999999881,True,,N/A: no hardware counters,8.159051383399132e-06
+"C/C5_C4/save_evidence/L7/missing_scores = torch.logsumexp(obs['grid_logits'] - lse[:, :, :, None], dim=1) - math.log(q.shape[0])",C,1518,0.06409987199999993,0.06409987199999993,True,,N/A: no hardware counters,4.222652964426873e-05
+C/C4_cache/cache_write/L2/if start < s.ready_resident_groups:,C,1518,0.004346144000000087,0.004346144000000087,True,,N/A: no hardware counters,2.8630724637681737e-06
+"C/C4/store/L2/g, p, a = scores.shape",C,1518,0.003997024000000041,0.003997024000000041,True,,N/A: no hardware counters,2.6330856389987095e-06
+C/C4/store/L2/r = len(sizes),C,1518,0.004135840000000077,0.004135840000000077,True,,N/A: no hardware counters,2.724532279314939e-06
+C/C4/store/L3/regions = grid[ids.long().clamp_min(0)],C,1518,0.04092124800000005,0.04092124800000005,True,,N/A: no hardware counters,2.695734387351782e-05
+"C/C4/store/L4/counts = torch.zeros((g, r), device=ids.device, dtype=torch.int32).scatter_add_(1, regions, (ids >= 0).int())",C,1518,0.043532928000000026,0.043532928000000026,True,,N/A: no hardware counters,2.8677818181818198e-05
+C/C4/store/L5/remaining = sizes[None] - counts,C,1518,0.01087910400000002,0.01087910400000002,True,,N/A: no hardware counters,7.166735177865626e-06
+"C/C4/store/L6/maximum = missing_scores.masked_fill(remaining[:, None, :] == 0, -torch.inf).contiguous()",C,1518,0.01733039999999988,0.01733039999999988,True,,N/A: no hardware counters,1.1416600790513756e-05
+C/C4/store/L7/sums = torch.zeros_like(maximum),C,1518,0.008897696000000007,0.008897696000000007,True,,N/A: no hardware counters,5.861459815546777e-06
+C/C4/store/L8/if a:,C,1518,0.15358483199999984,0.15358483199999984,True,,N/A: no hardware counters,0.00010117577865612637
+"C/C4/store/L11/sums.add_(torch.where(remaining[:, None, :] > 0, remaining[:, None, :] * (missing_scores - maximum).exp(), 0.0))",C,1518,0.07424844799999998,0.07424844799999998,True,,N/A: no hardware counters,4.891202108036889e-05
+C/C4/store/L12/den = maximum + sums.log(),C,1518,0.053092864000000003,0.053092864000000003,True,,N/A: no hardware counters,3.497553623188406e-05
+"C/C4/store/L13/uniform = (missing_scores - den).exp().masked_fill(remaining[:, None, :] == 0, 0.0)",C,1518,0.11455372800000008,0.11455372800000008,True,,N/A: no hardware counters,7.546358893280638e-05
+C/C4/store/L14/if a:,C,1518,0.09645360000000003,0.09645360000000003,True,,N/A: no hardware counters,6.353992094861662e-05
+"C/C5_C4/save_evidence/L8/uniform, counts, den = kernels.store(evidence['debiased_log_patch_probability'], missing_scores, ids, s.grid, s.grid_sizes, cache.cache_writ",C,1518,1.1725988479999996,0.5466249919999999,True,,N/A: no hardware counters,0.0007724630092226611
+C/C4_cache/cache_written/L2/if start < s.ready_resident_groups:,C,1518,0.025718239999999958,0.025718239999999958,True,,N/A: no hardware counters,1.6942187088274016e-05
+"C/C5_C4/save_evidence/L9/cache.cache_written(s, start, len(ids))",C,1518,0.16946230400000048,0.1437440640000001,True,,N/A: no hardware counters,0.00011163524637681191
+"C/C5_C4/save_evidence/L10/s.ready_uniform[start:end, 0].copy_(uniform)",C,1518,0.057113759999999965,0.057113759999999965,True,,N/A: no hardware counters,3.7624347826086934e-05
+"C/C5_C4/save_evidence/L11/s.ready_coarse[start:end].copy_(obs['coarse_grid_probability'].mean(1, keepdim=True))",C,1518,0.07240003200000009,0.07240003200000009,True,,N/A: no hardware counters,4.7694355731225355e-05
+C/C5_C4/save_evidence/L12/s.ready_written[start] = s.previous_layer + 1,C,1518,0.02730019199999995,0.02730019199999995,True,,N/A: no hardware counters,1.7984316205533565e-05
+C/C5_C4/save_evidence/L13/s.m5c_count_errors.append((counts > s.grid_sizes).any()),C,1518,0.06845481600000004,0.06845481600000004,True,,N/A: no hardware counters,4.5095399209486195e-05
+"C/C5_C4/save_evidence/L16/s.m5c_seed_errors.append(torch.where(torch.isfinite(den), 0.0, float('inf')).amax())",C,1518,0.1687840319999999,0.1687840319999999,True,,N/A: no hardware counters,0.00011118842687747028
+"C/forward/L250/m5c.save_evidence(s, q, k, start, ids, actual, m5c_observation, o.scale)",C,1518,2.627554528000002,0.8029437120000006,True,,N/A: no hardware counters,0.0017309318366271421
+C/stage/m5c_evidence_and_host_copy,C,1518,2.715724928,0.08817039999999993,True,,N/A: no hardware counters,0.0017890151040843216
+"C/forward/L249/with stage(s, 'm5c_evidence_and_host_copy'), torch.autocast(x.device.type, enabled=False):",C,1518,2.7893050240000026,0.07358009600000004,True,,N/A: no hardware counters,0.001837486840579712
+"C/forward/L251/del ready_logits, m5c_observation['ready_logits']",C,1518,0.027134208000000017,0.027134208000000017,True,,N/A: no hardware counters,1.7874972332015822e-05
+C/forward/L247/if c.history_mode == 'dense_m5c' and self.layer < 23:,C,1584,3.009873247999984,0.1911667199999996,True,,N/A: no hardware counters,0.0019001725050504948
+"C/forward/L253/patch_mass = mass[:, 0].sum(1, keepdim=True).clamp_min(1e-30)",C,1584,0.07914070400000005,0.07914070400000005,True,,N/A: no hardware counters,4.996256565656569e-05
+"C/forward/L254/grid = mass[:, 0] / patch_mass",C,1584,0.05550307199999999,0.05550307199999999,True,,N/A: no hardware counters,3.5039818181818176e-05
+"C/forward/L255/real_grid = mass[:, 1] / patch_mass",C,1584,0.04858451200000009,0.04858451200000009,True,,N/A: no hardware counters,3.067204040404046e-05
+C/forward/L256/real = ids >= 0,C,1584,0.04841948800000011,0.04841948800000011,True,,N/A: no hardware counters,3.0567858585858653e-05
+"C/forward/L257/history.append(ids.masked_fill(~real, -1).int())",C,1584,0.08861232000000004,0.08861232000000004,True,,N/A: no hardware counters,5.594212121212123e-05
+C/forward/L258/grids.append(grid.half()),C,1584,0.04730297600000002,0.04730297600000002,True,,N/A: no hardware counters,2.986298989898991e-05
+C/forward/L258/real_grids.append(real_grid.half()),C,1584,0.04236624000000006,0.04236624000000006,True,,N/A: no hardware counters,2.6746363636363677e-05
+C/stage/history_summary,C,1584,1.2110912320000027,0.8011619200000006,True,,N/A: no hardware counters,0.0007645777979797997
+"C/forward/L252/with stage(s, 'history_summary'):",C,1584,1.3470164479999978,0.13592521600000007,True,,N/A: no hardware counters,0.0008503891717171703
+C/forward/L259/stats.append(record),C,1584,0.026633855999999907,0.026633855999999907,True,,N/A: no hardware counters,1.681430303030297e-05
+C/forward/L260/if c.capture:,C,1584,0.026710591999999932,0.026710591999999932,True,,N/A: no hardware counters,1.686274747474743e-05
+"C/forward/L58/for start in range(0, s.groups, c.window_groups):",C,24,24.22244992,1.0762939839999732,True,,N/A: no hardware counters,1.0092687466666665
+C/forward/L262/if c.fuse_mask_ops and self.layer:,C,24,0.004688576000000002,0.0022991360000000002,True,,N/A: no hardware counters,0.0001953573333333334
+C/forward/L265/if s.m5c_count_errors and bool(torch.stack(s.m5c_count_errors).any()):,C,24,0.002244128,0.002244128,True,,N/A: no hardware counters,9.350533333333334e-05
+C/forward/L266/s.m5c_reconstruction_qk = int(s.m5c_reconstruction_qk),C,24,0.000466528,0.000466528,True,,N/A: no hardware counters,1.9438666666666667e-05
+C/forward/L267/s.m5c_probe_qk = int(s.m5c_probe_qk),C,24,0.000501856,0.000501856,True,,N/A: no hardware counters,2.0910666666666666e-05
+C/forward/L264/if c.history_mode == 'dense_m5c':,C,24,0.009017376,0.005804863999999999,True,,N/A: no hardware counters,0.000375724
+C/forward/L268/s.history_ids = torch.cat(history),C,24,0.013436159999999997,0.013436159999999997,True,,N/A: no hardware counters,0.0005598399999999999
+C/forward/L268/s.history_weights = None,C,24,2.8864000000000007e-05,2.8864000000000007e-05,True,,N/A: no hardware counters,1.202666666666667e-06
+C/forward/L269/if relative_evidence:,C,24,2.9599999999999998e-05,2.9599999999999998e-05,True,,N/A: no hardware counters,1.2333333333333333e-06
+C/forward/L271/if s.m5c_previous:,C,24,2.896e-05,2.896e-05,True,,N/A: no hardware counters,1.2066666666666666e-06
+C/forward/L272/s.m5c_previous = s.m5c_next,C,24,2.9791999999999995e-05,2.9791999999999995e-05,True,,N/A: no hardware counters,1.241333333333333e-06
+C/forward/L272/s.m5c_next = {},C,24,2.8544000000000007e-05,2.8544000000000007e-05,True,,N/A: no hardware counters,1.1893333333333336e-06
+C/forward/L273/s.m5c_previous_q = None,C,24,0.0004270719999999999,0.0004270719999999999,True,,N/A: no hardware counters,1.7794666666666664e-05
+C/forward/L273/s.m5c_previous_k = None,C,24,0.0004355840000000001,0.0004355840000000001,True,,N/A: no hardware counters,1.8149333333333336e-05
+C/forward/L273/s.m5c_previous_scale = None,C,24,0.00044288,0.00044288,True,,N/A: no hardware counters,1.8453333333333332e-05
+C/forward/L274/if self.layer == 23:,C,24,0.0005459199999999999,0.0005197759999999999,True,,N/A: no hardware counters,2.274666666666666e-05
+C/forward/L275/s.history_pooled_fp32 = None,C,24,0.0005164799999999999,0.0005164799999999999,True,,N/A: no hardware counters,2.1519999999999997e-05
+C/forward/L276/m5c.trim(s),C,24,0.015266656,0.015266656,True,,N/A: no hardware counters,0.0006361106666666667
+C/forward/L270/if c.history_mode == 'dense_m5c':,C,24,0.02859216,0.010870271999999999,True,,N/A: no hardware counters,0.00119134
+C/forward/L280/record[f'state_{state_id}_clusters'] = record['counts'] if state_id == 1 else torch.zeros_like(record['counts']),C,726,0.01925964800000001,0.01925964800000001,True,,N/A: no hardware counters,2.6528440771349877e-05
+C/forward/L279/for state_id in range(11):,C,66,0.07113788799999997,0.05187824000000001,True,,N/A: no hardware counters,0.0010778467878787873
+C/forward/L278/for record in stats:,C,1,0.075740384,0.004602496000000025,True,,N/A: no hardware counters,0.075740384
+C/forward/L277/if self.layer == 0:,C,24,0.076292128,0.0005517440000000023,True,,N/A: no hardware counters,0.0031788386666666666
+C/forward/L281/s.previous_grid = torch.cat(grids),C,24,0.0012572160000000002,0.0012572160000000002,True,,N/A: no hardware counters,5.238400000000001e-05
+C/forward/L281/s.previous_real_grid = torch.cat(real_grids),C,24,0.001051584,0.001051584,True,,N/A: no hardware counters,4.3815999999999995e-05
+C/forward/L282/s.previous_layer = self.layer,C,24,0.0004477760000000001,0.0004477760000000001,True,,N/A: no hardware counters,1.865733333333334e-05
+C/forward/L283/joined = {key: torch.cat([r[key] for r in stats]) for key in stats[0]},C,24,0.014528351999999998,0.014528351999999998,True,,N/A: no hardware counters,0.0006053479999999999
+"C/forward/L284/rows = (s.n - torch.arange(s.groups, device=x.device) * 32).clamp_max(32)",C,24,0.002454752,0.002454752,True,,N/A: no hardware counters,0.00010228133333333334
+"C/forward/L285/s.records.append(dict(layer=self.layer, query_offset=self.layer * c.query_shift % 32, patch_budget=s.budget, special_keys=len(s.specials), f",C,24,0.012183903999999997,0.012183903999999997,True,,N/A: no hardware counters,0.0005076626666666665
+C/forward/L306/s.records[-1]['clustering'] = s.fine.records[-1],C,24,0.0004619519999999999,0.0004619519999999999,True,,N/A: no hardware counters,1.9247999999999996e-05
+C/forward/L306/if c.clustering_mode != 'source_anchored':,C,24,0.002931072,0.00246912,True,,N/A: no hardware counters,0.000122128
+C/forward/L307/if c.hierarchical:,C,24,0.00044697599999999997,0.00044697599999999997,True,,N/A: no hardware counters,1.8624e-05
+"C/forward/L315/s.records[-1].update(history_estimator='Head-mean conditionals + head-mean M5c', beta_down_exponent=1.0, beta_up_exponent=2.0, probability_n",C,24,0.0035571200000000004,0.0035571200000000004,True,,N/A: no hardware counters,0.00014821333333333336
+C/forward/L314/if c.history_mode == 'dense_m5c':,C,24,0.005924000000000001,0.00236688,True,,N/A: no hardware counters,0.0002468333333333334
+"C/forward/L325/s.records[-1].update(direct_logical_main_qk_per_head=((joined['counts'] + len(s.specials)) * rows).sum(), direct_logical_legacy_observation_",C,24,0.0028131840000000007,0.0028131840000000007,True,,N/A: no hardware counters,0.00011721600000000002
+C/forward/L324/if c.execution_kernel == 'direct_sparse':,C,24,0.00513776,0.0023245759999999996,True,,N/A: no hardware counters,0.00021407333333333333
+"C/forward/L327/s.records[-1].update(history_estimator='Debiased log head-mean sparse P + coarse missing completion + M5c', history='Compensated sparse P di",C,24,0.002263456,0.002263456,True,,N/A: no hardware counters,9.431066666666666e-05
+C/forward/L326/if c.history_evidence_backend == 'direct_probability':,C,24,0.004607616,0.0023441599999999996,True,,N/A: no hardware counters,0.000191984
+C/forward/L336/if c.capture:,C,24,0.00044265599999999993,0.00044265599999999993,True,,N/A: no hardware counters,1.8443999999999998e-05
+C/forward/L338/if order is not None:,C,24,0.00044387200000000005,0.00044387200000000005,True,,N/A: no hardware counters,1.8494666666666668e-05
+A/global_output_projection,A,24,0.029629888,0.029629888,True,,N/A: no hardware counters,0.0012345786666666666
+A/global_output_dropout,A,24,3.0271999999999997e-05,3.0271999999999997e-05,True,,N/A: no hardware counters,1.2613333333333333e-06
+C/global_sparse_wrapper,C,24,26.29713046399999,0.06896169599999713,True,,N/A: no hardware counters,1.095713769333333
+"C/C1_C7/prepare_geometry/L2/p, d = z.shape",C,23,0.000460256,0.000460256,True,,N/A: no hardware counters,2.001113043478261e-05
+C/C1_C7/prepare_geometry/L2/f = len(reps),C,23,0.000508832,0.000508832,True,,N/A: no hardware counters,2.212313043478261e-05
+C/C1_C7/prepare_geometry/L3/width = triton.next_power_of_2(int(population.max())),C,23,0.001392608,0.001392608,True,,N/A: no hardware counters,6.054817391304348e-05
+C/C1_C7/prepare_geometry/L6/if width > 256:,C,23,0.00045376,0.00045376,True,,N/A: no hardware counters,1.972869565217391e-05
+C/C1_C7/prepare_geometry/L7/order = labels.argsort(stable=True),C,23,0.0028122879999999996,0.0028122879999999996,True,,N/A: no hardware counters,0.0001222733913043478
+C/C1_C7/prepare_geometry/L8/starts = population.long().cumsum(0) - population.long(),C,23,0.00179232,0.00179232,True,,N/A: no hardware counters,7.792695652173913e-05
+"C/C1_C7/prepare_geometry/L9/rank = torch.empty(p, device=z.device, dtype=torch.int32)",C,23,0.000642432,0.000642432,True,,N/A: no hardware counters,2.793182608695652e-05
+"C/C1_C7/prepare_geometry/L10/rank[order] = (torch.arange(p, device=z.device) - starts[labels[order]]).int()",C,23,0.0022010560000000007,0.0022010560000000007,True,,N/A: no hardware counters,9.569808695652177e-05
+"C/C1_C7/prepare_geometry/L11/members = torch.full((f, width), -1, device=z.device, dtype=torch.int32)",C,23,0.0008313600000000001,0.0008313600000000001,True,,N/A: no hardware counters,3.6146086956521745e-05
+"C/C1_C7/prepare_geometry/L12/members[labels, rank.long()] = torch.arange(p, device=z.device, dtype=torch.int32)",C,23,0.001339264,0.001339264,True,,N/A: no hardware counters,5.822886956521739e-05
+"C/C1_C7/prepare_geometry/L13/distances = torch.empty((p, width), device=z.device, dtype=torch.float32)",C,23,0.000590944,0.000590944,True,,N/A: no hardware counters,2.569321739130435e-05
+"C/C1_C7/prepare_geometry/L14/rep_distance = torch.empty(p, device=z.device, dtype=torch.float32)",C,23,0.000570272,0.000570272,True,,N/A: no hardware counters,2.4794434782608696e-05
+"C/C1_C7/prepare_geometry/L15/_geometry[triton.cdiv(p * width, 128),](z, members, labels, rank, reps, distances, rep_distance, p, d, width, triton.next_power_of_2(d), 128",C,23,0.004061024000000001,0.004061024000000001,True,,N/A: no hardware counters,0.00017656626086956525
+"C/forward/L21/geometry = compact.prepare_geometry(zvalues, s.fine.labels, s.fine.reps, population, l2=c.state_l2)",C,23,0.039946112,0.022289696,True,,N/A: no hardware counters,0.0017367874782608695
+C/forward/L23/geometry['drop_bins'] = prepare_drop(population),C,23,0.014733312,0.014733312,True,,N/A: no hardware counters,0.0006405787826086957
+C/forward/L23/if geometry is not None:,C,23,0.017076831999999997,0.0023435199999999995,True,,N/A: no hardware counters,0.0007424709565217389
+C/forward/L25/geometry['fuse_state_kernel'] = c.fuse_state_kernel,C,23,0.00043072,0.00043072,True,,N/A: no hardware counters,1.872695652173913e-05
+C/forward/L75/probe = m5c_observation['positions'],C,1518,0.02678297600000002,0.02678297600000002,True,,N/A: no hardware counters,1.7643594202898565e-05
+C/forward/L75/pq = m5c_observation['probe_q'],C,1518,0.029046879999999987,0.029046879999999987,True,,N/A: no hardware counters,1.9134967061923576e-05
+C/forward/L74/if c.cache_probe_indices:,C,1518,0.30021551999999985,0.244385664,True,,N/A: no hardware counters,0.0001977704347826086
+C/forward/L82/probability = m5c_observation['patch_probability'],C,1518,0.02803552,0.02803552,True,,N/A: no hardware counters,1.8468722002635047e-05
+C/forward/L83/previous = s.previous_grid[start:start + g].float(),C,1518,0.05631769600000002,0.05631769600000002,True,,N/A: no hardware counters,3.709993148880107e-05
+"C/forward/L84/beta = torch.where(previous > 1e-12, (probability / previous.clamp_min(1e-12)).clamp_max(1), 0)",C,1518,0.14912723199999967,0.14912723199999967,True,,N/A: no hardware counters,9.823928326745695e-05
+C/forward/L85/demand = (probability - beta * s.previous_real_grid[start:start + g].float()).clamp_min(0),C,1518,0.0920696320000001,0.0920696320000001,True,,N/A: no hardware counters,6.065193148880112e-05
+C/forward/L86/normalizer = None,C,1518,0.02683180799999998,0.02683180799999998,True,,N/A: no hardware counters,1.767576284584979e-05
+"C/forward/L81/if c.history_evidence_backend in ('direct_legacy', 'direct_probability'):",C,1518,1.064287424000001,0.7119055359999971,True,,N/A: no hardware counters,0.000701111610013176
+C/stage/coarse_observation,C,1518,1.1939678079999991,0.12968038399999998,True,,N/A: no hardware counters,0.0007865400579710139
+"C/forward/L80/with stage(s, 'coarse_observation'):",C,1518,1.3270077759999983,0.13303996800000006,True,,N/A: no hardware counters,0.0008741816706192348
+"C/forward/L100/residual = torch.sparse.mm(overlap, demand.T).T",C,1518,0.19938336000000006,0.19938336000000006,True,,N/A: no hardware counters,0.00013134608695652178
+"C/forward/L101/candidate = residual.topk(candidates, dim=1).indices",C,1518,0.36179263999999955,0.36179263999999955,True,,N/A: no hardware counters,0.00023833507246376782
+"C/forward/L102/allowed = torch.zeros_like(residual, dtype=torch.bool).scatter_(1, candidate, True)",C,1518,0.07123100800000003,0.07123100800000003,True,,N/A: no hardware counters,4.692424769433467e-05
+C/forward/L103/if not c.compact:,C,1518,0.026692671999999938,0.026692671999999938,True,,N/A: no hardware counters,1.7584105401844492e-05
+C/stage/residual_fine_probe,C,1518,1.1840147520000024,0.524915072,True,,N/A: no hardware counters,0.0007799833675889344
+"C/forward/L99/with stage(s, 'residual_fine_probe'), torch.autocast(x.device.type, enabled=False):",C,1518,1.3200459199999992,0.13603116800000004,True,,N/A: no hardware counters,0.0008695954677206846
+C/forward/L112/old_ids = s.history_ids[start:start + g],C,1518,0.034622784,0.034622784,True,,N/A: no hardware counters,2.2808158102766795e-05
+C/C5_C4/build_prior/L2/if s.ready_written.get(start) != s.previous_layer:,C,1518,0.026607519999999996,0.026607519999999996,True,,N/A: no hardware counters,1.752801054018445e-05
+C/C5_C4/build_prior/L3/g = len(old_ids),C,1518,0.035078240000000024,0.035078240000000024,True,,N/A: no hardware counters,2.31081949934124e-05
+C/C5_C4/build_prior/L3/end = start + g,C,1518,0.026466848,0.026466848,True,,N/A: no hardware counters,1.7435341238471675e-05
+"C/C5_C4/build_prior/L4/current = obs['coarse_grid_probability'].mean(1, keepdim=True)",C,1518,0.05522857599999996,0.05522857599999996,True,,N/A: no hardware counters,3.6382461133069804e-05
+C/C5_C4/build_prior/L5/previous = s.ready_coarse[start:end],C,1518,0.03192617600000005,0.03192617600000005,True,,N/A: no hardware counters,2.1031736495388702e-05
+C/C5_C4/build_prior/L6/ratio = (current + EPS) / (previous + EPS),C,1518,0.08363519999999988,0.08363519999999988,True,,N/A: no hardware counters,5.5095652173912964e-05
+"C/C5_C4/build_prior/L7/beta = torch.where(ratio < 1, ratio, ratio.pow(-2)).clamp(0, 1)",C,1518,0.11088304000000006,0.11088304000000006,True,,N/A: no hardware counters,7.304548089591572e-05
+C/C5_C4/build_prior/L9/base = current * (beta * s.ready_uniform[start:end] + (1 - beta) / s.grid_sizes),C,1518,0.12231894399999993,0.12231894399999993,True,,N/A: no hardware counters,8.057901449275357e-05
+"C/C5_C4/build_prior/L10/prior = mean_probes(base, obs['weights'])[:, s.grid].contiguous()",C,1518,0.13112598399999995,0.13112598399999995,True,,N/A: no hardware counters,8.638075362318837e-05
+C/C4_cache/cache_read/L2/if start < s.ready_resident_groups:,C,1518,0.031387488000000026,0.031387488000000026,True,,N/A: no hardware counters,2.067686956521741e-05
+"C/C4/predict/L2/_predict[triton.cdiv(ids.shape[1], 256), len(ids)](cache, ids, grid, sizes, current.contiguous(), previous, weights.contiguous(), prior, ids",C,1518,0.10445894400000026,0.10445894400000026,True,,N/A: no hardware counters,6.881353359683812e-05
+"C/C5_C4/build_prior/L11/kernels.predict(cache.cache_read(s, start, g), old_ids, s.grid, s.grid_sizes, current, previous, obs['weights'], prior, EPS)",C,1518,0.3883637439999999,0.25251731199999977,True,,N/A: no hardware counters,0.00025583909354413696
+"C/C5_C4/build_prior/L12/pi = torch.zeros((g, s.fine.base_count), device=prior.device).scatter_add_(1, s.fine.labels[None].expand(g, -1), prior)",C,1518,0.19565830400000014,0.19565830400000014,True,,N/A: no hardware counters,0.00012889216337285913
+"C/C5_C4/build_prior/L13/expected = mean_probes(current, obs['weights']).sum(-1)",C,1518,0.09785190400000006,0.09785190400000006,True,,N/A: no hardware counters,6.446106982872205e-05
+C/C5_C4/build_prior/L14/s.m5c_prior_errors.append((prior.sum(-1) - expected).abs().max()),C,1518,0.10898659200000015,0.10898659200000015,True,,N/A: no hardware counters,7.179617391304357e-05
+C/C4_cache/prefetch/L2/if start < s.ready_resident_groups or start >= s.groups:,C,1518,0.02587510400000001,0.02587510400000001,True,,N/A: no hardware counters,1.7045523056653498e-05
+"C/C5_C4/build_prior/L15/cache.prefetch(s, end, min(s.ready_window, s.groups - end))",C,1518,0.3050782400000001,0.27920313600000046,True,,N/A: no hardware counters,0.0002009738076416338
+"C/forward/L113/prior, pi = m5c.build_prior(s, start, old_ids, m5c_observation)",C,1518,3.2055354560000007,1.486326143999997,True,,N/A: no hardware counters,0.002111683436100132
+"C/C10/graph_constants/L2/for dst, src in zip(self.constants, [z, reps, labels, population]):",C,46,0.0026839680000000006,0.0026839680000000006,True,,N/A: no hardware counters,5.834713043478262e-05
+"C/C10/graph_constants/L3/for k, v in geometry.items():",C,46,0.0027957439999999984,0.0027957439999999984,True,,N/A: no hardware counters,6.077704347826084e-05
+"C/C10/graph_constants/L5/for i, ((size, dst), (_, src)) in enumerate(zip(self.geometry['drop_bins'], geometry['drop_bins'])):",C,46,0.005675456000000001,0.005675456000000001,True,,N/A: no hardware counters,0.0001233794782608696
+"C/C10/graph_replay/L2/for dest, src in zip(self.inputs, [prior, pi, old_ids, allowed]):",C,1518,0.09231961599999998,0.09231961599999998,True,,N/A: no hardware counters,6.081661133069827e-05
+"C/C6_C8_C9_C10/gate/L2/if rep_removal not in (None, 'historical_rep') or reference.REP_REMOVAL != 'historical_rep':",C,1524,0.0015624000000000143,0.0015624000000000143,True,,N/A: no hardware counters,1.0251968503937102e-06
+"C/C6_C8_C9_C10/gate/L4/g, n = prior.shape",C,1524,0.0015891200000000144,0.0015891200000000144,True,,N/A: no hardware counters,1.0427296587926604e-06
+C/C6_C8_C9_C10/gate/L4/f = len(reps),C,1524,0.0015606720000000164,0.0015606720000000164,True,,N/A: no hardware counters,1.024062992125995e-06
+"C/C6_C8_C9_C10/gate/L5/count = torch.zeros((g, f), device=prior.device, dtype=torch.int32)",C,1524,0.005681280000000055,0.005681280000000055,True,,N/A: no hardware counters,3.7278740157480675e-06
+C/C6_C8_C9_C10/gate/L5/seen = torch.zeros_like(count),C,1524,0.005737344000000044,0.005737344000000044,True,,N/A: no hardware counters,3.764661417322864e-06
+C/C6_C8_C9_C10/gate/L5/amount = torch.zeros_like(count),C,1524,0.005472160000000023,0.005472160000000023,True,,N/A: no hardware counters,3.5906561679790177e-06
+"C/C6_C8_C9_C10/gate/L6/qualified = torch.zeros((g, n), device=prior.device, dtype=torch.bool)",C,1524,0.0065637119999999655,0.0065637119999999655,True,,N/A: no hardware counters,4.306897637795253e-06
+"C/C6_C8_C9_C10/gate/L7/kernels._gate[g, triton.cdiv(old_ids.shape[1], 256)](old_ids, prior, pi, population, labels, reps, count, seen, amount, qualified, n, f, old",C,1524,0.12256000000000002,0.12256000000000002,True,,N/A: no hardware counters,8.041994750656169e-05
+C/C6_C8_C9_C10/gate/L8/seen = seen > 0,C,1524,0.004579872,0.004579872,True,,N/A: no hardware counters,3.0051653543307083e-06
+"C/graph_selection/L2/context = rule.gate(prior, pi, population, old_ids, labels, reps)",C,1524,0.17497104000000002,0.01966448,True,,N/A: no hardware counters,0.00011481039370078742
+"C/C6/states/L2/g, n = prior.shape",C,1524,0.0016003199999999871,0.0016003199999999871,True,,N/A: no hardware counters,1.0500787401574718e-06
+C/C6/states/L2/f = len(reps),C,1524,0.0015907199999999914,0.0015907199999999914,True,,N/A: no hardware counters,1.0437795275590496e-06
+C/C6/states/L2/d = z.shape[-1],C,1524,0.001573407999999991,0.001573407999999991,True,,N/A: no hardware counters,1.0324199475065559e-06
+C/C6/states/L5/allowed = allowed.contiguous(),C,1524,0.01597529599999996,0.01597529599999996,True,,N/A: no hardware counters,1.0482477690288686e-05
+"C/C6/states/L6/errors = torch.empty((g, f, 4), device=prior.device)",C,1524,0.0015937920000000149,0.0015937920000000149,True,,N/A: no hardware counters,1.045795275590561e-06
+C/C6/states/L6/costs = torch.empty_like(errors),C,1524,0.0015868480000000057,0.0015868480000000057,True,,N/A: no hardware counters,1.0412388451443607e-06
+C/C6/states/L6/objective = torch.empty_like(errors),C,1524,0.0015853760000000053,0.0015853760000000053,True,,N/A: no hardware counters,1.0402729658792686e-06
+"C/C6/states/L6/owner = torch.empty((g, n), device=prior.device, dtype=torch.int32)",C,1524,0.001583136000000012,0.001583136000000012,True,,N/A: no hardware counters,1.0388031496063072e-06
+"C/C6/states/L7/for index, (size, clusters) in enumerate(geometry['drop_bins']):",C,1524,2.0932599359999977,2.0932599359999977,True,,N/A: no hardware counters,0.001373530141732282
+C/C6/states/L12/geometry['objective'] = objective,C,1524,0.0014902080000000126,0.0014902080000000126,True,,N/A: no hardware counters,9.778267716535516e-07
+C/C6/states/L12/context['owners'] = owner,C,1524,0.001488224000000008,0.001488224000000008,True,,N/A: no hardware counters,9.765249343832074e-07
+"C/graph_selection/L3/if geometry.get('fuse_state_kernel', False) and geometry['width'] <= 64:",C,1524,2.145798624000005,0.02247135999999996,True,,N/A: no hardware counters,0.0014080043464566963
+"C/C1_C7/budget/L2/g, f, s = errors.shape",C,1524,0.0014968640000000062,0.0014968640000000062,True,,N/A: no hardware counters,9.821942257217888e-07
+"C/C1_C7/budget/L2/tiles = triton.cdiv(f, 128)",C,1524,0.0015084800000000037,0.0015084800000000037,True,,N/A: no hardware counters,9.898162729658816e-07
+"C/C1_C7/budget/L3/dual = torch.stack((torch.zeros_like(upper), upper), 1).contiguous()",C,1524,0.0037718399999999634,0.0037718399999999634,True,,N/A: no hardware counters,2.474960629921236e-06
+"C/C1_C7/budget/L4/partial = torch.empty((g, tiles), device=errors.device)",C,1524,0.0015180160000000044,0.0015180160000000044,True,,N/A: no hardware counters,9.960734908136512e-07
+"C/C1_C7/budget/L4/selected = torch.empty((g, f), device=errors.device, dtype=torch.int64)",C,1524,0.0018291200000000187,0.0018291200000000187,True,,N/A: no hardware counters,1.2002099737532931e-06
+"C/C1_C7/budget/L6/_choose[g, tiles](errors, costs, dual, partial, selected, f, s, tiles, False, 128, triton.next_power_of_2(s), num_warps=4, enable_fp_fusion=",C,24384,0.27694496000000224,0.27694496000000224,True,,N/A: no hardware counters,1.1357650918635263e-05
+"C/C1_C7/budget/L7/_dual[g,](partial, dual, tiles, cap, triton.next_power_of_2(tiles), num_warps=4, enable_fp_fusion=False)",C,24384,0.04898617600000543,0.04898617600000543,True,,N/A: no hardware counters,2.0089475065619027e-06
+C/C1_C7/budget/L5/for _ in range(iterations):,C,1524,0.3851019840000006,0.059170847999999755,True,,N/A: no hardware counters,0.0002526915905511815
+"C/C1_C7/budget/L8/_choose[g, tiles](errors, costs, dual, partial, selected, f, s, tiles, True, 128, triton.next_power_of_2(s), num_warps=4, enable_fp_fusion=F",C,1524,0.015223456000000083,0.015223456000000083,True,,N/A: no hardware counters,9.989144356955435e-06
+"C/graph_selection/L12/selected, count = budget(geometry['objective'], costs, errors[:, :, 0].amax(1) + 1e-12, cap, iterations)",C,1524,0.45558224000000036,0.04513248000000009,True,,N/A: no hardware counters,0.00029893847769028897
+C/graph_selection/L13/selected = rule.decode(selected),C,1524,0.011119744000000016,0.011119744000000016,True,,N/A: no hardware counters,7.296419947506573e-06
+"C/C6_C8_C9_C10/pack/L2/g, f = selected.shape",C,1524,0.0015471360000000134,0.0015471360000000134,True,,N/A: no hardware counters,1.0151811023622136e-06
+C/C6_C8_C9_C10/pack/L2/n = len(labels),C,1524,0.0015935040000000064,0.0015935040000000064,True,,N/A: no hardware counters,1.0456062992126026e-06
+"C/C6_C8_C9_C10/pack/L2/flags = torch.empty((g, n), device=selected.device, dtype=torch.int32)",C,1524,0.0016137280000000026,0.0016137280000000026,True,,N/A: no hardware counters,1.0588766404199493e-06
+"C/C6_C8_C9_C10/pack/L3/kernels._flags[g, triton.cdiv(n, 256)](selected, labels, reps, context['qualified'], flags, n, f, 256, num_warps=4)",C,1524,0.13636944,0.13636944,True,,N/A: no hardware counters,8.948125984251969e-05
+"C/C6_C8_C9_C10/pack/L4/prefix = flags.cumsum(1, dtype=torch.int32)",C,1524,0.20717990399999947,0.20717990399999947,True,,N/A: no hardware counters,0.00013594481889763746
+"C/C6_C8_C9_C10/pack/L4/counts = prefix[:, -1]",C,1524,0.0014381120000000124,0.0014381120000000124,True,,N/A: no hardware counters,9.436430446194308e-07
+"C/C6_C8_C9_C10/pack/L4/tiles = triton.cdiv(f, 256)",C,1524,0.001577664000000012,0.001577664000000012,True,,N/A: no hardware counters,1.0352125984252048e-06
+"C/C6_C8_C9_C10/pack/L5/partial = torch.empty((g, tiles), device=selected.device, dtype=torch.int32)",C,1524,0.0015913600000000139,0.0015913600000000139,True,,N/A: no hardware counters,1.044199475065626e-06
+C/C6_C8_C9_C10/pack/L5/invalid = torch.empty_like(partial),C,1524,0.0015883840000000123,0.0015883840000000123,True,,N/A: no hardware counters,1.042246719160113e-06
+"C/C6_C8_C9_C10/pack/L6/kernels._validate[g, tiles](selected, context['eligible_count'], population, context['remove_rep'], partial, invalid, f, tiles, 256, num_war",C,1524,0.014795519999999989,0.014795519999999989,True,,N/A: no hardware counters,9.708346456692907e-06
+C/C6_C8_C9_C10/pack/L7/expected = partial.sum(1).float(),C,1524,0.00878608000000007,0.00878608000000007,True,,N/A: no hardware counters,5.765144356955426e-06
+C/C6_C8_C9_C10/pack/L8/context['pack_error'] = (counts > budget) | (counts != expected) | (invalid.sum(1) > 0),C,1524,0.01408508800000008,0.01408508800000008,True,,N/A: no hardware counters,9.242183727034174e-06
+"C/C6_C8_C9_C10/pack/L9/ids = torch.full((g, budget), -1, device=selected.device, dtype=torch.int32)",C,1524,0.005421664000000056,0.005421664000000056,True,,N/A: no hardware counters,3.5575223097113228e-06
+"C/C6_C8_C9_C10/pack/L10/_emit[g, triton.cdiv(n, 256)](flags, prefix, ids, n, budget, 256, num_warps=4)",C,1524,0.026814111999999914,0.026814111999999914,True,,N/A: no hardware counters,1.759456167978997e-05
+"C/graph_selection/L14/if geometry.get('p0_loss_pack', False):",C,1524,0.5434510080000003,0.11904931199999985,True,,N/A: no hardware counters,0.00035659514960629943
+"C/C6_C8_C9_C10/transfer/L2/g, n = prior.shape",C,1524,0.0015624320000000135,0.0015624320000000135,True,,N/A: no hardware counters,1.0252178477690377e-06
+C/C6_C8_C9_C10/transfer/L2/f = len(reps),C,1524,0.00156748800000001,0.00156748800000001,True,,N/A: no hardware counters,1.0285354330708728e-06
+C/C6_C8_C9_C10/transfer/L2/a = packed.shape[1],C,1524,0.0015436160000000148,0.0015436160000000148,True,,N/A: no hardware counters,1.0128713910761251e-06
+"C/C6_C8_C9_C10/transfer/L2/nt = triton.cdiv(n, 256)",C,1524,0.0015793600000000162,0.0015793600000000162,True,,N/A: no hardware counters,1.036325459317596e-06
+"C/C6_C8_C9_C10/transfer/L2/at = triton.cdiv(a, 256)",C,1524,0.0016545600000000193,0.0016545600000000193,True,,N/A: no hardware counters,1.0856692913385954e-06
+"C/C6_C8_C9_C10/transfer/L3/mass = torch.zeros((g, n + 1), device=prior.device)",C,1524,0.016907328000000093,0.016907328000000093,True,,N/A: no hardware counters,1.1094047244094549e-05
+"C/C6_C8_C9_C10/transfer/L3/covered = torch.empty((g, nt), device=prior.device)",C,1524,0.0020072639999999956,0.0020072639999999956,True,,N/A: no hardware counters,1.3171023622047215e-06
+"C/C6_C8_C9_C10/transfer/L3/assigned = torch.empty((g, at), device=prior.device)",C,1524,0.0019391359999999871,0.0019391359999999871,True,,N/A: no hardware counters,1.2723989501312252e-06
+"C/C6_C8_C9_C10/transfer/L4/kernels._mass[g, nt](selected, labels, reps, context['owners'], prior, mass, covered, n, f, nt, 256, num_warps=4)",C,1524,0.2286808000000003,0.2286808000000003,True,,N/A: no hardware counters,0.0001500530183727036
+"C/C6_C8_C9_C10/transfer/L5/output = torch.empty((g, a), device=prior.device)",C,1524,0.0015049280000000065,0.0015049280000000065,True,,N/A: no hardware counters,9.874855643044662e-07
+"C/C6_C8_C9_C10/transfer/L6/kernels._weights[g, at](packed, prior, mass, output, assigned, n, a, at, 256, num_warps=4, enable_fp_fusion=False)",C,1524,0.02748614399999996,0.02748614399999996,True,,N/A: no hardware counters,1.8035527559055092e-05
+C/C6_C8_C9_C10/transfer/L7/context['mass_error'] = (assigned.sum(1) - covered.sum(1)).abs(),C,1524,0.011519071999999986,0.011519071999999986,True,,N/A: no hardware counters,7.558446194225713e-06
+"C/graph_selection/L19/weights = rule.transfer(selected, labels, reps, None, prior, pi, ids, geometry, context)",C,1524,0.32355017599999997,0.025598048000000016,True,,N/A: no hardware counters,0.0002123032650918635
+"C/C6_C8_C9_C10/diagnostics/L2/result = original_diagnostics(errors, selected, hids, old_ids, labels, reps, context)",C,1524,0.2388722240000001,0.2388722240000001,True,,N/A: no hardware counters,0.00015674030446194233
+"C/C6_C8_C9_C10/diagnostics/L3/result['implementation_validation_error'] = context.get('pack_error', torch.zeros(len(selected), device=selected.device, dtype=torch.bool)) ",C,1524,0.005490432000000011,0.005490432000000011,True,,N/A: no hardware counters,3.602645669291346e-06
+"C/graph_selection/L20/record.update(rule.diagnostics(errors, selected, None, old_ids, labels, reps, context))",C,1524,0.2497447679999997,0.005382112000000006,True,,N/A: no hardware counters,0.00016387451968503917
+"C/graph_selection/L21/record['history_cap_discarded'] = torch.zeros(len(prior), device=prior.device)",C,1524,0.002552863999999931,0.002552863999999931,True,,N/A: no hardware counters,1.675107611548511e-06
+C/C10/graph_replay/L3/self.graph.replay(),C,1518,3.885739424000001,0.04496720000000011,True,,N/A: no hardware counters,0.002559775641633729
+C/C10/graph_replay/L4/record = {},C,1518,0.0018382720000000086,0.0018382720000000086,True,,N/A: no hardware counters,1.2109828722002691e-06
+"C/C10/graph_replay/L5/for dtype, static in self.records.items():",C,1518,0.007320127999999969,0.007320127999999969,True,,N/A: no hardware counters,4.822218708827384e-06
+"C/forward/L114/ids, real, pops, record = select(s, self.layer, prior, pi, old_ids, allowed, zvalues, s.fine.reps, s.fine.labels, population, geometry)",C,1518,4.478890207999997,0.2775454399999999,True,,N/A: no hardware counters,0.002950520558629774
+C/forward/L110/if c.window_graph:,C,1518,8.018125311999999,0.29907686399999966,True,,N/A: no hardware counters,0.005282032484848484
+C/stage/reuse_and_budget,C,1518,8.109897888000013,0.09177257599999994,True,,N/A: no hardware counters,0.005342488727272736
+"C/forward/L109/with stage(s, 'reuse_and_budget'), torch.autocast(x.device.type, enabled=False):",C,1518,8.184777151999988,0.07487926399999997,True,,N/A: no hardware counters,0.005391816305665341
+C/forward/L263/if bool(torch.cat([r['implementation_validation_error'] for r in stats]).any()):,C,23,0.00238944,0.00238944,True,,N/A: no hardware counters,0.00010388869565217392
+C/C10/graph_initialization,C,6,0.204361952,0.13697392,True,,N/A: no hardware counters,0.034060325333333336
+C/forward/L274/m5c.release(s),C,1,2.6144e-05,2.6144e-05,True,,N/A: no hardware counters,2.6144e-05

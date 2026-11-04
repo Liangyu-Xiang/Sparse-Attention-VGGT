@@ -9,7 +9,7 @@ def write(path,data):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--strict-contexts',action='store_true');p.add_argument('--gpu',type=int,required=True);p.add_argument('--monitor',type=Path,required=True)
+    p=argparse.ArgumentParser();p.add_argument('--single-process',action='store_true',help='Use only a file lock and nvidia-smi monitoring; create no auxiliary CUDA context');p.add_argument('--strict-contexts',action='store_true');p.add_argument('--gpu',type=int,required=True);p.add_argument('--monitor',type=Path,required=True)
     p.add_argument('--log',type=Path,required=True);p.add_argument('command',nargs=argparse.REMAINDER);a=p.parse_args()
     command=a.command[1:] if a.command and a.command[0]=='--' else a.command
     if not command:raise ValueError('Missing command')
@@ -50,16 +50,19 @@ def main():
                 if phase(proc,args) not in ('quality','complete','quality_incomplete','diagnostic_complete','timing_complete'):return True
             except psutil.Error:continue
         return False
-    cuda=ctypes.CDLL('libcuda.so.1');context=ctypes.c_void_p();device=ctypes.c_int()
-    assert cuda.cuInit(0)==0 and cuda.cuDeviceGetByPCIBusId(ctypes.byref(device),bus.encode())==0
+    cuda=None;context=ctypes.c_void_p();device=ctypes.c_int()
+    if not a.single_process:
+        cuda=ctypes.CDLL('libcuda.so.1')
+        assert cuda.cuInit(0)==0 and cuda.cuDeviceGetByPCIBusId(ctypes.byref(device),bus.encode())==0
     with open(f'/tmp/vggt_gpu_{a.gpu}.lock','w') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX)
         while True:
             while active() or loading():time.sleep(.5)
-            assert cuda.cuCtxCreate_v2(ctypes.byref(context),0,device)==0
+            if cuda is not None:assert cuda.cuCtxCreate_v2(ctypes.byref(context),0,device)==0
             time.sleep(.5)
             if not active() and not loading():break
-            cuda.cuCtxDestroy_v2(context);context=ctypes.c_void_p()
+            if cuda is not None:cuda.cuCtxDestroy_v2(context)
+            context=ctypes.c_void_p()
         env={**os.environ,'CUDA_DEVICE_ORDER':'PCI_BUS_ID','CUDA_VISIBLE_DEVICES':str(a.gpu),'OPENBLAS_NUM_THREADS':'2','OMP_NUM_THREADS':'2'}
         a.log.parent.mkdir(parents=True,exist_ok=True);foreign=set();aborted=False
         try:
@@ -83,9 +86,10 @@ def main():
                     time.sleep(.5)
                 code=child.wait(timeout=30)
             write(a.monitor,dict(gpu=a.gpu,gpu_uuid=uuid,child_pid=child.pid,reservation_pid=os.getpid(),foreign_gpu_pids=sorted(foreign),
-                same_gpu_overlap_detected=bool(foreign),strict_contexts=a.strict_contexts,poll_seconds=.5,returncode=code,aborted=aborted,
-                ignored_cpu_quality_contexts=ignored,reservation_runs_kernels=False,reservation_memory_scope='Auxiliary context excluded from algorithm-process Torch counters'))
-        finally:cuda.cuCtxDestroy_v2(context)
+                same_gpu_overlap_detected=bool(foreign),strict_contexts=a.strict_contexts,single_process=a.single_process,poll_seconds=.5,returncode=code,aborted=aborted,
+                ignored_cpu_quality_contexts=ignored,reservation_runs_kernels=False,reservation_memory_scope='No auxiliary CUDA context' if a.single_process else 'Auxiliary context excluded from algorithm-process Torch counters'))
+        finally:
+            if cuda is not None:cuda.cuCtxDestroy_v2(context)
     raise SystemExit(code)
 
 

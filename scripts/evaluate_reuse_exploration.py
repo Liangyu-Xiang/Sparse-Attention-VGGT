@@ -108,6 +108,11 @@ def run(args):
             f1_threshold_m=dataset.eval_threshold,downsample_m=dataset.down_sample,
             cd_definition='(ACC+Comp)/2 unsquared metres',reconstruction='unposed'))
     save(out/'forward.json',common)
+    if args.profile_detail:
+        from scripts.direct_detail_profile import run_detail
+        run_detail(model,state,images,out,timing)
+        write_quality(out,quality_record({},'Fine GPU profiling only; pose and unposed reconstruction not evaluated'))
+        save(out/'status.json',dict(stage='diagnostic_complete'));return
     if args.diagnostic:
         q=quality_record({},'Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated')
         write_quality(out,q);save(out/'diagnostic.json',dict(common,quality=q))
@@ -152,7 +157,7 @@ if __name__=='__main__':
     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')
     p.add_argument('--warmup',type=int,default=1);p.add_argument('--repeats',type=int,default=3)
-    p.add_argument('--capture',action='store_true');p.add_argument('--diagnostic',action='store_true')
+    p.add_argument('--profile-detail',action='store_true',help='Independent diagnostic profiling passes after untouched warmed timing; no algorithm changes');p.add_argument('--capture',action='store_true');p.add_argument('--diagnostic',action='store_true')
     a=p.parse_args()
     if a.warmup<0 or a.repeats<1:raise ValueError('Invalid timing protocol')
     try:run(a)

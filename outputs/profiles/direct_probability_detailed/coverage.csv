@@ -1,0 +1,80 @@
+category,operation,measurement
+C1,Head-mean Value,forward/prepare/prepare_geometry的逐语句标记及cluster辅助函数低开销events；距离kernel单列
+C1,Cluster 更新,forward/prepare/prepare_geometry的逐语句标记及cluster辅助函数低开销events；距离kernel单列
+C1,Cluster Member/Rep,forward/prepare/prepare_geometry的逐语句标记及cluster辅助函数低开销events；距离kernel单列
+C1,Value Normalization,forward/prepare/prepare_geometry的逐语句标记及cluster辅助函数低开销events；距离kernel单列
+C1,Geometry预计算,forward/prepare/prepare_geometry的逐语句标记及cluster辅助函数低开销events；距离kernel单列
+C1,成员距离,forward/prepare/prepare_geometry的逐语句标记及cluster辅助函数低开销events；距离kernel单列
+C1,几何排序/索引,forward/prepare/prepare_geometry的逐语句标记及cluster辅助函数低开销events；距离kernel单列
+C2,Pooled Key,逐语句标记；正式QK共享，不重复算两套
+C2,Probe Gather,逐语句标记；正式QK共享，不重复算两套
+C2,Probe×Pooled QK,逐语句标记；正式QK共享，不重复算两套
+C2,Special logits,逐语句标记；正式QK共享，不重复算两套
+C2,Coarse LSE/Softmax,逐语句标记；正式QK共享，不重复算两套
+C2,Grid probability,逐语句标记；正式QK共享，不重复算两套
+C2,Residual demand,逐语句标记；正式QK共享，不重复算两套
+C3,Probe QK,除分配外均融合于_probe，只给真实融合总时间；内部子指令独立耗时N/A
+C3,LSE读取,除分配外均融合于_probe，只给真实融合总时间；内部子指令独立耗时N/A
+C3,Debiased log,除分配外均融合于_probe，只给真实融合总时间；内部子指令独立耗时N/A
+C3,Head LogMeanExp,除分配外均融合于_probe，只给真实融合总时间；内部子指令独立耗时N/A
+C3,Probability写回,除分配外均融合于_probe，只给真实融合总时间；内部子指令独立耗时N/A
+C3,Temporary Allocation,除分配外均融合于_probe，只给真实融合总时间；内部子指令独立耗时N/A
+C4,Probe→Grid,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,Grid Count,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,Selected Max,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,Selected Sum,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,Missing Score,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,Conditional Denominator,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,Log Cache写入,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,FP16压缩,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,GPU/CPU Copy,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,Prefetch,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C4,Next Cache Read,分段归约和写回Kernel单列；本输入缓存完全驻GPU，spill/prefetch CPU传输为0
+C5,Previous Coarse,逐语句标记及低开销完整阶段；_predict内部ratio/beta是融合的
+C5,Grid Ratio,逐语句标记及低开销完整阶段；_predict内部ratio/beta是融合的
+C5,Beta,逐语句标记及低开销完整阶段；_predict内部ratio/beta是融合的
+C5,Uniform Prior,逐语句标记及低开销完整阶段；_predict内部ratio/beta是融合的
+C5,History correction,逐语句标记及低开销完整阶段；_predict内部ratio/beta是融合的
+C5,Full Prior,逐语句标记及低开销完整阶段；_predict内部ratio/beta是融合的
+C5,pi Scatter,逐语句标记及低开销完整阶段；_predict内部ratio/beta是融合的
+C5,Normalization checks,逐语句标记及低开销完整阶段；_predict内部ratio/beta是融合的
+C6,Eligibility,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C6,Drop Moment/Loss,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C6,Rep Loss,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C6,Candidate Eligibility,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C6,Distance Gather,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C6,Nearest Owner,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C6,History Loss,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C6,Exact Eligibility,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C6,State Cost,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C6,State Objective,真实_states总时间；独立DCE组件成本不可相加，不是融合内指令占比
+C7,Dual 初始化,_choose融合objective/argmin/cost；_dual融合cost归约/lambda；16轮时间戳与self总量分别记录
+C7,Objective,_choose融合objective/argmin/cost；_dual融合cost归约/lambda；16轮时间戳与self总量分别记录
+C7,Argmin,_choose融合objective/argmin/cost；_dual融合cost归约/lambda；16轮时间戳与self总量分别记录
+C7,Cost Reduction,_choose融合objective/argmin/cost；_dual融合cost归约/lambda；16轮时间戳与self总量分别记录
+C7,Lambda Update,_choose融合objective/argmin/cost；_dual融合cost归约/lambda；16轮时间戳与self总量分别记录
+C7,Final Selection,_choose融合objective/argmin/cost；_dual融合cost归约/lambda；16轮时间戳与self总量分别记录
+C7,Count写回,_choose融合objective/argmin/cost；_dual融合cost归约/lambda；16轮时间戳与self总量分别记录
+C8,Flags,真实Kernel和逐语句标记；prefix一次计数
+C8,Patch Prefix,真实Kernel和逐语句标记；prefix一次计数
+C8,IDs Emit,真实Kernel和逐语句标记；prefix一次计数
+C8,Budget Validation,真实Kernel和逐语句标记；prefix一次计数
+C8,Global Index,真实Kernel和逐语句标记；prefix一次计数
+C8,Padding,真实Kernel和逐语句标记；prefix一次计数
+C9,Owner读取,_mass/_weights内部融合，没有伪造单条load或atomic的独立耗时
+C9,Member Transfer,_mass/_weights内部融合，没有伪造单条load或atomic的独立耗时
+C9,Atomic Add,_mass/_weights内部融合，没有伪造单条load或atomic的独立耗时
+C9,Assigned Reduction,_mass/_weights内部融合，没有伪造单条load或atomic的独立耗时
+C9,Weight,_mass/_weights内部融合，没有伪造单条load或atomic的独立耗时
+C9,Logit Bias,_mass/_weights内部融合，没有伪造单条load或atomic的独立耗时
+C9,Validation,_mass/_weights内部融合，没有伪造单条load或atomic的独立耗时
+C10,Diagnostics,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加
+C10,Capture Warmup,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加
+C10,Constant Update,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加
+C10,Input Copy,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加
+C10,Replay,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加
+C10,Record Copy,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加
+C10,Synchronization,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加
+C10,Allocation,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加
+C10,Trim,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加
+C10,Python Scheduling,独立CPU runtime/内存事件；Graph初建与稳定重放分离；CPU与GPU不可相加

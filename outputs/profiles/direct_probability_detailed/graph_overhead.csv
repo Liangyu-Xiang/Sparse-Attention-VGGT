@@ -1,0 +1,25 @@
+operation,category,calls,gpu_inclusive_seconds,gpu_exclusive_seconds,includes_children,memory_bytes,memory_kind,mean_call_seconds,measurement
+"C/C10/graph_constants/L2/for dst, src in zip(self.constants, [z, reps, labels, population]):",C,46,0.0026839680000000006,0.0026839680000000006,True,,N/A: no hardware counters,5.834713043478262e-05,
+"C/C10/graph_constants/L3/for k, v in geometry.items():",C,46,0.0027957439999999984,0.0027957439999999984,True,,N/A: no hardware counters,6.077704347826084e-05,
+"C/C10/graph_constants/L5/for i, ((size, dst), (_, src)) in enumerate(zip(self.geometry['drop_bins'], geometry['drop_bins'])):",C,46,0.005675456000000001,0.005675456000000001,True,,N/A: no hardware counters,0.0001233794782608696,
+"C/C10/graph_replay/L2/for dest, src in zip(self.inputs, [prior, pi, old_ids, allowed]):",C,1518,0.09231961599999998,0.09231961599999998,True,,N/A: no hardware counters,6.081661133069827e-05,
+"C/graph_selection/L2/context = rule.gate(prior, pi, population, old_ids, labels, reps)",C,1524,0.17497104000000002,0.01966448,True,,N/A: no hardware counters,0.00011481039370078742,
+"C/graph_selection/L3/if geometry.get('fuse_state_kernel', False) and geometry['width'] <= 64:",C,1524,2.145798624000005,0.02247135999999996,True,,N/A: no hardware counters,0.0014080043464566963,
+"C/graph_selection/L12/selected, count = budget(geometry['objective'], costs, errors[:, :, 0].amax(1) + 1e-12, cap, iterations)",C,1524,0.45558224000000036,0.04513248000000009,True,,N/A: no hardware counters,0.00029893847769028897,
+C/graph_selection/L13/selected = rule.decode(selected),C,1524,0.011119744000000016,0.011119744000000016,True,,N/A: no hardware counters,7.296419947506573e-06,
+"C/graph_selection/L14/if geometry.get('p0_loss_pack', False):",C,1524,0.5434510080000003,0.11904931199999985,True,,N/A: no hardware counters,0.00035659514960629943,
+"C/graph_selection/L19/weights = rule.transfer(selected, labels, reps, None, prior, pi, ids, geometry, context)",C,1524,0.32355017599999997,0.025598048000000016,True,,N/A: no hardware counters,0.0002123032650918635,
+"C/graph_selection/L20/record.update(rule.diagnostics(errors, selected, None, old_ids, labels, reps, context))",C,1524,0.2497447679999997,0.005382112000000006,True,,N/A: no hardware counters,0.00016387451968503917,
+"C/graph_selection/L21/record['history_cap_discarded'] = torch.zeros(len(prior), device=prior.device)",C,1524,0.002552863999999931,0.002552863999999931,True,,N/A: no hardware counters,1.675107611548511e-06,
+C/C10/graph_replay/L3/self.graph.replay(),C,1518,3.885739424000001,0.04496720000000011,True,,N/A: no hardware counters,0.002559775641633729,
+C/C10/graph_replay/L4/record = {},C,1518,0.0018382720000000086,0.0018382720000000086,True,,N/A: no hardware counters,1.2109828722002691e-06,
+"C/C10/graph_replay/L5/for dtype, static in self.records.items():",C,1518,0.007320127999999969,0.007320127999999969,True,,N/A: no hardware counters,4.822218708827384e-06,
+C/C10/graph_initialization,C,6,0.204361952,0.13697392,True,,N/A: no hardware counters,0.034060325333333336,
+C6_C10/selection_graph,,,3.683288156449795,,True,,,,Low-overhead CUDA events; replay contains state/packing/transfer/budget
+"C10/constants/L2/for dst, src in zip(self.constants, [z, reps, labels, population]):",,,0.0019108799844980242,,True,,,,Low-overhead CUDA events; replay contains state/packing/transfer/budget
+"C10/graph_call/L2/for dest, src in zip(self.inputs, [prior, pi, old_ids, allowed]):",,,0.044053120018914246,,True,,,,Low-overhead CUDA events; replay contains state/packing/transfer/budget
+"C10/graph_call/L5/for dtype, static in self.records.items():",,,0.008266272054053888,,True,,,,Low-overhead CUDA events; replay contains state/packing/transfer/budget
+"C10/constants/L5/for i, ((size, dst), (_, src)) in enumerate(zip(self.geometry['drop_bins'], geometry['drop_bins'])):",,,0.002823615984991193,,True,,,,Low-overhead CUDA events; replay contains state/packing/transfer/budget
+C10/graph_call/L4/record = {},,,0.0005644800111185795,,True,,,,Low-overhead CUDA events; replay contains state/packing/transfer/budget
+"C10/constants/L3/for k, v in geometry.items():",,,0.0019421119969338179,,True,,,,Low-overhead CUDA events; replay contains state/packing/transfer/budget
+C10/graph_call/L3/self.graph.replay(),,,3.587362208276991,,True,,,,Low-overhead CUDA events; replay contains state/packing/transfer/budget
