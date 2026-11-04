@@ -59,3 +59,38 @@ other state definitions, budgets, and Triton kernels identical when comparing.
 Warning: the current public `refactor/unified-reuse-exploration` branch may
 predate uncommitted remote Codex improvements. DO NOT overwrite those files
 with this experimental branch without reviewing `git status` and diffs.
+
+
+## Timing breakdown: one separate profiling pass
+
+The evaluation runner now accepts `--profile-stages`. It first completes the
+ordinary uninstrumented warmup + measured forwards. It then executes **one
+additional** instrumented forward and saves `stage_profile.json`. Never
+substitute the instrumented wall time for the clean runtime median.
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python scripts/evaluate_reuse_exploration.py \
+  --method reuse_explore --scene heads --frames 128 \
+  --config configs/evaluation/reuse_residual_exploration_sparse_transport.json \
+  --output-dir outputs/profiles/sparse_transport_heads128 \
+  --warmup 1 --repeats 3 --diagnostic --profile-stages
+
+python scripts/summarize_stage_profile.py \
+  outputs/profiles/sparse_transport_heads128/stage_profile.json
+```
+
+Run a matched legacy control in a NEW directory using the original evaluation
+config. GPU 0 must have no other measuring process; do not run the two versions
+simultaneously on the same GPU.
+
+The profiler records 24 layers and includes CUDA-event times for Value update,
+pooling, coarse observation, prior, combined reuse/budget, History summary,
+History compaction, and sparse execution/evidence. Nested `sub/` stages
+separate History probability, prefix/grouping, state construction, dual solver
+and mask packing without double counting them under their parent.
+
+**Limitations:** these are event spans, not individual CUDA kernel self times.
+They include CPU scheduling/launch gaps between GPU markers; a separate
+torch.profiler/Nsight trace is needed for CPU self time and kernel launch counts.
+The unaccounted wall time also includes model QKV/projection, frame-local blocks,
+prediction heads, and Python-side work not surrounded by stages.
