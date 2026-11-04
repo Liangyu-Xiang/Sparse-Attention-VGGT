@@ -338,7 +338,11 @@ class ReuseResidualExploration(nn.Module):
             geometry=None
             if self.layer and c.compact and q.is_cuda:
                 from saf3r.triton import reuse_compact as compact
-                geometry=compact.prepare_geometry(zvalues,s.fine.labels,s.fine.reps,population,l2=c.state_l2)
+                if c.shared_value_loss:
+                    from saf3r.triton.reuse_shared_value_states import prepare_geometry as prepare_shared_geometry
+                    geometry=prepare_shared_geometry(zvalues,s.fine.labels,s.fine.reps,population)
+                else:
+                    geometry=compact.prepare_geometry(zvalues,s.fine.labels,s.fine.reps,population,l2=c.state_l2)
                 from saf3r.triton.reuse_drop_moment import prepare as prepare_drop,drop_norm
                 if geometry is not None:geometry['drop_bins']=prepare_drop(population)
             if self.layer and (c.state_l2 or c.direction_drop) and geometry is None:raise RuntimeError('Combined method requires compact geometry')
