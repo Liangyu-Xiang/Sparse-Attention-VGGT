@@ -10,6 +10,19 @@ import triton
 import triton.language as tl
 
 
+def prepare_geometry(z, labels, reps, population):
+    """Compute only the Value scalars required by the new loss, not O(N*width) pair distances."""
+    width = triton.next_power_of_2(int(population.max()))
+    if width > 256:
+        raise ValueError("Shared Value loss currently supports at most 256 members per cluster")
+    v_rep = z[reps[labels]]
+    return dict(
+        width=width,
+        norm2=(z*z).sum(-1).contiguous(),
+        rep_distance=((z-v_rep)*(z-v_rep)).sum(-1).contiguous(),
+    )
+
+
 def prepare(z, labels, reps, grid, regions, geometry):
     """Once per layer, pack sparse Cluster x Grid statistics into existing width."""
     f = len(reps)
