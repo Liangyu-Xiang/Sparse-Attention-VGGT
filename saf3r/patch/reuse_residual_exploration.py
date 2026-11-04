@@ -481,7 +481,10 @@ class ReuseResidualExploration(nn.Module):
                                     record['truly_dropped_clusters']=(selected==0).sum(1)-parent_record['delegated_clusters']
                             limit=c.history_per_cluster
                             if geometry is not None:
-                                record.update(rule.diagnostics(errors,selected,hids,old_ids,s.fine.labels,s.fine.reps,history_context))
+                                if c.minimal_diagnostics:
+                                    record['implementation_validation_error']=history_context['pack_error']|(history_context['mass_error']>1e-5)
+                                else:
+                                    record.update(rule.diagnostics(errors,selected,hids,old_ids,s.fine.labels,s.fine.reps,history_context))
                             else:
                                 reused=torch.where((selected>=2)&(selected<=limit+1),selected-1,
                                     torch.where((selected>=limit+2)&(selected<=2*limit+1),selected-limit-1,0))
