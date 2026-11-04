@@ -69,3 +69,23 @@ Run `python -m scripts.run_sampled_history_integration`,then
 `python -m scripts.report_sampled_history_integration`. Frozen full source,
 hashes,logs,exclusive monitors,raw quality and all tables are under
 `outputs/sampled_history_quality_20261104`.
+
+## Completed results
+
+All36 pose+unposed-reconstruction runs completed with six metrics;36 scene
+audits,38 GPU-exclusive monitors and737 source hashes verified. Full-forward
+median32=15.222148s,256=14.366136s,5.62346% lower wall time for256. Peak allocated
+18.253244/17.992786GiB. These are paired method-to-method timings;Dense speedup
+remains N/A.
+
+7Scenes32:AUC3=22.7040%,AUC30=84.4103%,ACC=.144742m,Comp=.123145m,
+CD=.133944m,F1=46.5072%. 7Scenes256:AUC3=22.3806%,AUC30=84.4531%,
+ACC=.150148m,Comp=.123331m,CD=.136739m,F1=47.1048%.
+
+ETH3D32:AUC3=21.6994%,AUC30=78.2119%,ACC=.334705m,Comp=.881240m,
+CD=.607972m,F1=54.6464%. ETH3D256:AUC3=21.7618%,AUC30=77.7107%,
+ACC=.359736m,Comp=.930192m,CD=.644964m,F1=52.5911%.
+
+256vs32:7Scenes F1+.597578points but CD+2.087174%;ETH3D F1-2.055319points
+and CD+6.084394%. Keep the speed/quality tradeoff explicit;default unchanged.
+Full per-scene tables,raw quality and timing breakdown are in the campaign report.
