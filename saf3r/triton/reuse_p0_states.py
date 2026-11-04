@@ -40,7 +40,7 @@ def states(prior,z,reps,labels,population,allowed,geometry,context):
     allowed=allowed.contiguous()
     errors=torch.empty((g,f,4),device=prior.device);costs=torch.empty_like(errors);objective=torch.empty_like(errors);owner=torch.empty((g,n),device=prior.device,dtype=torch.int32)
     for index,(size,clusters) in enumerate(geometry['drop_bins']):
-        c=min(8,max(1,64//size))
+        c=min(16,max(1,128//size))
         pointer='drop_bin_counts' in geometry
         count=geometry['drop_bin_counts'][index] if pointer else len(clusters)
         _states[(triton.cdiv(g,2),triton.cdiv(len(clusters),c))](prior,z,geometry['members'],geometry['distances'],geometry['rep_distance'],context['qualified'],context['remove_rep'],context['eligible_count'],allowed,population,clusters,errors,costs,objective,owner,n,f,d,geometry['width'],count,c,size,triton.next_power_of_2(d),pointer,g,2,num_warps=8 if size>=16 else 4,enable_fp_fusion=False)

@@ -15,6 +15,7 @@ from .value_evolving_attention import token_layout
 
 @dataclass(frozen=True)
 class ReuseExploreConfig:
+    p0_loss_pack: bool = False
     fused_coarse:bool=False
     graph_cache_capacity:int=24
     attention_block_keys:int=64

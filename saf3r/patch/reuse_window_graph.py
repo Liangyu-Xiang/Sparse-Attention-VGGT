@@ -11,14 +11,21 @@ from saf3r.triton.reuse_drop_moment import drop_norm
 def eager(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterations,drop_multiplier):
     context=rule.gate(prior,pi,population,old_ids,labels,reps)
     if geometry.get('fuse_state_kernel',False) and geometry['width']<=64:
-        from saf3r.triton.reuse_fused_states import states
+        if geometry.get("p0_loss_pack",False):
+            from saf3r.triton.reuse_p0_states import states
+        else:
+            from saf3r.triton.reuse_fused_states import states
         errors,costs=states(prior,z,reps,labels,population,allowed,geometry,context)
     else:
         geometry['drop_values']=drop_norm(prior,z,geometry,len(reps),geometry['drop_bins'])
         errors,costs=rule.states(pi,z,reps,labels,population,None,allowed,prior,drop_multiplier,geometry,context)
     selected,count=budget(geometry['objective'],costs,errors[:,:,0].amax(1)+1e-12,cap,iterations)
     selected=rule.decode(selected)
-    ids,real,record=rule.pack(selected,None,reps,labels,population,cap,context)
+    if geometry.get("p0_loss_pack",False):
+        from saf3r.triton.reuse_p0_pack import pack
+        ids,real,record=pack(selected,reps,labels,population,cap,geometry,context)
+    else:
+        ids,real,record=rule.pack(selected,None,reps,labels,population,cap,context)
     weights=rule.transfer(selected,labels,reps,None,prior,pi,ids,geometry,context)
     record.update(rule.diagnostics(errors,selected,None,old_ids,labels,reps,context))
     record['history_cap_discarded']=torch.zeros(len(prior),device=prior.device)
@@ -62,6 +69,7 @@ class Window:
         return self.ids,self.real,self.weights,record
 
 def select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometry):
+    geometry["p0_loss_pack"]=getattr(state.config,"p0_loss_pack",False)
     if getattr(state.config,'reuse_window_graphs',False) and geometry.get('fuse_state_kernel',False) and geometry['width']<=64:
         import triton
         from collections import OrderedDict
