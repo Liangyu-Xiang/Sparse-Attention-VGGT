@@ -27,7 +27,7 @@ def observe_execution(s,q,k,start,ids,actual,bias,obs,scale,evidence):
     scope=getattr(s,'direct_scope',lambda name:nullcontext());first=start*32;end=min(s.n,(start+len(ids))*32);qw=q[:,first:end]
     positions=(obs['positions']-first).int().contiguous();grid=s.grid[ids.long().clamp_min(0)].contiguous()
     with scope('legacy_full_query_grid_and_probe_observation'):
-        summary,den,counts=kernels.observe(qw,k,actual,grid,bias,positions,evidence['lse'],obs['grid_logits'].contiguous(),s.grid_sizes,scale,obs['direct_max_key_norm'],obs['probe_q'])
+        summary,den,counts=kernels.observe(qw,k,actual,grid,bias,positions,evidence['lse'],obs['grid_logits'].contiguous(),s.grid_sizes,scale,obs['direct_max_key_norm'],obs['probe_q'],probe_only_summary=s.config.direct_probe_grid_summary,probe_weights=obs['weights'])
     obs.update(direct_den=den,direct_positions=positions,direct_grid=grid,direct_counts=counts)
     return summary
 
