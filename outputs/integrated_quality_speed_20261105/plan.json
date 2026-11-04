@@ -1,0 +1,55 @@
+{
+  "stage": "stage1_rgb_local_fidelity_and_timing",
+  "frames": 128,
+  "sample_mode": "uniform",
+  "seed": 0,
+  "quality_tasks": [
+    "pose",
+    "recon_unposed"
+  ],
+  "quality_fields": [
+    "auc03",
+    "auc30",
+    "acc",
+    "comp",
+    "cd",
+    "f1"
+  ],
+  "datasets": {
+    "7scenes": [
+      "chess",
+      "fire",
+      "heads",
+      "office",
+      "pumpkin",
+      "redkitchen",
+      "stairs"
+    ],
+    "eth3d": [
+      "courtyard",
+      "electro",
+      "kicker",
+      "pipes",
+      "relief",
+      "delivery_area",
+      "facade",
+      "office",
+      "playground",
+      "relief_2",
+      "terrains"
+    ]
+  },
+  "eth3d_scope": "Repository configured 11 scenes; excludes terrace and meadow per existing protocol; no silent changes",
+  "speed_scope": "7scenes only; warmed median complete forward, 1 warmup + 3 repeats; all method initialization/history/reordering included",
+  "timing_target": "method_seconds / matched_SAF3R_seconds <= 1.10, preferably <=1.00",
+  "controls": "Await explicit answer for paired Dense/SAF3R timing per worktree AGENTS.md; unchanged complete quality may be reused with provenance",
+  "research_inputs": {
+    "accuracy": "01a1a728-d8cc-7f10-925c-d34ee01a58d7",
+    "speed": "01a1a7b2-9b17-7743-92d6-cb349555bbe6",
+    "workflow": "01a1a704-338b-7400-9ff9-56467dc90860"
+  },
+  "noninterference": "Read-only until all research turns complete. No messages or changes in their worktrees. Independent worktree only.",
+  "selection_policy": "RGB-only calibration with 128 disjoint frames per heads/chess, no geometric truth. Local projected Dense outputs computed only after masks exist, in separate instrumented forward. This proxy is not an independent Dense trajectory or a quality guarantee. Freeze before final pose/recon_unposed.",
+  "integration_policy": "Preserve research implementations with provenance; regressions are not automatically enabled. Distinguish original nondeterministic and deterministic references.",
+  "density_policy": "Historical SAF3R logical final-attention density ~0.15853 at 128 frames. Explore mean density caps 0.16, 0.17, 0.18 with fixed initial cluster count, plus original0.20 reference; dense-query correction counts in unique and duplicate logical work separately."
+}

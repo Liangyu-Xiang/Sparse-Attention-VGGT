@@ -1,0 +1,22 @@
+{
+  "inputs": [
+    "heads",
+    "chess"
+  ],
+  "configs": {
+    "uniform16": "/data_NVME1/mmc_lyxiang/3D/SAF3R-integrated-quality-speed/configs/evaluation/integrated_20261105/uniform16.json",
+    "uniform18": "/data_NVME1/mmc_lyxiang/3D/SAF3R-integrated-quality-speed/configs/evaluation/integrated_20261105/uniform18.json",
+    "middle16": "/data_NVME1/mmc_lyxiang/3D/SAF3R-integrated-quality-speed/configs/evaluation/integrated_20261105/middle16.json",
+    "middle18": "/data_NVME1/mmc_lyxiang/3D/SAF3R-integrated-quality-speed/configs/evaluation/integrated_20261105/middle18.json",
+    "uniform16_f12": "/data_NVME1/mmc_lyxiang/3D/SAF3R-integrated-quality-speed/configs/evaluation/integrated_20261105/uniform16_f12.json",
+    "middle16_f12": "/data_NVME1/mmc_lyxiang/3D/SAF3R-integrated-quality-speed/configs/evaluation/integrated_20261105/middle16_f12.json",
+    "uniform16_f12_i1": "/data_NVME1/mmc_lyxiang/3D/SAF3R-integrated-quality-speed/configs/evaluation/integrated_20261105/uniform16_f12_i1.json",
+    "middle16_f12_i1": "/data_NVME1/mmc_lyxiang/3D/SAF3R-integrated-quality-speed/configs/evaluation/integrated_20261105/middle16_f12_i1.json"
+  },
+  "scope": "RGB-only calibration, disjoint from all final evaluation frames; no geometric truth read",
+  "reference_retention": 0.2,
+  "fixed_cluster_count_policy": "Follows original0.2 budget unless explicitly f12. f12 uses floor(0.12*N_patch), independent of layer budgets. i1 changes centroid updates2->1; these are explicit algorithm variants, not equivalent optimizations.",
+  "density_target": "mean actual unique total-Key density near historical SAF3R0.15853 or slightly higher; caps0.16/0.18 plus dense camera correction are measured separately",
+  "selection": "Freeze at most two final methods before GT. Fastest valid candidate and lowest local error among valid candidates within1.10x its complete-forward time. Compare final quality without retuning; do not claim proxy improvement is a geometric gain.",
+  "timing_eligibility": "Strict foreign-GPU monitors clean, finite outputs, no support/budget violations. Final speed claims require new matched controls if approved."
+}
