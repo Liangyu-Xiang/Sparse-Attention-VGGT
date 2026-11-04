@@ -18,6 +18,7 @@ class ReuseExploreConfig:
     flash_group_chunk: int = 16
     direct_probe_grid_summary: bool = False
     minimal_diagnostics: bool = False
+    direct_compact_pack: bool = False
     p0_loss_pack: bool = False
     fused_coarse:bool=False
     graph_cache_capacity:int=24
@@ -71,6 +72,7 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.direct_compact_pack and self.execution_kernel!='direct_sparse':raise ValueError('Direct compact pack requires direct_sparse AV')
         if self.hierarchical and (not self.compact or self.history_mode!='dense_m5c' or self.history_per_cluster!=4 or not self.mass_transfer or self.disable_population_compensation or self.attention_backend!='indexed'):raise ValueError('Hierarchy requires full M5c compact transfer with History Top-4')
         if self.parent_arity not in (2,4) or self.parent_passes not in (1,2) or self.parent_moment_mode not in ('exact','calibrated'):raise ValueError('Invalid parent operating-point configuration')
         if self.clustering_mode not in ('source_anchored','adaptive_local','adaptive_certified') or self.cluster_neighbors<1:raise ValueError('Invalid clustering policy')
@@ -464,7 +466,11 @@ class ReuseResidualExploration(nn.Module):
                             with stage(s,'parent_joint_allocation'):
                                 selected,parent_owners,parent_steps=hierarchy.allocate(errors,costs,pi,zvalues,s.fine.reps,hids,prior,selected,s.parent_prepared,s.budget,c.dual_iterations,c.parent_passes,geometry,c.parent_moment_mode)
                         if geometry is not None:
-                            ids,real,record=rule.pack(selected,hids,s.fine.reps,s.fine.labels,population,s.budget,history_context)
+                            if c.direct_compact_pack:
+                                from saf3r.triton.reuse_direct_pack import pack as compact_pack
+                                ids,real,record=compact_pack(selected,s.fine.reps,s.fine.labels,population,s.budget,geometry,history_context)
+                            else:
+                                ids,real,record=rule.pack(selected,hids,s.fine.reps,s.fine.labels,population,s.budget,history_context)
                         else:
                             ids,pops,real,record=pack_support(selected,hids,s.fine.reps,s.fine.labels,population,s.budget)
                         if c.state_loss=="cosine_distortion":
