@@ -39,7 +39,10 @@ def pack(selected,reps,labels,population,budget,geometry,context):
     _counts[(g,triton.cdiv(f,256))](selected,context['eligible_count'],population,context['remove_rep'],counts,bad,f,256,num_warps=4)
     prefix=counts.cumsum(1,dtype=torch.int32);total=prefix[:,-1];actual=torch.empty_like(counts)
     ids=torch.full((g,budget),-1,device=selected.device,dtype=torch.int32)
-    _write[(g,triton.cdiv(f,8))](selected,reps,geometry['members'],context['qualified'],prefix,ids,actual,n,f,geometry['width'],budget,8,num_warps=4)
+    # Bound the CTA's [cluster,member] tile while avoiding the extremely
+    # large launch grid of the historical 8-clusters-per-CTA prototype.
+    cluster_tile=max(8,min(32,1024//geometry['width']))
+    _write[(g,triton.cdiv(f,cluster_tile))](selected,reps,geometry['members'],context['qualified'],prefix,ids,actual,n,f,geometry['width'],budget,cluster_tile,num_warps=4)
     # Grid-free Direct Attention requires only unique valid IDs, not token sorting.
     # Always compare Key sets and ID-aligned bias/cache values in regression tests.
     emitted=actual.sum(1)
