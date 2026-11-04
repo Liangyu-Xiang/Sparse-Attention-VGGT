@@ -15,6 +15,7 @@ from .value_evolving_attention import token_layout
 
 @dataclass(frozen=True)
 class ReuseExploreConfig:
+    flash_group_chunk: int = 16
     p0_loss_pack: bool = False
     fused_coarse:bool=False
     graph_cache_capacity:int=24
@@ -506,6 +507,10 @@ class ReuseResidualExploration(nn.Module):
                         from saf3r.triton.reuse_serial_tuned import weighted_attention
                         from functools import partial
                         weighted_attention=partial(weighted_attention,stages=c.attention_stages)
+                    elif c.execution_kernel=='torch_flash':
+                        from saf3r.triton.reuse_torch_flash import weighted_attention
+                        from functools import partial
+                        weighted_attention=partial(weighted_attention,group_chunk=c.flash_group_chunk,scope=getattr(s,'flash_scope',None))
                     elif c.execution_kernel=='split_fused':
                         from saf3r.triton.reuse_split_fused_history import weighted_attention
                         from functools import partial

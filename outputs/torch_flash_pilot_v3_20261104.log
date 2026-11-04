@@ -1,0 +1,118 @@
+0 {'seconds': 48.6791304606013, 'peak_allocated_gib': 17.695993423461914, 'peak_reserved_gib': 22.78515625}
+1 {'seconds': 43.47214816277847, 'peak_allocated_gib': 18.341172695159912, 'peak_reserved_gib': 24.595703125}
+2 {'seconds': 43.321935252752155, 'peak_allocated_gib': 18.87095022201538, 'peak_reserved_gib': 25.681640625}
+3 {'seconds': 43.43446359504014, 'peak_allocated_gib': 18.870606899261475, 'peak_reserved_gib': 25.9296875}
+{
+  "complete": true,
+  "median_seconds": 43.43446359504014,
+  "samples": [
+    {
+      "seconds": 43.47214816277847,
+      "peak_allocated_gib": 18.341172695159912,
+      "peak_reserved_gib": 24.595703125
+    },
+    {
+      "seconds": 43.321935252752155,
+      "peak_allocated_gib": 18.87095022201538,
+      "peak_reserved_gib": 25.681640625
+    },
+    {
+      "seconds": 43.43446359504014,
+      "peak_allocated_gib": 18.870606899261475,
+      "peak_reserved_gib": 25.9296875
+    }
+  ],
+  "cold": {
+    "seconds": 48.6791304606013,
+    "peak_allocated_gib": 17.695993423461914,
+    "peak_reserved_gib": 22.78515625
+  },
+  "config": {
+    "retention": 0.2,
+    "state_l2": true,
+    "direction_drop": true,
+    "clustering_mode": "adaptive_local",
+    "cluster_neighbors": 32,
+    "hierarchical": false,
+    "parent_arity": 4,
+    "parent_passes": 2,
+    "parent_moment_mode": "exact",
+    "cluster_fraction": null,
+    "disable_population_compensation": false,
+    "grid_y": 2,
+    "grid_x": 2,
+    "source_width": 32,
+    "local_iterations": 2,
+    "window_groups": 64,
+    "history_per_cluster": 4,
+    "candidate_fraction": 0.25,
+    "dual_iterations": 16,
+    "capture": false,
+    "query_shift": 0,
+    "allocation_objective": "min_error",
+    "evidence_mode": "fused_grid",
+    "state_loss": "cosine_distortion",
+    "prior_floor_fraction": 1e-06,
+    "drop_multiplier": 1.0,
+    "history_mode": "dense_m5c",
+    "mass_transfer": true,
+    "rep_gain": true,
+    "compact": true,
+    "attention_backend": "indexed",
+    "layer_retentions": null,
+    "refresh_interval": 1,
+    "reference_dual_iterations": 16,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "history_evidence_backend": "grid_fused",
+    "history_cache_format": "packed",
+    "execution_kernel": "torch_flash",
+    "fuse_mask_ops": true,
+    "budget_graph": false,
+    "window_graph": true,
+    "cache_probe_indices": true,
+    "fuse_state_kernel": true,
+    "reuse_window_graphs": true,
+    "attention_stages": 1,
+    "attention_warps": 4,
+    "fused_coarse": true,
+    "graph_cache_capacity": 24,
+    "flash_group_chunk": 16
+  },
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Performance-only full-forward diagnostic",
+  "dense_speedup": null,
+  "dense_reason": "User prohibited unchanged Dense rerun; historical heads128 Dense 12.216022619977593 s is not paired",
+  "historical_dense_seconds": 12.216022619977593,
+  "profile": {
+    "wall_seconds": 43.59590029902756,
+    "exclusive_seconds": {
+      "value_update": 1.087468704223633,
+      "pooling": 0.08017475175857543,
+      "m5c_coarse_observation": 0.10200495912134615,
+      "execution_and_evidence": 30.469867547512088,
+      "m5c_evidence_and_host_copy": 2.0170224717185,
+      "history_summary": 0.041428160034120004,
+      "coarse_observation": 0.23402787285484097,
+      "residual_fine_probe": 0.3538100776895887,
+      "reuse_and_budget": 4.041205057382578
+    },
+    "unattributed_seconds": 5.168890696732298,
+    "scope": "Disjoint top-level stages; flash_parts are nested inside execution_and_evidence,never added twice",
+    "flash_parts": {
+      "flash_support_sort": 0.4953943371251208,
+      "flash_pack_qkv_bias": 15.5548192632796,
+      "flash_native_av": 8.608940637111685,
+      "flash_unpack_output": 0.02108617612090879,
+      "flash_v8_evidence_qk": 5.73767875391243
+    },
+    "flash_calls": 6264
+  }
+}

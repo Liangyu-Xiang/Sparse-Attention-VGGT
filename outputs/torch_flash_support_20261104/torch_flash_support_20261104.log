@@ -1,0 +1,99 @@
+/tmp/probe_torch_flash_support.py:10: UserWarning: Memory efficient kernel not used because: (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:915.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: Memory Efficient attention has been runtime disabled. (Triggered internally at /pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:552.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: Flash attention kernel not used because: (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:917.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: Flash Attention does not support non-null attn_mask. (Triggered internally at /pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:262.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: cuDNN attention kernel not used because: (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:919.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: cuDNN attention has been runtime disabled. (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:635.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: Memory efficient kernel not used because: (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:915.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: Memory Efficient attention has been runtime disabled. (Triggered internally at /pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:552.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: Flash attention kernel not used because: (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:917.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: Flash Attention does not support non-null attn_mask. (Triggered internally at /pytorch/aten/src/ATen/native/transformers/sdp_utils_cpp.h:262.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: cuDNN attention kernel not used because: (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:919.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+/tmp/probe_torch_flash_support.py:10: UserWarning: cuDNN attention has been runtime disabled. (Triggered internally at /pytorch/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp:635.)
+  with sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION]):out=F.scaled_dot_product_attention(q,k,v,attn_mask=bias)
+{
+  "checks": [
+    {
+      "dtype": "torch.float16",
+      "mode": "direct_bias",
+      "works": false,
+      "reason": "No available kernel. Aborting execution."
+    },
+    {
+      "dtype": "torch.float16",
+      "mode": "augment",
+      "dim": 72,
+      "works": true,
+      "finite": true,
+      "relative_l2": 0.0002173396642319858,
+      "ops": [
+        "aten::scaled_dot_product_attention",
+        "aten::_scaled_dot_product_flash_attention"
+      ]
+    },
+    {
+      "dtype": "torch.float16",
+      "mode": "augment",
+      "dim": 128,
+      "works": true,
+      "finite": true,
+      "relative_l2": 0.0002173396642319858,
+      "ops": [
+        "aten::scaled_dot_product_attention",
+        "aten::_scaled_dot_product_flash_attention"
+      ]
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "mode": "direct_bias",
+      "works": false,
+      "reason": "No available kernel. Aborting execution."
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "mode": "augment",
+      "dim": 72,
+      "works": true,
+      "finite": true,
+      "relative_l2": 0.0017345530213788152,
+      "ops": [
+        "aten::scaled_dot_product_attention",
+        "aten::_scaled_dot_product_flash_attention"
+      ]
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "mode": "augment",
+      "dim": 128,
+      "works": true,
+      "finite": true,
+      "relative_l2": 0.0017345530213788152,
+      "ops": [
+        "aten::scaled_dot_product_attention",
+        "aten::_scaled_dot_product_flash_attention"
+      ]
+    }
+  ],
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Backend capability diagnostic only; no geometry evaluation",
+  "dense_speedup": null,
+  "dense_reason": "Capability diagnostic,not timed full-forward comparison"
+}

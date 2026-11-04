@@ -1,0 +1,76 @@
+{
+  "checks": [
+    {
+      "dtype": "torch.float16",
+      "mode": "direct_bias",
+      "works": false,
+      "reason": "No available kernel. Aborting execution."
+    },
+    {
+      "dtype": "torch.float16",
+      "mode": "augment",
+      "dim": 72,
+      "works": true,
+      "finite": true,
+      "relative_l2": 0.0002173396642319858,
+      "ops": [
+        "aten::scaled_dot_product_attention",
+        "aten::_scaled_dot_product_flash_attention"
+      ]
+    },
+    {
+      "dtype": "torch.float16",
+      "mode": "augment",
+      "dim": 128,
+      "works": true,
+      "finite": true,
+      "relative_l2": 0.0002173396642319858,
+      "ops": [
+        "aten::scaled_dot_product_attention",
+        "aten::_scaled_dot_product_flash_attention"
+      ]
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "mode": "direct_bias",
+      "works": false,
+      "reason": "No available kernel. Aborting execution."
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "mode": "augment",
+      "dim": 72,
+      "works": true,
+      "finite": true,
+      "relative_l2": 0.0017345530213788152,
+      "ops": [
+        "aten::scaled_dot_product_attention",
+        "aten::_scaled_dot_product_flash_attention"
+      ]
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "mode": "augment",
+      "dim": 128,
+      "works": true,
+      "finite": true,
+      "relative_l2": 0.0017345530213788152,
+      "ops": [
+        "aten::scaled_dot_product_attention",
+        "aten::_scaled_dot_product_flash_attention"
+      ]
+    }
+  ],
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Backend capability diagnostic only; no geometry evaluation",
+  "dense_speedup": null,
+  "dense_reason": "Capability diagnostic,not timed full-forward comparison",
+  "complete": true
+}

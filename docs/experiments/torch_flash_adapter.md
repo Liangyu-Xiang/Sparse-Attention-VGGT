@@ -1,0 +1,11 @@
+# PyTorch FLASH_ATTENTION compatibility prototype
+
+Starting point6285125b on independent branch codex/v8-torch-flash-20261104; frozen v8 policy,retention20%,four probes,P0 disabled. No changes to clustering,losses,budget,history probability or compensation formula. Only the AV backend is opt-in.
+
+The installed PyTorch2.9.1 Flash backend rejects non-null attn_mask. The adapter packs each32-query Group and its selected K/V, encodes FP32 bias/scale in three residual FP16/BF16 channels (head64→72), and forces sdpa_kernel([FLASH_ATTENTION]). Invalid Key slots duplicate Special0; its unnormalized mass is divided among copies, preserving aggregate attention without nonfinite K values. Original v8 raw probes and full-query Grid summaries are computed in an independent QK-only statistics pass. This prototype therefore still has Grid routing and duplicated auxiliary QK; it does NOT satisfy the later Direct Sparse/no-Grid specification.
+
+Small FP16/BF16 cases and all24 first-window native-dispatch/AV/evidence checks pass. Selected raw probes and Grid statistics match the original exactly in tested cases. AV differences reflect Flash/BF16 and bias encoding. Initial head-stride rejection and unsafe -inf-padding failures are preserved. The final successful adapter uses actual query head stride and duplicate-padding normalization.
+
+Heads128 on GPU7: one warmup+three complete forwards; see outputs/torch_flash_pilot_v3_20261104/result.json. Median43.434463595s. Separate profile: packing15.554819s,native Flash AV8.608941s,independent evidence QK5.737679s,Grid sort0.495394s. These nested parts are not added again to top-level stages. CPU-only lock/monitor,one CUDA process per physical GPU. Dense speedup N/A:no unchanged Dense rerun in this batch; historical Dense is not a paired denominator.
+
+All six geometry scores are unavailable: the user steered implementation to the later Direct Sparse/no-Grid specification before a full quality campaign started. This is a compatibility/performance diagnostic,not a complete quality evaluation. Native Flash compatibility is demonstrated; end-to-end acceleration is NOT achieved. Default unchanged. The subsequent direct kernel will be developed on its own branch and compared on fixed identical Q/K/V,IDs,bias before changing history.
