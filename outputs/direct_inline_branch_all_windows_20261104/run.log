@@ -1,0 +1,144 @@
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/scripts/benchmark_inline_probability.py", line 94, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/scripts/benchmark_inline_probability.py", line 85, in main
+    with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):model(images)
+                                                                            ^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/models/vggt.py", line 65, in forward
+    aggregated_tokens_list, patch_start_idx = self.aggregator(images)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1881, in _call_impl
+    return inner()
+           ^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1829, in inner
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/models/aggregator.py", line 261, in forward
+    tokens, global_idx, global_intermediates = self._process_global_attention(
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/models/aggregator.py", line 317, in _process_global_attention
+    tokens = self.global_blocks[global_idx](tokens, pos=pos)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/layers/block.py", line 105, in forward
+    x = x + attn_residual_func(x, pos=pos)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/layers/block.py", line 83, in attn_residual_func
+    return self.ls1(self.attn(self.norm1(x), pos=pos))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/patch/reuse_residual_exploration.py", line 519, in forward
+    result,direct_evidence=direct_sparse_attention(q[:,first:end],k,v,actual,s.specials,o.scale,logit_bias=bias,
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/scripts/benchmark_inline_probability.py", line 55, in run
+    for _ in range(2):fn()
+                      ^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/scripts/benchmark_inline_probability.py", line 50, in fn
+    def fn():return direct_sparse_attention_sampled(q,k,v,ids,specials,scale,bias,positions,probe_count=a.probes,probe_group_stride=stride)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/triton/reuse_direct_sampled_probability.py", line 33, in direct_sparse_attention_sampled
+    compiled=_branch[(g,h)](q,k,v,sparse_key_ids,special_key_ids,logit_bias if logit_bias is not None else lse,probe_positions,out,lse,local,shift,h,r,k.shape[1],a,s,d,q.stride(0),k.stride(0),v.stride(0),scale,max(16,triton.next_power_of_2(d)),block_keys,logit_bias is not None,p,tiles,4 if debiased_log else 3,probe_group_stride,num_warps=num_warps,num_stages=num_stages)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 419, in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 733, in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 861, in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py", line 242, in compile
+    key = get_cache_key(src, backend, options, env_vars=env_vars)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/cache.py", line 308, in get_cache_key
+    key = f"{triton_key()}-{src.hash()}-{backend.hash()}-{backend_options.hash()}-{str(sorted(env_vars.items()))}"
+                            ^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py", line 75, in hash
+    key = f"{self.fn.cache_key}-{str(self.attrs)}-{sorted_sig}-{constants_key}"
+             ^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 548, in cache_key
+    dependencies_finder.visit(self.parse())
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 418, in visit
+    return visitor(node)
+           ^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 426, in generic_visit
+    self.visit(item)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 418, in visit
+    return visitor(node)
+           ^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 194, in visit_FunctionDef
+    self.generic_visit(node)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 426, in generic_visit
+    self.visit(item)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 418, in visit
+    return visitor(node)
+           ^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 426, in generic_visit
+    self.visit(item)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 418, in visit
+    return visitor(node)
+           ^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 428, in generic_visit
+    self.visit(value)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 418, in visit
+    return visitor(node)
+           ^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 428, in generic_visit
+    self.visit(value)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/ast.py", line 418, in visit
+    return visitor(node)
+           ^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 172, in visit_Name
+    self.record_reference(val, var_dict, node.id)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 148, in record_reference
+    self.used_global_vals[(name, id(var_dict))] = (copy.deepcopy(val), var_dict)
+                                                   ^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/copy.py", line 172, in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/copy.py", line 271, in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/copy.py", line 146, in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/copy.py", line 231, in _deepcopy_dict
+    y[deepcopy(key, memo)] = deepcopy(value, memo)
+                             ^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/copy.py", line 172, in deepcopy
+    y = _reconstruct(x, memo, *rv)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/copy.py", line 271, in _reconstruct
+    state = deepcopy(state, memo)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/copy.py", line 146, in deepcopy
+    y = copier(x, memo)
+        ^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/copy.py", line 231, in _deepcopy_dict
+    y[deepcopy(key, memo)] = deepcopy(value, memo)
+                             ^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/copy.py", line 161, in deepcopy
+    rv = reductor(4)
+         ^^^^^^^^^^^
+TypeError: cannot pickle '_thread.RLock' object

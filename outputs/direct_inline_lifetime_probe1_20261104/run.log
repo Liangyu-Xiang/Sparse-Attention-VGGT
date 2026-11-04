@@ -1,0 +1,112 @@
+Traceback (most recent call last):
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py", line 43, in wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py", line 2192, in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py", line 1297, in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py", line 1259, in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py", line 705, in broadcast_impl_shape
+    raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (32) at non-singleton dimension 0: ['32', '128'], ['1', '128']
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/scripts/benchmark_inline_probability.py", line 78, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/scripts/benchmark_inline_probability.py", line 69, in main
+    with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):model(images)
+                                                                            ^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/models/vggt.py", line 65, in forward
+    aggregated_tokens_list, patch_start_idx = self.aggregator(images)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1881, in _call_impl
+    return inner()
+           ^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1829, in inner
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/models/aggregator.py", line 261, in forward
+    tokens, global_idx, global_intermediates = self._process_global_attention(
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/models/aggregator.py", line 317, in _process_global_attention
+    tokens = self.global_blocks[global_idx](tokens, pos=pos)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/layers/block.py", line 105, in forward
+    x = x + attn_residual_func(x, pos=pos)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/models/official_vggt/layers/block.py", line 83, in attn_residual_func
+    return self.ls1(self.attn(self.norm1(x), pos=pos))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/patch/reuse_residual_exploration.py", line 519, in forward
+    result,direct_evidence=direct_sparse_attention(q[:,first:end],k,v,actual,s.specials,o.scale,logit_bias=bias,
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/scripts/benchmark_inline_probability.py", line 45, in run
+    for _ in range(2):fn()
+                      ^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/scripts/benchmark_inline_probability.py", line 42, in fn
+    def fn():return original(q,k,v,ids,specials,scale,bias,positions,export is not None,history_export=export or 'lse_probe')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/saf3r/triton/reuse_direct_sparse_attention.py", line 137, in direct_sparse_attention
+    _attention[(g,h)](q,k,v,sparse_key_ids,special_key_ids,logit_bias if logit_bias is not None else lse,probe_positions,out,lse,local,local_lse,h,r,k.shape[1],a,s,d,q.stride(0),k.stride(0),v.stride(0),scale,max(16,triton.next_power_of_2(d)),block_keys,logit_bias is not None,inline,p,tiles,fastinline,num_warps=num_warps,num_stages=num_stages)
+  File "/tmp/sparse-vggt-direct-inline-probability-20261104/scripts/benchmark_inline_probability.py", line 27, in run
+    compiled=launch(*args,**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 419, in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 733, in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 861, in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py", line 300, in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py", line 80, in make_ir
+    return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+triton.compiler.errors.CompilationError: at 29:5:
+  raw_qk=tl.dot(q,k,allow_tf32=False)*SCALE
+  z=tl.where(valid[None,:],raw_qk+bias[None,:],-float('inf'))
+  mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+  if INLINE:
+   if FASTINLINE>=3:
+    # Keep the main MMA row layout. Only sampled rows write; no P x BK
+    # gather/transpose. Duplicate tail probes share their first cache slot.
+    if FASTINLINE==3:local=p
+    else:local=tl.where(valid[None,:],raw_qk-safe[:,None],-float('inf'))
+    if P==1:
+     sample=tl.sum(pos,0);selected_row=row==sample
+     tl.store(TILE_P+(g*H+h)*(S+A)+at[None,:],local,selected_row[:,None]&(at[None,:]<S+A))
+     ^
+Cannot broadcast, the expanded size of the tensor (1) must match the existing size (32) at non-singleton dimension 0: ['32', '128'], ['1', '128']
