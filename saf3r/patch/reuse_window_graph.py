@@ -27,7 +27,12 @@ def eager(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterati
     else:
         ids,real,record=rule.pack(selected,None,reps,labels,population,cap,context)
     weights=rule.transfer(selected,labels,reps,None,prior,pi,ids,geometry,context)
-    record.update(rule.diagnostics(errors,selected,None,old_ids,labels,reps,context))
+    if geometry.get('minimal_diagnostics',False):
+        # Preserve the ONLY mandatory runtime validation; all research-only
+        # reductions/record copies are omitted. This never feeds state selection.
+        record['implementation_validation_error']=context['pack_error']|(context['mass_error']>1e-5)
+    else:
+        record.update(rule.diagnostics(errors,selected,None,old_ids,labels,reps,context))
     record['history_cap_discarded']=torch.zeros(len(prior),device=prior.device)
     return ids,real,weights,record
 
@@ -70,6 +75,7 @@ class Window:
 
 def select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometry):
     geometry["p0_loss_pack"]=getattr(state.config,"p0_loss_pack",False)
+    geometry["minimal_diagnostics"]=getattr(state.config,"minimal_diagnostics",False)
     if getattr(state.config,'reuse_window_graphs',False) and geometry.get('fuse_state_kernel',False) and geometry['width']<=64:
         import triton
         from collections import OrderedDict
