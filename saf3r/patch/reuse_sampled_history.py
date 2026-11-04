@@ -13,7 +13,7 @@ from saf3r.triton import reuse_probability_history as completion
 from saf3r.triton.reuse_sampled_history import predict
 
 
-def stride(s):return s.config.history_query_interval//32
+def stride(s):return s.config.history_query_interval//s.config.query_group_size
 
 
 def ensure_cache(s,q):
@@ -61,10 +61,10 @@ def observe_execution(s,q,k,start,ids,actual,bias,obs,scale,evidence):
 def save_evidence(s,q,k,start,ids,actual,obs,scale):
     step=stride(s);begin=start//step;evidence=obs.pop('sampled_evidence')
     selected=ids[::step].contiguous();count=len(selected)
-    positions=obs['positions'][::step,:1]-start*32
+    positions=obs['positions'][::step,:1]-start*s.config.query_group_size
     lse=evidence['lse'][:,positions].permute(1,0,2)
     missing=torch.logsumexp(obs['grid_logits'][::step,:,:1,:]-lse[:,:,:,None],1)-math.log(len(q))
-    target=s.ready_edges[begin:begin+count]
+    target=s.ready_next_edges[begin:begin+count]
     uniform,counts,den=completion.store(evidence['debiased_log_patch_probability'],missing,selected,s.grid,s.grid_sizes,target)
     s.ready_uniform[begin:begin+count].copy_(uniform[:,0])
     s.ready_coarse[begin:begin+count].copy_(obs['coarse_grid_probability'][::step,:,0,:].mean(1))

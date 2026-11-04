@@ -47,6 +47,13 @@ def run(args):
         lazy_dino_topk=cfg.patch_module.lazy_dino_topk)
     if args.method!='saf3r':cfg.pop('patch_module');cfg.pop('sparse_config_path')
     model=build_model(cfg,'cuda');images=load_images(model,'vggt',scene.image_files).cuda()
+    if args.selector_execution=='eager':
+        import saf3r.patch.reuse_window_graph as window_graph
+        def eager_select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometry,uniform=None):
+            geometry['p0_loss_pack']=getattr(state.config,'p0_loss_pack',False)
+            return window_graph.eager(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,
+                state.budget,state.config.dual_iterations,state.config.drop_multiplier,uniform=uniform)
+        window_graph.select=eager_select
     state=None;config=None
     if args.method=='zdrop_history_states':
         from saf3r.patch.reuse_residual_exploration import ReuseExploreConfig,install_reuse_residual_exploration
@@ -61,13 +68,15 @@ def run(args):
         from saf3r.patch import update_args_per_forward
         if saf3r_settings['topk']!=4 or not saf3r_settings['lazy_dino_topk']:raise ValueError('Frozen SAF3R configuration changed')
         update_args_per_forward(model,'vggt',*images.shape[-2:])
-    canonical=dict(image_paths=scene.image_files,frame_indices=positions,shape=list(images.shape),checkpoint=cfg.ckpt_path)
+    canonical=dict(image_paths=scene.image_files,frame_indices=positions,shape=list(images.shape),checkpoint=str(Path(cfg.ckpt_path).resolve()),checkpoint_sha256=hashlib.sha256(Path(cfg.ckpt_path).read_bytes()).hexdigest())
     save(out/'input.json',canonical)
     save(out/'config.json',dict(method=args.method,config=None if config is None else asdict(config),
         model=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,seed=0))
     sources=json.loads((ROOT/'baseline_source_hashes.json').read_text())
     names=set(sources)|{'saf3r/patch/reuse_inference_ops.py','saf3r/triton/reuse_inference_ops.py','saf3r/patch/reuse_window_graph.py','saf3r/triton/reuse_fused_states.py','saf3r/patch/reuse_grid_fused_history.py','saf3r/triton/reuse_grid_fused_normalizer.py','saf3r/triton/reuse_split_fused_history.py','saf3r/triton/reuse_split_grid_attention.py','saf3r/patch/reuse_probe_cache.py','configs/evaluation/reuse_efficiency_v6.json','saf3r/patch/reuse_grid_local_history.py','saf3r/triton/reuse_grid_local_history.py','saf3r/patch/reuse_headmean_history.py','saf3r/triton/reuse_headmean_history.py','saf3r/triton/reuse_single_qk_grid.py','configs/evaluation/reuse_grid_local_history.json','saf3r/patch/reuse_headmean_history.py','saf3r/triton/reuse_headmean_history.py','saf3r/triton/reuse_single_qk_grid.py','saf3r/patch/reuse_ready_history.py','saf3r/triton/reuse_ready_history.py','saf3r/triton/reuse_explore_av_ready.py','saf3r/patch/zdrop_history_cleanup.py','saf3r/triton/zdrop_history_cleanup.py','saf3r/patch/zdrop_history_states.py','saf3r/triton/zdrop_history_states.py','scripts/evaluate_zdrop_history_states.py','configs/evaluation/reuse_zdrop_history_states.json'}
-    names.update({'saf3r/patch/reuse_sampled_history.py','saf3r/triton/reuse_sampled_history.py','saf3r/triton/reuse_direct_sampled_probability.py','saf3r/patch/reuse_probability_history.py','saf3r/triton/reuse_probability_history.py','saf3r/patch/reuse_direct_coarse_observation.py','saf3r/triton/reuse_direct_sparse_attention.py','saf3r/triton/reuse_direct_legacy_observation.py','saf3r/patch/reuse_direct_history.py','saf3r/triton/reuse_torch_flash.py','saf3r/triton/reuse_p0_states.py','saf3r/triton/reuse_p0_pack.py','saf3r/triton/reuse_shared_value_states.py','scripts/validate_shared_value_loss.py',str(args.config.resolve().relative_to(ROOT.resolve()))})
+    names.update({'saf3r/patch/source_local_unanchored.py','saf3r/patch/adaptive_value_clustering.py','saf3r/patch/reuse_sampled_history.py','saf3r/triton/reuse_sampled_history.py','saf3r/triton/reuse_direct_sampled_probability.py','saf3r/patch/reuse_probability_history.py','saf3r/triton/reuse_probability_history.py','saf3r/patch/reuse_direct_coarse_observation.py','saf3r/triton/reuse_direct_sparse_attention.py','saf3r/triton/reuse_direct_legacy_observation.py','saf3r/patch/reuse_direct_history.py','saf3r/triton/reuse_torch_flash.py','saf3r/triton/reuse_p0_states.py','saf3r/triton/reuse_p0_pack.py','saf3r/triton/reuse_shared_value_states.py','scripts/validate_shared_value_loss.py',str(args.config.resolve().relative_to(ROOT.resolve()))})
+    names={str(p.relative_to(ROOT)) for folder in ('saf3r','evaluation') for p in (ROOT/folder).rglob('*.py')}
+    names.update({'scripts/evaluate_zdrop_history_states.py','scripts/quality_metrics.py','scripts/calibrate_integrated_rgb.py',str(args.config.resolve().relative_to(ROOT.resolve())),str(Path(cfg.get('sparse_config_path',ROOT/'configs/sparse_attn/vggt/eth3d-train-fltr-calib_cmpmse.json')).relative_to(ROOT))})
     hashes={};buffer=io.BytesIO()
     with tarfile.open(fileobj=buffer,mode='w') as archive:
         for name in sorted(names):
@@ -79,13 +88,46 @@ def run(args):
         del raw;raw=None
         save(out/'status.json',dict(stage='forward',iteration=iteration,method=args.method))
         torch.cuda.synchronize();torch.cuda.reset_peak_memory_stats();begin=time.perf_counter()
+        if args.method=='saf3r':
+            # Reset INSIDE every complete-forward timer. Warmup must not cache
+            # correspondence Top-K indices for the following timed inputs.
+            update_args_per_forward(model,'vggt',*images.shape[-2:])
         with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):raw=model(images)
         torch.cuda.synchronize()
         sample=dict(seconds=time.perf_counter()-begin,peak_allocated_gib=torch.cuda.max_memory_allocated()/2**30,
                     peak_reserved_gib=torch.cuda.max_memory_reserved()/2**30)
+        if state is not None:
+            sample['graph_counters']={k:getattr(state,k,None) for k in ('graph_cache_creations','graph_cache_hits','graph_cache_misses','graph_cache_evictions','graph_constant_updates')}
         (cold if iteration<args.warmup else samples).append(sample)
         print('FORWARD',args.scene,args.method,iteration,sample,flush=True)
     if not torch.isfinite(raw['pose_enc']).all() or not torch.isfinite(raw['depth']).all():raise ValueError('Nonfinite model output')
+    attention_profiles=[]
+    if getattr(args,'attention_timing',0):
+        from contextlib import contextmanager
+        normal_records=state.records
+        events=[]
+        @contextmanager
+        def attention_scope(name):
+            first=torch.cuda.Event(enable_timing=True);last=torch.cuda.Event(enable_timing=True)
+            first.record()
+            try:yield
+            finally:last.record();events.append((name,first,last))
+        state.direct_scope=attention_scope
+        for profile_index in range(args.attention_timing):
+            events.clear();torch.cuda.synchronize();begin=time.perf_counter()
+            with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):profile_output=model(images)
+            torch.cuda.synchronize();wall=time.perf_counter()-begin
+            stages={}
+            for name,first,last in events:stages[name]=stages.get(name,0.)+first.elapsed_time(last)/1000
+            attention_profiles.append(dict(wall_seconds=wall,stages_seconds=stages,
+                logical_qk_per_head=sum(r['direct_logical_main_qk_per_head'] for r in state.records),
+                mean_key_density=sum(float(r['actual_unique_density']) for r in state.records)/len(state.records),
+                graph_creations=state.graph_cache_creations,
+                compiler_resources=state.sampled_compiler_resources))
+            del profile_output
+        del state.direct_scope
+        state.records=normal_records
+        save(out/'attention_profile.json',dict(scope='Separate lightly-instrumented complete forwards; normal full-forward timings and final normal-output quality remain separate',profiles=attention_profiles))
     if state is not None:
         if len(state.records)!=24:raise ValueError('Missing sparse layers')
         save(out/'layers.json',state.records)
@@ -97,19 +139,24 @@ def run(args):
                 return item
             torch.save(cpu(state.captured),out/'supports.pt')
     timing=dict(median_seconds=float(np.median([s['seconds'] for s in samples])),samples=samples,cold_samples=cold,
-        warmup=args.warmup,repeats=args.repeats,capture=args.capture,
+        warmup=args.warmup,repeats=args.repeats,capture=args.capture,selector_execution=args.selector_execution,
+        saf3r_topk_reset_each_forward=args.method=='saf3r',
         scope='Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync')
     common=dict(method=args.method,scene=args.scene,dataset=dataset_name,frames=len(images),input=canonical,
         config=None if config is None else asdict(config),model_config=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,
-        source_sha256=hashes,timing=timing,
-        hardware=dict(gpu=torch.cuda.get_device_name(),torch=torch.__version__,cuda=torch.version.cuda),
+        source_sha256=hashes,timing=timing,attention_profiles=attention_profiles,
+        hardware=dict(gpu=torch.cuda.get_device_name(),gpu_uuid=str(getattr(torch.cuda.get_device_properties(0),'uuid','unavailable')),torch=torch.__version__,cuda=torch.version.cuda),
         quality_protocol=dict(tasks=['pose','recon_unposed'],sampling='uniform',seed=0,
             f1_threshold_m=dataset.eval_threshold,downsample_m=dataset.down_sample,
             cd_definition='(ACC+Comp)/2 unsquared metres',reconstruction='unposed'))
+    common['quality_protocol'].update(voxel_length_m=dataset.voxel_length,sdf_trunc_m=dataset.sdf_trunc,mesh_sample_points=dataset.sampling_number,max_depth=dataset.max_depth,alignment='Repository unposed Umeyama/RANSAC scale+pose alignment; random_state42',depth_resize='Nearest neighbour to original RGB resolution; intrinsics scaled consistently',masking='Existing dataset _prep_unposed and GT-validity masks; no new filtering or threshold tuning')
+    common['environment']=dict(python=sys.version,open3d=o3d.__version__)
     save(out/'forward.json',common)
-    if args.diagnostic:
-        q=quality_record({},'Explicit two-frame implementation diagnostic, pose/recon_unposed not evaluated')
-        write_quality(out,q);save(out/'diagnostic.json',dict(common,quality=q))
+    if args.diagnostic or args.timing_only:
+        reason='Explicit warmed full-forward timing-only run; geometric quality not rerun' if args.timing_only else 'Explicit implementation diagnostic; pose/recon_unposed not evaluated'
+        q=quality_record({},reason)
+        if args.method=='dense':q.update(speedup_vs_vggt=1.,speedup_unavailable=None)
+        write_quality(out,q);save(out/('timing_result.json' if args.timing_only else 'diagnostic.json'),dict(common,quality=q))
         save(out/'status.json',dict(stage='diagnostic_complete'));return
     ext,intr=pose_encoding_to_extri_intri(raw['pose_enc'],images.shape[-2:])
     pred=Dict(extrinsics=ext.squeeze().float().cpu().numpy(),intrinsics=intr.squeeze().float().cpu().numpy(),
@@ -138,6 +185,8 @@ def run(args):
         if any(bt[key]!=timing[key] for key in ('warmup','repeats','capture')) or baseline['method']!='dense':
             raise ValueError('Paired Dense timing mismatch')
         q.update(speedup_vs_vggt=bt['median_seconds']/timing['median_seconds'],speedup_unavailable=None)
+    elif dataset_name!='7scenes':
+        q.update(speedup_unavailable='Speed evaluation requested only for7Scenes; no paired Dense ETH3D timing')
     result=dict(common,quality=q,metrics=metrics,quality_errors=errors)
     save(out/'result.json',result);write_quality(out,q)
     save(out/'status.json',dict(stage='complete' if q['complete'] else 'quality_incomplete'))
@@ -152,7 +201,10 @@ if __name__=='__main__':
     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')
     p.add_argument('--warmup',type=int,default=1);p.add_argument('--repeats',type=int,default=3)
+    p.add_argument('--attention-timing',type=int,default=0)
+    p.add_argument('--selector-execution',choices=['graph','eager'],default='graph')
     p.add_argument('--capture',action='store_true');p.add_argument('--diagnostic',action='store_true')
+    p.add_argument('--timing-only',action='store_true')
     a=p.parse_args()
     if a.warmup<0 or a.repeats<1:raise ValueError('Invalid timing protocol')
     try:run(a)

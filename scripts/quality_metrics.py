@@ -32,10 +32,13 @@ def quality_cells(record):
 
 
 def quality_markdown(record):
+    speed=record.get('speedup_vs_vggt')
+    speed_text=(f'{speed:.4f}x' if speed is not None else
+                'N/A: '+str(record.get('speedup_unavailable') or 'No matched full-forward Dense timing'))
     lines = ['| ' + ' | '.join(LABELS) + ' |', '| ' + ' | '.join(['---:'] * 6) + ' |',
              '| ' + ' | '.join(quality_cells(record)) + ' |', '',
              'CD = (ACC + Comp) / 2, using unsquared distances.', '',
-             'Speedup vs VGGT: N/A until matched Dense full-forward timing is available; see comparison report.']
+             'Speedup vs original VGGT Dense: '+speed_text+'.']
     if record['unavailable']:
         lines += ['', 'Unavailable: ' + '; '.join(f'{k}: {v}' for k, v in record['unavailable'].items())]
     return '\n'.join(lines) + '\n'

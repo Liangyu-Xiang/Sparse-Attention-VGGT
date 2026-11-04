@@ -61,7 +61,10 @@ def store(scores,missing_scores,ids,grid,sizes,cache):
     sums=torch.zeros_like(maximum)
     if a:
         _reduce[(triton.cdiv(a,256),p,g)](scores,ids,grid,maximum,sums,a,p,r,256,True,num_warps=4)
-        _reduce[(triton.cdiv(a,256),p,g)](scores,ids,grid,maximum,sums,a,p,r,256,False,num_warps=4)
+        if torch.are_deterministic_algorithms_enabled():
+            from .reuse_deterministic import grid_sum
+            sums=grid_sum(scores,ids,grid,maximum)
+        else:_reduce[(triton.cdiv(a,256),p,g)](scores,ids,grid,maximum,sums,a,p,r,256,False,num_warps=4)
     sums.add_(torch.where(remaining[:,None,:]>0,remaining[:,None,:]*(missing_scores-maximum).exp(),0.))
     den=maximum+sums.log()
     uniform=(missing_scores-den).exp().masked_fill(remaining[:,None,:]==0,0.)

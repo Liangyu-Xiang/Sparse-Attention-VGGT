@@ -15,13 +15,31 @@ from .value_evolving_attention import token_layout
 
 @dataclass(frozen=True)
 class ReuseExploreConfig:
+    attention_block_queries:int=32
+    history_split_export:bool=False
+    sampled_split_launch:bool=False
+    deterministic_reductions:bool=False
+    stable_binned_graph:bool=False
+    static_shared_graph:bool=False
+    graph_cache_max_mib:int=2048
+    query_group_size:int=32
+    source_layout:str="sequential"
+    source_temporal_span:int=1
+    dense_special_queries:int=0
     history_query_interval:int=32
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
     shared_value_loss: bool = False
+    shared_value_weighting: str = 'unit'
+    shared_value_allow_observed_rep: bool = False
+    shared_value_features: str = 'head_mean'
+    state_loss_variant: str = 'legacy'
+    state_loss_operator: str = 'group_history'
+    state_loss_history_gate: str = 'observed'
+    state_loss_sketch_dim: int = 8
     fused_coarse:bool=False
     graph_cache_capacity:int=24
-    attention_block_keys:int=64
+    attention_block_keys:int=128
     reuse_window_graphs:bool=False
     attention_warps:int=4
     attention_stages:int=3
@@ -71,19 +89,50 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.sampled_split_launch and (self.query_group_size!=256 or self.history_query_interval!=256 or self.attention_block_queries not in (32,64,128) or self.history_evidence_backend!='direct_sampled'):raise ValueError('Split sampled execution requires Query-256, interval256 and supported tiles')
+        if self.attention_block_queries not in (32,64,128) or self.query_group_size%self.attention_block_queries:raise ValueError('Attention tile must divide Query group size')
+        if (self.static_shared_graph or self.stable_binned_graph) and not (self.shared_value_loss and self.reuse_window_graphs):raise ValueError('Static graph topology requires reusable Shared Value graphs')
+        if self.history_split_export and self.history_evidence_backend!='direct_sampled':raise ValueError('Split export requires sampled history')
+        if min(self.graph_cache_capacity,self.graph_cache_max_mib)<1:raise ValueError('Graph cache limits must be positive')
+        if self.query_group_size not in (32,128,256):raise ValueError('Query group must be 32/128/256')
+        if self.query_group_size!=32 and (not self.shared_value_loss or self.history_query_interval%self.query_group_size):raise ValueError('Larger query groups require shared Value sampled history and aligned interval')
+        if self.source_layout not in ('sequential','spatiotemporal') or self.source_temporal_span<1:raise ValueError('Invalid source layout')
+        if self.dense_special_queries not in (0,1,5):raise ValueError('Invalid dense special-query count')
+        if self.dense_special_queries and self.query_shift:raise ValueError('Dense special queries require original query order')
+        if self.attention_block_keys not in (64,128,256):raise ValueError('Invalid attention key tile')
+        if self.state_loss_variant!='legacy':
+            from .state_loss_controller import GROUP_VARIANTS,RESIDUAL_VARIANTS
+            allowed=GROUP_VARIANTS if self.state_loss_operator=='group_history' else RESIDUAL_VARIANTS
+            if self.state_loss_operator not in ('group_history','residual_rep') or self.state_loss_variant not in allowed:
+                raise ValueError('Invalid state-loss/operator pair')
+            if not self.shared_value_loss or not self.shared_value_allow_observed_rep or self.disable_population_compensation or self.shared_value_weighting=='unit':
+                raise ValueError('Consistent state losses require shared path, enabled Rep and explicit mass calibration')
+            if self.state_loss_history_gate not in ('native','observed') or self.state_loss_sketch_dim not in (4,8,16):
+                raise ValueError('Invalid history gate or loss sketch dimension')
+        if self.shared_value_features not in ('head_mean','head_concat'):
+            raise ValueError('Invalid shared Value feature space')
+        if self.shared_value_features!='head_mean' and not self.shared_value_loss:
+            raise ValueError('Full-head Value features require shared_value_loss')
+        if self.shared_value_weighting not in ('unit', 'rep_population', 'cluster_population', 'cluster_prior'):
+            raise ValueError('Invalid shared Value execution weighting')
+        if (self.shared_value_weighting != 'unit' or self.shared_value_allow_observed_rep) and not self.shared_value_loss:
+            raise ValueError('Shared Value repair options require shared_value_loss')
+        if self.shared_value_weighting != 'unit' and self.disable_population_compensation:
+            raise ValueError('Shared Value weighting requires disable_population_compensation=false')
         if self.history_query_interval not in (32,256):raise ValueError('History Query interval must be32 or256')
         if self.shared_value_loss and (self.history_evidence_backend!='direct_sampled' or not self.window_graph or not self.fuse_state_kernel or not self.fuse_mask_ops or self.p0_loss_pack or self.hierarchical or not self.state_l2 or not self.direction_drop or not self.compact):raise ValueError('Shared Value loss requires the fused non-hierarchical sampled-history window path')
-        if self.history_evidence_backend=='direct_sampled' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices or self.window_groups%(self.history_query_interval//32)):raise ValueError('Sampled history requires aligned Direct Sparse windows and coarse probe cache')
+        if self.history_evidence_backend=='direct_sampled' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices or self.window_groups%(self.history_query_interval//self.query_group_size)):raise ValueError('Sampled history requires aligned Direct Sparse windows and coarse probe cache')
         if self.history_evidence_backend=='direct_probability' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices):raise ValueError('Probability history requires Direct Sparse, dense_m5c consumer and cached probe indices')
         if self.hierarchical and (not self.compact or self.history_mode!='dense_m5c' or self.history_per_cluster!=4 or not self.mass_transfer or self.disable_population_compensation or self.attention_backend!='indexed'):raise ValueError('Hierarchy requires full M5c compact transfer with History Top-4')
         if self.parent_arity not in (2,4) or self.parent_passes not in (1,2) or self.parent_moment_mode not in ('exact','calibrated'):raise ValueError('Invalid parent operating-point configuration')
-        if self.clustering_mode not in ('source_anchored','adaptive_local','adaptive_certified') or self.cluster_neighbors<1:raise ValueError('Invalid clustering policy')
+        if self.clustering_mode not in ('source_anchored','adaptive_local','adaptive_certified','source_local_unanchored') or self.cluster_neighbors<1:raise ValueError('Invalid clustering policy')
         if self.history_mode=='dense_m5c' and (self.attention_backend!='indexed' or not self.compact):raise ValueError('M5c requires indexed compact inference')
         if self.cluster_fraction is not None and (not math.isfinite(self.cluster_fraction) or not 0<self.cluster_fraction<=1):raise ValueError('Invalid cluster fraction')
         if self.attention_backend not in ('indexed','shared_grid_guarded'):raise ValueError('Invalid attention backend')
         if self.attention_backend=='shared_grid_guarded' and (not self.compact or self.query_shift):raise ValueError('Guarded shared bank requires fixed-group compact mode')
         if min(self.refresh_interval,self.reference_dual_iterations,self.guard_groups)<1 or not math.isfinite(self.guard_rel_l2) or self.guard_rel_l2<=0:raise ValueError('Invalid guard configuration')
-        if self.layer_retentions is not None and (len(self.layer_retentions)!=24 or any(not math.isfinite(r) or not .05<=r<=self.retention for r in self.layer_retentions)):raise ValueError('24 layer retentions required within5% and maximum retention')
+        from .layer_retention_schedule import validate_schedule
+        validate_schedule(self.retention,self.layer_retentions)
         if self.compact and (self.state_loss!='cosine_distortion' or self.history_mode not in ('all_relative_logit','dense_m5c') or not self.mass_transfer or not self.rep_gain or self.allocation_objective!='min_error'):raise ValueError('Compact path requires the complete combined method')
         if self.history_mode not in ('genuine_probability','all_probability','all_relative_logit','dense_m5c'):raise ValueError('Invalid history mode')
         if self.drop_multiplier not in (1.,2.):raise ValueError('Invalid drop multiplier')
@@ -271,17 +320,20 @@ class ReuseExploreState:
 
     def reset(self,frames,height,width,device):
         self._forward_serial=getattr(self,'_forward_serial',0)+1
-        self.graph_cache_hits=0;self.graph_cache_misses=0;self.graph_cache_evictions=0;self.graph_constant_updates=0
+        self.graph_cache_creations=0;self.graph_cache_bytes=0;self.graph_cache_hits=0;self.graph_cache_misses=0;self.graph_cache_evictions=0;self.graph_constant_updates=0
         if hasattr(self,'_window_graphs'):
             self._window_graphs={};self._window_graph_layer=None
         c=self.config;self.frames,self.height,self.width=frames,height,width
         self.patches,self.specials=token_layout(frames,height*width,5,device)
-        self.n=frames*(height*width+5);self.groups=math.ceil(self.n/32)
+        self.n=frames*(height*width+5);self.groups=math.ceil(self.n/c.query_group_size)
         self.budget=math.floor(c.retention*self.n)-len(self.specials)
         if self.budget<frames:raise ValueError('Budget must accommodate one fine cluster per frame')
         cluster_count=self.budget if c.cluster_fraction is None else math.floor(c.cluster_fraction*len(self.patches))
         if not frames<=cluster_count<=len(self.patches):raise ValueError('Cluster count must be between frames and patch count')
         if c.clustering_mode=='source_anchored':self.fine=FullCoverageValue(frames,height*width,cluster_count,device,c.source_width,c.local_iterations)
+        elif c.clustering_mode=='source_local_unanchored':
+            from .source_local_unanchored import SourceLocalUnanchoredValue
+            self.fine=SourceLocalUnanchoredValue(frames,height,width,cluster_count,device,c.source_width,c.local_iterations,c.source_layout,c.source_temporal_span)
         else:
             from .adaptive_value_clustering import AdaptiveFullCoverageValue
             self.fine=AdaptiveFullCoverageValue(frames,height*width,cluster_count,device,c.source_width,c.local_iterations,mode='local' if c.clustering_mode=='adaptive_local' else 'certified',neighbors=c.cluster_neighbors)
@@ -326,9 +378,14 @@ class ReuseResidualExploration(nn.Module):
         rule=history_rule
         if c.fuse_mask_ops:
             from . import reuse_inference_ops as rule
+        from .layer_retention_schedule import layer_budget
+        s.budget=layer_budget(c,self.layer,s.n,len(s.specials))
         q,k,v=prepare_qkv(o,x,pos);q=q.to(v.dtype).contiguous();k=k.to(v.dtype).contiguous()
         with stage(s,'value_update'),torch.autocast(x.device.type,enabled=False):
-            features=v.mean(0,dtype=torch.float32)[s.patches]
+            if c.shared_value_features=='head_concat':
+                features=v[:,s.patches].permute(1,0,2).reshape(len(s.patches),-1).float()/math.sqrt(len(v))
+            else:
+                features=v.mean(0,dtype=torch.float32)[s.patches]
             s.fine.update(features,self.layer)
         with stage(s,'pooling'),torch.autocast(x.device.type,enabled=False):
             population,means,pooled,overlap=s.prepare(k,features)
@@ -339,17 +396,35 @@ class ReuseResidualExploration(nn.Module):
             if self.layer and c.compact and q.is_cuda:
                 from saf3r.triton import reuse_compact as compact
                 if c.shared_value_loss:
-                    from saf3r.triton.reuse_shared_value_states import prepare_geometry as prepare_shared_geometry
-                    geometry=prepare_shared_geometry(zvalues,s.fine.labels,s.fine.reps,population)
+                    if c.state_loss_variant!='legacy':
+                        from .state_loss_controller import prepare_geometry as prepare_consistent_geometry
+                        geometry=prepare_consistent_geometry(v,o,s.patches,s.specials,s.fine.labels,s.fine.reps,population,c)
+                    else:
+                        from saf3r.triton.reuse_shared_value_states import prepare_geometry as prepare_shared_geometry
+                        geometry=prepare_shared_geometry(zvalues,s.fine.labels,s.fine.reps,population,min_width=64 if (c.static_shared_graph or c.stable_binned_graph) else 1)
                 else:
                     geometry=compact.prepare_geometry(zvalues,s.fine.labels,s.fine.reps,population,l2=c.state_l2)
                 from saf3r.triton.reuse_drop_moment import prepare as prepare_drop,drop_norm
-                if geometry is not None:geometry['drop_bins']=prepare_drop(population)
+                if geometry is not None:
+                    if c.shared_value_loss and c.static_shared_graph:
+                        # Every cluster executes once; masked unused Grid cells contribute zero.
+                        # Fixed topology and buffers do not depend on population values.
+                        geometry['drop_bins']=[(geometry['width'],torch.arange(len(population),device=population.device,dtype=torch.int64))]
+                    else:geometry['drop_bins']=prepare_drop(population)
             if self.layer and (c.state_l2 or c.direction_drop) and geometry is None:raise RuntimeError('Combined method requires compact geometry')
             if geometry is not None:geometry['fuse_state_kernel']=c.fuse_state_kernel
-            if c.shared_value_loss and self.layer:
+            if c.shared_value_loss and self.layer and c.state_loss_variant=='legacy':
                 from saf3r.triton.reuse_shared_value_states import prepare as prepare_shared_value
                 prepare_shared_value(zvalues,s.fine.labels,s.fine.reps,s.grid,s.regions,geometry)
+                if c.stable_binned_graph:
+                    # Preserve each original population bin's M/C reduction layout.
+                    # Only buffer capacities and empty launch slots become fixed.
+                    bins=dict(geometry['drop_bins'])
+                    geometry['drop_bins']=[(size,bins.get(size,torch.empty(0,device=x.device,dtype=torch.int32)))
+                        for size in (1,2,4,8,16,32,64,128,256,512) if size<=geometry['width']]
+                    geometry['bounded_bins']=True
+                geometry['shared_value_weighting']=c.shared_value_weighting
+                geometry['shared_value_allow_observed_rep']=c.shared_value_allow_observed_rep
             token_grid=None
             if c.history_mode=='all_relative_logit':
                 token_grid=torch.zeros(s.n,device=x.device,dtype=torch.long)
@@ -381,6 +456,9 @@ class ReuseResidualExploration(nn.Module):
                 from . import reuse_headmean_history as m5c
             else:raise ValueError('Unknown history evidence backend')
             if self.layer==0:m5c.ensure_cache(s,q)
+            if c.history_evidence_backend=='direct_sampled':
+                from .layer_retention_schedule import begin_history_layer
+                begin_history_layer(s,q)
             s.m5c_next={};s.m5c_count_errors=[];s.m5c_reconstruction_qk=0;s.m5c_prior_errors=[];s.m5c_seed_errors=[];s.m5c_probe_qk=0
         s.sampled_scratch_peak=0
         output=torch.empty_like(v);history=[];grids=[];real_grids=[];stats=[];capture=[];relative_evidence=[]
@@ -390,7 +468,7 @@ class ReuseResidualExploration(nn.Module):
                 seed_ids,seed_pops,seed_real=prepare_seed(s.fine.reps,s.fine.labels,population,s.budget)
         candidates=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
         for start in range(0,s.groups,c.window_groups):
-            g=min(c.window_groups,s.groups-start);first=start*32;end=min(s.n,(start+g)*32)
+            g=min(c.window_groups,s.groups-start);first=start*c.query_group_size;end=min(s.n,(start+g)*c.query_group_size)
             if c.history_mode=='dense_m5c':
                 with stage(s,'m5c_coarse_observation'),torch.autocast(x.device.type,enabled=False):
                     observer=m5c.observe
@@ -448,7 +526,11 @@ class ReuseResidualExploration(nn.Module):
                         else:
                             prior,pi=m5c.build_prior(s,start,old_ids,m5c_observation)
                             uniform=None
-                        ids,real,pops,record=select(s,self.layer,prior,pi,old_ids,allowed,zvalues,s.fine.reps,s.fine.labels,population,geometry,uniform=uniform)
+                        extra={}
+                        if c.state_loss_variant!='legacy':
+                            obs=m5c_observation
+                            extra['special_p']=(obs['special_logits'][:,:,:1,:]-obs['coarse_logz'][:,:,:1,:]).exp().mean((1,2)).contiguous()
+                        ids,real,pops,record=select(s,self.layer,prior,pi,old_ids,allowed,zvalues,s.fine.reps,s.fine.labels,population,geometry,uniform=uniform,**extra)
                     else:
                         old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                         if c.history_mode=='dense_m5c':
@@ -531,7 +613,7 @@ class ReuseResidualExploration(nn.Module):
                             record['proxy_drop_error']=(errors[:,:,0]).sum(1)
                             record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).sum((1,2))
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
-            if c.disable_population_compensation or c.shared_value_loss:
+            if c.disable_population_compensation or (c.shared_value_loss and c.shared_value_weighting=='unit'):
                 pops=(ids>=0).to(dtype=pops.dtype)
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
@@ -540,7 +622,11 @@ class ReuseResidualExploration(nn.Module):
                         from saf3r.triton.reuse_direct_sampled_probability import direct_sparse_attention_sampled
                         result,direct_evidence=direct_sparse_attention_sampled(q[:,first:end],k,v,actual,s.specials,o.scale,bias,
                             probe_positions=(m5c_observation['positions'][:,:1]-first).int().contiguous(),probe_count=1,
-                            probe_group_stride=c.history_query_interval//32,debiased_log=True,scope=getattr(s,'direct_scope',None))
+                            probe_group_stride=c.history_query_interval//c.query_group_size,query_group_size=c.query_group_size,debiased_log=True,scope=getattr(s,'direct_scope',None),
+                            block_queries=c.attention_block_queries,block_keys=c.attention_block_keys,
+                            num_warps=c.attention_warps if (c.attention_block_queries!=32 or c.history_split_export) else 4,
+                            num_stages=c.attention_stages if (c.attention_block_queries!=32 or c.history_split_export) else 2,
+                            split_export=c.history_split_export,execution_split=c.sampled_split_launch)
                         s.sampled_scratch_peak=max(s.sampled_scratch_peak,direct_evidence['scratch_bytes']);s.sampled_compiler_resources=direct_evidence['compiler_resources']
                     else:
                         from saf3r.triton.reuse_direct_sparse_attention import direct_sparse_attention
@@ -615,6 +701,9 @@ class ReuseResidualExploration(nn.Module):
             if s.m5c_previous:raise RuntimeError('Unconsumed M5c history windows')
             s.m5c_previous=s.m5c_next;s.m5c_next={}
             s.m5c_previous_q=None;s.m5c_previous_k=None;s.m5c_previous_scale=None
+            if c.history_evidence_backend=='direct_sampled':
+                from .layer_retention_schedule import finish_history_layer
+                finish_history_layer(s)
             if self.layer==23:m5c.release(s)
             s.history_pooled_fp32=None
             m5c.trim(s)
@@ -625,8 +714,8 @@ class ReuseResidualExploration(nn.Module):
         s.previous_grid=torch.cat(grids);s.previous_real_grid=torch.cat(real_grids)
         s.previous_layer=self.layer
         joined={key:torch.cat([r[key] for r in stats]) for key in stats[0]}
-        rows=(s.n-torch.arange(s.groups,device=x.device)*32).clamp_max(32)
-        s.records.append(dict(layer=self.layer,query_offset=(self.layer*c.query_shift)%32,patch_budget=s.budget,special_keys=len(s.specials),
+        rows=(s.n-torch.arange(s.groups,device=x.device)*c.query_group_size).clamp_max(c.query_group_size)
+        s.records.append(dict(layer=self.layer,query_group_size=c.query_group_size,query_groups=s.groups,query_offset=(self.layer*c.query_shift)%32,patch_budget=s.budget,special_keys=len(s.specials),
             fine_clusters=s.fine.base_count,canonical_regions=s.regions,
             initial_seed_extra_members=max(0,s.budget-s.fine.base_count) if self.layer==0 else 0,
             **{key+'_mean':val.float().mean() for key,val in joined.items()},
@@ -635,7 +724,7 @@ class ReuseResidualExploration(nn.Module):
             canonical_qk_per_head=0 if self.layer==0 else 4*s.groups*s.regions,
             fine_probe_qk_per_head=0 if self.layer==0 or c.compact else 4*s.groups*candidates,
             compact=c.compact,geometry_width=0 if geometry is None else geometry['width'],
-            geometry_cache_bytes=0 if geometry is None else sum(geometry[name].numel()*geometry[name].element_size() for name in ('members','rank','distances','rep_distance','norm2','shared_cells','shared_drop','shared_rep','shared_grid') if name in geometry),
+            geometry_cache_bytes=0 if geometry is None else sum(geometry[name].numel()*geometry[name].element_size() for name in ('members','rank','distances','rep_distance','norm2','shared_cells','shared_drop','shared_rep','shared_grid','loss_patch_values','loss_special_values') if name in geometry),
             final_unique_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),
             evidence_extra_qk_per_head=0,
             evidence_scratch_peak_bytes=min(c.window_groups*32,s.n)*q.shape[0]*s.budget*4 if c.evidence_mode=='saved_logits' else 0,
@@ -680,8 +769,8 @@ class ReuseResidualExploration(nn.Module):
                 history_estimator_head_aware=False,history_probe_summary=True)
         if c.history_evidence_backend=='direct_sampled':
             s.records[-1].update(history_estimator='One-Probe debiased sparse history with own-Grid uniform fallback',
-                history_query_interval=c.history_query_interval,history_sampled_groups=math.ceil(s.groups/(c.history_query_interval//32)),
-                history_unsampled_groups=s.groups-math.ceil(s.groups/(c.history_query_interval//32)),
+                history_query_interval=c.history_query_interval,history_sampled_groups=math.ceil(s.groups/(c.history_query_interval//c.query_group_size)),
+                history_unsampled_groups=s.groups-math.ceil(s.groups/(c.history_query_interval//c.query_group_size)),
                 history='Sampled groups:Probe0,M5c beta and missing-key completion;unsampled groups:own coarse-uniform prior,no neighbor support reuse',
                 history_cache_dtype='signed_fp16_log_conditionals_one_probe_sampled_groups_only',history_cache_device='gpu_compact_sampled',
                 evidence='inline_one_probe_no_extra_QK',legacy_observation_repeats_qk=False,
@@ -689,14 +778,47 @@ class ReuseResidualExploration(nn.Module):
                 extra_known_probe_qk_per_head=0,evidence_extra_qk_per_head=0,extra_previous_layer_probe_qk_per_head=0,
                 ready_probe_scratch_bytes=s.sampled_scratch_peak,history_estimator_head_aware=False,
                 sampled_compiler_resources=s.sampled_compiler_resources,coarse_observation_probes=4)
+        if c.shared_value_loss:
+            s.records[-1].update(shared_value_loss=True,shared_value_weighting=c.shared_value_weighting,
+                shared_value_allow_observed_rep=c.shared_value_allow_observed_rep,
+                shared_value_features=c.shared_value_features,
+                population_compensation=c.shared_value_weighting in ('rep_population','cluster_population'),
+                mass_transfer='none' if c.shared_value_weighting=='unit' else c.shared_value_weighting,
+                selector='Shared Cluster-Grid squared-L2 distortion; four-state discrete dual budget; not exact knapsack')
+        if c.state_loss_variant!='legacy':
+            s.records[-1].update(state_loss_variant=c.state_loss_variant,state_loss_operator=c.state_loss_operator,
+                state_loss_history_gate=c.state_loss_history_gate,state_loss_sketch_dim=c.state_loss_sketch_dim,
+                probability_fallback='Uniform within current cluster for unobserved members; preserve sampled historical evidence',
+                execution_weighting='Estimated assigned cluster probability / retained own probability; matches support roles',
+                ordinary_history_represents_others=c.state_loss_operator=='group_history',
+                selector='Support/weight-consistent state loss; discrete16-step budget,not exact knapsack')
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
             query_order=None if order is None else order.clone(),canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
         if order is not None:
             restored=torch.empty_like(output);restored[:,order]=output;output=restored
+        if c.dense_special_queries:
+            from .dense_special_queries import correct_output
+            with stage(s,'dense_special_query_correction'):
+                output,dense_ids=correct_output(q,k,v,output,s.specials,c.dense_special_queries,o.scale)
+            extra=(s.n-len(s.specials)-joined['counts'][dense_ids//c.query_group_size]).sum()
+            record=s.records[-1]
+            record['sparse_observer_unique_density']=record['actual_unique_density']
+            record['actual_unique_density']=record['actual_unique_density']+extra/s.n**2
+            record['dense_special_query_count']=len(dense_ids)
+            record['dense_special_query_logical_qk_per_head']=len(dense_ids)*s.n
+            record['final_unique_qk_per_head']=record['final_unique_qk_per_head']+extra
+            record['direct_logical_main_qk_per_head']=record['direct_logical_main_qk_per_head']+len(dense_ids)*s.n
+            record['dense_query_history_semantics']='Sparse observer probabilities remain the history stream; dense output correction is separate and both are timed'
         return o.proj_drop(o.proj(output.transpose(0,1).reshape(1,s.n,-1)))
 
 
 def install_reuse_residual_exploration(model,config=None):
+    if config is not None and config.deterministic_reductions:
+        import os
+        os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG',':4096:8')
+        torch.use_deterministic_algorithms(True)
+        torch.backends.cudnn.deterministic=True
+        torch.backends.cudnn.benchmark=False
     if any(hasattr(model,name) for name in ('value_region_av_state','fused_shared_av_state','attention_first_residual_value_state','reuse_explore_state')):
         raise ValueError('Install only on a fresh unpatched model')
     config=ReuseExploreConfig() if config is None else config

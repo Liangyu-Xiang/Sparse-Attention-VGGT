@@ -10,9 +10,9 @@ import triton
 import triton.language as tl
 
 
-def prepare_geometry(z, labels, reps, population):
+def prepare_geometry(z, labels, reps, population, min_width=1):
     """Compute only the Value scalars required by the new loss, not O(N*width) pair distances."""
-    width = triton.next_power_of_2(int(population.max()))
+    width = max(min_width, triton.next_power_of_2(int(population.max())))
     if width > 512:
         raise ValueError("Shared Value loss currently supports at most 512 members per cluster")
     v_rep = z[reps[labels]]
@@ -47,6 +47,15 @@ def prepare(z, labels, reps, grid, regions, geometry):
     cells[cluster, local] = region.to(torch.int32)
     drop[cluster, local] = values[:, 0]
     rep[cluster, local] = values[:, 1]
+    if torch.are_deterministic_algorithms_enabled():
+        # Stable ascending token membership makes each cluster reduction fixed.
+        order=labels.argsort(stable=True)
+        population=torch.bincount(labels,minlength=f)
+        starts=population.cumsum(0)-population
+        rank=torch.arange(len(labels),device=labels.device)-starts[labels[order]]
+        members=torch.full((f,width),-1,device=labels.device,dtype=torch.int32)
+        members[labels[order],rank]=order.int()
+        geometry['deterministic_members']=members
     geometry.update(
         shared_value_loss=True,
         shared_cells=cells,
@@ -86,6 +95,9 @@ def _corrections(IDS, PRIOR, UNIFORM, GRID, LABEL, TOKEN_D, TOKEN_R, QUAL,
 
 
 def corrections(prior, old_ids, uniform, labels, geometry, context):
+    if torch.are_deterministic_algorithms_enabled():
+        from .reuse_deterministic import corrections as fixed_corrections
+        return fixed_corrections(prior,old_ids,uniform,labels,geometry,context)
     g, n = prior.shape
     f = len(geometry["shared_cells"])
     r = geometry["shared_regions"]
@@ -146,6 +158,25 @@ def _states(UNIFORM, CELL, CELL_D, CELL_R, CORR_D, CORR_R, KEPT_D,
     tl.store(OBJECTIVE + offset+3, exact_error-rep, index<COUNT)
 
 
+@triton.jit
+def _states_capacity(UNIFORM, CELL, CELL_D, CELL_R, CORR_D, CORR_R, KEPT_D,
+            REMOVE, AMOUNT, ALLOW, POP, CLUSTERS, ERROR, COST, OBJECTIVE,
+            F:tl.constexpr, R:tl.constexpr, W:tl.constexpr,
+            COUNT, C:tl.constexpr, M:tl.constexpr, COUNT_PTR:tl.constexpr):
+    # A fixed resident grid walks only the live bin entries. Each iteration
+    # retains the original C/M tile and reduction tree, with no empty-CTA flood.
+    if COUNT_PTR:count=tl.load(COUNT)
+    else:count=COUNT
+    offset=0
+    step=tl.num_programs(1)*C
+    while offset+tl.program_id(1)*C < count:
+        _states(UNIFORM,CELL,CELL_D,CELL_R,CORR_D,CORR_R,KEPT_D,
+                REMOVE,AMOUNT,ALLOW,POP,CLUSTERS+offset,ERROR,COST,OBJECTIVE,
+                F,R,W,count-offset,C,M,False)
+        offset+=step
+
+
+
 def states(uniform, allowed, population, geometry, context, residuals):
     g = len(uniform)
     f = len(population)
@@ -158,7 +189,10 @@ def states(uniform, allowed, population, geometry, context, residuals):
         c = min(16, max(1, 128//size))
         use_ptr = "drop_bin_counts" in geometry
         count = geometry["drop_bin_counts"][index] if use_ptr else len(clusters)
-        _states[(g, triton.cdiv(len(clusters), c))](
+        kernel=_states_capacity if geometry.get('bounded_bins',False) else _states
+        programs=triton.cdiv(len(clusters),c)
+        if geometry.get('bounded_bins',False):programs=min(programs,max(8,triton.cdiv(1024,g)))
+        kernel[(g, programs)](
             uniform, geometry["shared_cells"], geometry["shared_drop"],
             geometry["shared_rep"], delta_d, delta_r, kept_d,
             context["remove_rep"], context["eligible_count"], allowed,

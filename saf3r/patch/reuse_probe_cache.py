@@ -2,7 +2,8 @@
 import torch
 
 def prepare(s):
-    positions=(torch.arange(s.groups,device=s.grid.device)[:,None]*32+torch.tensor([4,12,20,28],device=s.grid.device)).clamp_max(s.n-1)
+    group_size=getattr(s.config,'query_group_size',32)
+    positions=(torch.arange(s.groups,device=s.grid.device)[:,None]*group_size+torch.tensor([1,3,5,7],device=s.grid.device)*(group_size//8)).clamp_max(s.n-1)
     unique=torch.ones_like(positions,dtype=torch.bool);unique[:,1:]=positions[:,1:]!=positions[:,:-1]
     s.probe_positions=positions;s.probe_weights=unique.float()/unique.sum(-1,keepdim=True)
     s.grid_log_sizes=s.grid_sizes.log()

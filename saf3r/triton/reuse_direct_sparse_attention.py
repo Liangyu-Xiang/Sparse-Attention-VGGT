@@ -13,28 +13,34 @@ from contextlib import nullcontext
 def _attention(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,
  H:tl.constexpr,R:tl.constexpr,N:tl.constexpr,A:tl.constexpr,S:tl.constexpr,D:tl.constexpr,
  QH:tl.constexpr,KH:tl.constexpr,VH:tl.constexpr,SCALE:tl.constexpr,BD:tl.constexpr,BK:tl.constexpr,
- HAS_BIAS:tl.constexpr,INLINE:tl.constexpr,P:tl.constexpr,T:tl.constexpr,FASTINLINE:tl.constexpr=0,SAMPLE_STRIDE:tl.constexpr=1,GROUP_MODE:tl.constexpr=0):
- g=tl.program_id(0);h=tl.program_id(1);row=tl.arange(0,32);rr=g*32+row;d=tl.arange(0,BD);col=tl.arange(0,BK)
+ HAS_BIAS:tl.constexpr,INLINE:tl.constexpr,P:tl.constexpr,T:tl.constexpr,FASTINLINE:tl.constexpr=0,SAMPLE_STRIDE:tl.constexpr=1,GROUP_MODE:tl.constexpr=0,SUPPORT_GROUP_SIZE:tl.constexpr=32,BM:tl.constexpr=32):
+ g=tl.program_id(0);h=tl.program_id(1);row=tl.arange(0,BM);rr=g*BM+row;d=tl.arange(0,BD);col=tl.arange(0,BK)
  if GROUP_MODE==1:g=g+1+g//(SAMPLE_STRIDE-1)
  elif GROUP_MODE==2:g=g*SAMPLE_STRIDE
- rr=g*32+row
+ elif GROUP_MODE==3:
+  per_group=SUPPORT_GROUP_SIZE//BM
+  group=g//(per_group-1);tile=g%(per_group-1);probe_tile=tl.load(POS+group)//BM-group*per_group
+  g=group*per_group+tile+(tile>=probe_tile).to(tl.int32)
+ elif GROUP_MODE==4:g=tl.load(POS+g)//BM
+ rr=g*BM+row
+ support_g=g//(SUPPORT_GROUP_SIZE//BM)
  q=tl.load(Q+h*QH+rr[:,None]*D+d[None,:],(rr[:,None]<R)&(d[None,:]<D),0.)
- maximum=tl.full((32,),-float('inf'),tl.float32);den=tl.zeros((32,),tl.float32);acc=tl.zeros((32,BD),tl.float32)
+ maximum=tl.full((BM,),-float('inf'),tl.float32);den=tl.zeros((BM,),tl.float32);acc=tl.zeros((BM,BD),tl.float32)
  if INLINE:
-  probe=tl.arange(0,P);pos=tl.load(POS+g*P+probe)-g*32
+  probe=tl.arange(0,P);pos=tl.load(POS+support_g*P+probe)-g*BM
   if FASTINLINE>=3 and P>1:slot=tl.min(tl.where(row[:,None]==pos[None,:],probe[None,:],P),1)
  for tile in range(tl.cdiv(S+A,BK)):
   at=tile*BK+col
-  special=tl.load(SPECIAL+at,at<S,0);key=tl.load(IDS+g*A+at-S,(at>=S)&(at<S+A),-1);key=tl.where(at<S,special,key)
+  special=tl.load(SPECIAL+at,at<S,0);key=tl.load(IDS+support_g*A+at-S,(at>=S)&(at<S+A),-1);key=tl.where(at<S,special,key)
   valid=(at<S+A)&(key>=0);bias=tl.full((BK,),0.,tl.float32)
-  if HAS_BIAS:bias=tl.load(BIAS+g*A+at-S,(at>=S)&valid,0.)
+  if HAS_BIAS:bias=tl.load(BIAS+support_g*A+at-S,(at>=S)&valid,0.)
   k=tl.load(K+h*KH+tl.maximum(key,0)[None,:]*D+d[:,None],valid[None,:]&(d[:,None]<D),0.)
   v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+d[None,:],valid[:,None]&(d[None,:]<D),0.)
   raw_qk=tl.dot(q,k,allow_tf32=False)*SCALE
   z=tl.where(valid[None,:],raw_qk+bias[None,:],-float('inf'))
   mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
   if INLINE:
-   sample_group=g//SAMPLE_STRIDE
+   sample_group=support_g//SAMPLE_STRIDE
    if FASTINLINE>=3:
     # Keep the main MMA row layout. Only sampled rows write; no P x BK
     # gather/transpose. Duplicate tail probes share their first cache slot.
@@ -42,7 +48,7 @@ def _attention(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,
     else:local=tl.where(valid[None,:],raw_qk-safe[:,None],-float('inf'))
     if P==1:
      sample=tl.sum(pos,0);selected_row=row==sample
-     ptr=tl.broadcast_to(TILE_P+(sample_group*H+h)*(S+A)+at[None,:],(32,BK))
+     ptr=tl.broadcast_to(TILE_P+(sample_group*H+h)*(S+A)+at[None,:],(BM,BK))
      tl.store(ptr,local,selected_row[:,None]&(at[None,:]<S+A))
      shift=tl.sum(tl.where(selected_row,safe,0.),0)
      tl.store(TILE_LSE+(sample_group*H+h)*T+tile,shift)
@@ -83,7 +89,7 @@ def _inline_mean(LOCAL,LOCAL_LSE,LSE,POS,PROB,H:tl.constexpr,R:tl.constexpr,A:tl
  tl.store(PROB+(g*P+p)*(S+A)+col,value,col<S+A)
 
 @triton.jit
-def _inline_log_mean(LOCAL,SHIFT,LSE,POS,PROB,H:tl.constexpr,R:tl.constexpr,A:tl.constexpr,S:tl.constexpr,P:tl.constexpr,T:tl.constexpr,BK:tl.constexpr,BH:tl.constexpr,MASKED:tl.constexpr=False,SAMPLE_STRIDE:tl.constexpr=1):
+def _inline_log_mean(LOCAL,SHIFT,LSE,POS,PROB,H:tl.constexpr,R:tl.constexpr,A:tl.constexpr,S:tl.constexpr,P:tl.constexpr,T:tl.constexpr,BK:tl.constexpr,BH:tl.constexpr,MASKED:tl.constexpr=False,SAMPLE_STRIDE:tl.constexpr=1,SPLIT_GROUPS:tl.constexpr=0):
  tile=tl.program_id(0);g=tl.program_id(1);p=tl.program_id(2);col=tile*BK+tl.arange(0,BK);h=tl.arange(0,BH)
  row=tl.load(POS+g*SAMPLE_STRIDE*P+p);final=tl.load(LSE+h*R+row,h<H,0.)
  slot=p
@@ -95,7 +101,11 @@ def _inline_log_mean(LOCAL,SHIFT,LSE,POS,PROB,H:tl.constexpr,R:tl.constexpr,A:tl
  maximum=tl.max(score,0);safe=tl.where(maximum==-float('inf'),0.,maximum)
  total=tl.sum(tl.exp(score-safe[None,:]),0)
  result=tl.where(total>0,safe+tl.log(total)-tl.log(float(H)),-float('inf'))
- tl.store(PROB+(g*P+p)*(S+A)+col,result,col<S+A)
+ if SPLIT_GROUPS:
+  # Two contiguous exports in one allocation; no sliced patch-probability copy.
+  offset=tl.where(col<S,(g*P+p)*S+col,SPLIT_GROUPS*P*S+(g*P+p)*A+col-S)
+ else:offset=(g*P+p)*(S+A)+col
+ tl.store(PROB+offset,result,col<S+A)
 
 @triton.jit
 def _probe(Q,K,IDS,SPECIAL,BIAS,POS,LSE,PROB,H:tl.constexpr,R:tl.constexpr,N:tl.constexpr,A:tl.constexpr,S:tl.constexpr,D:tl.constexpr,QH:tl.constexpr,KH:tl.constexpr,SCALE:tl.constexpr,P:tl.constexpr,BD:tl.constexpr,BK:tl.constexpr,HAS_BIAS:tl.constexpr,DEBIASED_LOG:tl.constexpr=False):
