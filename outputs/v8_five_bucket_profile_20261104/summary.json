@@ -1,0 +1,364 @@
+{
+  "method": "v8",
+  "input_scope": "7Scenes heads128,24 global layers,RTX5090 D GPU7",
+  "timing_scope": "One warmed instrumented forward; graph subphases use validated GPU timestamps, outer scopes use CUDA Events; not uninstrumented benchmark median",
+  "full_forward_seconds": 20.436222259886563,
+  "sparse_chain_seconds": 16.14632727050782,
+  "base_model_and_outside_global_seconds": 4.289894989378745,
+  "base_model_percent_full_forward": 20.991624258262284,
+  "categories": [
+    {
+      "category": "cluster",
+      "label": "每层 Value 特征、Cluster 划分与更新",
+      "seconds": 1.0753057022094736,
+      "percent_sparse_chain": 6.659754160771784,
+      "percent_full_forward": 5.261763590818583,
+      "mean_per_global_layer_ms": 44.80440425872806
+    },
+    {
+      "category": "history",
+      "label": "历史概率估计、生成、归一化、缓存与消费",
+      "seconds": 2.9760615997313504,
+      "percent_sparse_chain": 18.431817650366195,
+      "percent_full_forward": 14.562679745233256,
+      "mean_per_global_layer_ms": 124.00256665547293
+    },
+    {
+      "category": "state",
+      "label": "资格筛选、状态损失计算与预算选择",
+      "seconds": 2.9513538644501955,
+      "percent_sparse_chain": 18.278793777709502,
+      "percent_full_forward": 14.441778068950097,
+      "mean_per_global_layer_ms": 122.97307768542481
+    },
+    {
+      "category": "mask",
+      "label": "稀疏 Mask 构建、质量转移与执行准备",
+      "seconds": 2.1771580059029323,
+      "percent_sparse_chain": 13.48392095259728,
+      "percent_full_forward": 10.65342693094696,
+      "mean_per_global_layer_ms": 90.71491691262219
+    },
+    {
+      "category": "attention",
+      "label": "稀疏 Attention 执行（含 QKV 与输出投影）",
+      "seconds": 6.966448098213867,
+      "percent_sparse_chain": 43.14571345855524,
+      "percent_full_forward": 34.08872740578882,
+      "mean_per_global_layer_ms": 290.2686707589111
+    }
+  ],
+  "graph_subphases": {
+    "gate": 0.14174608,
+    "loss": 2.090516352,
+    "selection": 0.326389696,
+    "pack": 0.495496352,
+    "transfer": 0.28269184,
+    "diagnostics": 0.24069568,
+    "total": 3.577536
+  },
+  "graph_framework_seconds": 0.13926282812503787,
+  "graph_selection_marker_runs": 1522,
+  "logical_selection_windows": 1518,
+  "extra_eager_selection_runs": 4,
+  "operation_mapping": {
+    "cluster": [
+      "value_update",
+      "cluster_centers_from_labels",
+      "cluster_full_assignment",
+      "cluster_repair_empty",
+      "cluster_center_graph",
+      "cluster_local_assignment",
+      "cluster_population"
+    ],
+    "history": [
+      "history_key_pooling",
+      "m5c_coarse_observation",
+      "attention_grid_normalize_reduce",
+      "m5c_evidence_and_host_copy",
+      "local_normalizers",
+      "kernel_local_normalizers",
+      "local_eps_compatibility",
+      "kernel_local_compat",
+      "local_probability_headmean_cache",
+      "kernel_local_uniform",
+      "kernel_local_store_local",
+      "local_checks_and_coarse_store",
+      "history_summary",
+      "coarse_observation",
+      "history_prior_estimation"
+    ],
+    "state": [
+      "pooling",
+      "selection_cluster_grid_overlap",
+      "residual_fine_probe"
+    ],
+    "mask": [
+      "global_attention",
+      "attention_wrapper"
+    ],
+    "attention": [
+      "qkv_rope_prepare",
+      "execution_and_evidence",
+      "attention_core_fused_grid",
+      "output_projection",
+      "output_dropout"
+    ]
+  },
+  "per_layer": [
+    {
+      "layer": 0,
+      "cluster_ms": 170.48868560791016,
+      "history_ms": 189.73860168457054,
+      "state_ms": 0.052444458007810946,
+      "mask_ms": 49.78523155907125,
+      "attention_ms": 621.701027901378,
+      "total_ms": 1031.7659912109377,
+      "selection_marker_runs": 0
+    },
+    {
+      "layer": 1,
+      "cluster_ms": 40.59973144531259,
+      "history_ms": 123.41540527343665,
+      "state_ms": 128.3906667031248,
+      "mask_ms": 95.07515360937406,
+      "attention_ms": 268.6973876953145,
+      "total_ms": 656.1783447265625,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 2,
+      "cluster_ms": 39.129394531250085,
+      "history_ms": 120.61486816406641,
+      "state_ms": 127.7218275078103,
+      "mask_ms": 89.58102893749603,
+      "attention_ms": 276.6312255859398,
+      "total_ms": 653.6783447265626,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 3,
+      "cluster_ms": 39.073242187499524,
+      "history_ms": 120.73120117187442,
+      "state_ms": 126.2655594062489,
+      "mask_ms": 88.86163785937609,
+      "attention_ms": 278.4243164062512,
+      "total_ms": 653.3559570312501,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 4,
+      "cluster_ms": 38.868896484375085,
+      "history_ms": 120.7651367187479,
+      "state_ms": 129.3987378749987,
+      "mask_ms": 89.44183829688009,
+      "attention_ms": 277.36767578124824,
+      "total_ms": 655.84228515625,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 5,
+      "cluster_ms": 39.054443359375135,
+      "history_ms": 120.71679687500048,
+      "state_ms": 128.9425868750032,
+      "mask_ms": 89.608438515615,
+      "attention_ms": 279.51562500000546,
+      "total_ms": 657.8378906249993,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 6,
+      "cluster_ms": 39.147460937499545,
+      "history_ms": 120.83544921874001,
+      "state_ms": 128.91136612499832,
+      "mask_ms": 89.4250596562607,
+      "attention_ms": 278.8500976562522,
+      "total_ms": 657.1694335937508,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 7,
+      "cluster_ms": 39.114746093749986,
+      "history_ms": 120.83642578123931,
+      "state_ms": 128.21536837499553,
+      "mask_ms": 89.4555300625173,
+      "attention_ms": 280.2998046874983,
+      "total_ms": 657.9218750000005,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 8,
+      "cluster_ms": 39.05273437499979,
+      "history_ms": 120.78271484374703,
+      "state_ms": 128.1016518125004,
+      "mask_ms": 89.60635600001562,
+      "attention_ms": 278.0463867187377,
+      "total_ms": 655.5898437500005,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 9,
+      "cluster_ms": 39.00537109374991,
+      "history_ms": 120.94873046874267,
+      "state_ms": 128.10584596875162,
+      "mask_ms": 89.85850950000173,
+      "attention_ms": 282.54101562500455,
+      "total_ms": 660.4594726562505,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 10,
+      "cluster_ms": 39.09228515624985,
+      "history_ms": 120.78955078125198,
+      "state_ms": 128.13239790625244,
+      "mask_ms": 90.0541255312438,
+      "attention_ms": 277.20947265625193,
+      "total_ms": 655.27783203125,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 11,
+      "cluster_ms": 39.22460937500105,
+      "history_ms": 121.01660156248606,
+      "state_ms": 130.30022462500568,
+      "mask_ms": 108.97223631251153,
+      "attention_ms": 273.9531249999967,
+      "total_ms": 673.466796875001,
+      "selection_marker_runs": 68
+    },
+    {
+      "layer": 12,
+      "cluster_ms": 39.28808593750155,
+      "history_ms": 121.30273437499284,
+      "state_ms": 128.28302712499735,
+      "mask_ms": 90.50701193751615,
+      "attention_ms": 274.6230468749911,
+      "total_ms": 654.003906249999,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 13,
+      "cluster_ms": 39.297851562499986,
+      "history_ms": 121.45996093750355,
+      "state_ms": 128.97312012499552,
+      "mask_ms": 91.56691893751389,
+      "attention_ms": 275.98339843748755,
+      "total_ms": 657.2812500000005,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 14,
+      "cluster_ms": 39.15722656249798,
+      "history_ms": 121.52929687499103,
+      "state_ms": 128.38272062500744,
+      "mask_ms": 91.47860749999336,
+      "attention_ms": 280.9599609375102,
+      "total_ms": 661.5078125,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 15,
+      "cluster_ms": 39.21582031250104,
+      "history_ms": 121.55468749999088,
+      "state_ms": 129.11505487500148,
+      "mask_ms": 90.98553106249835,
+      "attention_ms": 282.9091796875076,
+      "total_ms": 663.7802734374993,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 16,
+      "cluster_ms": 40.62011718749936,
+      "history_ms": 205.74414062498292,
+      "state_ms": 129.2569790625085,
+      "mask_ms": 91.28110687500404,
+      "attention_ms": 277.9208984375057,
+      "total_ms": 744.8232421875005,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 17,
+      "cluster_ms": 39.17285156249939,
+      "history_ms": 121.12890624998585,
+      "state_ms": 127.51455018750696,
+      "mask_ms": 91.07041075000203,
+      "attention_ms": 275.45605468750625,
+      "total_ms": 654.3427734375005,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 18,
+      "cluster_ms": 39.13867187500131,
+      "history_ms": 120.98046875000712,
+      "state_ms": 130.72874487498532,
+      "mask_ms": 87.76832543750048,
+      "attention_ms": 273.33691406250614,
+      "total_ms": 651.9531250000003,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 19,
+      "cluster_ms": 40.8320312499999,
+      "history_ms": 121.1337890625046,
+      "state_ms": 127.03845306250122,
+      "mask_ms": 86.96057037500428,
+      "attention_ms": 280.2412109374899,
+      "total_ms": 656.2060546874999,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 20,
+      "cluster_ms": 39.15527343750114,
+      "history_ms": 121.13085937501467,
+      "state_ms": 128.57022599998453,
+      "mask_ms": 88.4707896250155,
+      "attention_ms": 281.6054687499854,
+      "total_ms": 658.9326171875011,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 21,
+      "cluster_ms": 39.18359375000158,
+      "history_ms": 121.10449218748798,
+      "state_ms": 127.61340587500536,
+      "mask_ms": 88.2137425625067,
+      "attention_ms": 280.3076171874999,
+      "total_ms": 656.4228515625015,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 22,
+      "cluster_ms": 39.058593749999204,
+      "history_ms": 121.13671875003362,
+      "state_ms": 126.20484749998457,
+      "mask_ms": 88.62913687498148,
+      "attention_ms": 278.83593750000205,
+      "total_ms": 653.8652343750009,
+      "selection_marker_runs": 66
+    },
+    {
+      "layer": 23,
+      "cluster_ms": 39.333984374998465,
+      "history_ms": 36.66406249995191,
+      "state_ms": 127.13405750001994,
+      "mask_ms": 130.5007081250327,
+      "attention_ms": 231.03124999999736,
+      "total_ms": 564.6640625000003,
+      "selection_marker_runs": 68
+    }
+  ],
+  "source_unchanged": true,
+  "monitor_passed": true,
+  "full_accounting_error_seconds": 0.0,
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Timing diagnostic only; no pose/recon_unposed evaluation performed",
+  "dense_speedup": null,
+  "dense_reason": "Unchanged Dense not rerun; no paired timing"
+}
