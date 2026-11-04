@@ -47,6 +47,42 @@ The second, uncompensated Grid mass channel also retains exp(-bias_ge).
 
 An independent combined config enables both: configs/evaluation/reuse_v8_direct_sparse_sampled_grid_less_diagnostics.json.
 
+## C. Direct Cluster packing without full-Patch flags (intended set-equivalent)
+
+Set **direct_compact_pack: true**. This option requires the Grid-free
+Direct Sparse executor. It uses the **original** eligibility, state losses,
+16-round selector and compensation. Only the support emission changes:
+
+- Compute per-Cluster output counts for Drop/Rep/History/Exact.
+- Prefix over Clusters, not over the full Patch dimension.
+- Write each Cluster's actual IDs directly to the compact output.
+- Do **not** sort final selected IDs. The Direct executor consumes arbitrary
+  unique Key order, so it need not reproduce the old token-major list.
+
+No unselected Key is reintroduced. The selected **set** should match the old
+full-Patch flags/prefix exactly. The ordering of IDs and FP accumulation
+can differ, so this is mathematically support-equivalent but not guaranteed
+to be bitwise identical through Attention, legacy conditional cache or
+later discrete decisions. The earlier P0 failure was partly tied to changing
+State Loss reduction order; this option **does not use the P0 State Loss**.
+
+Use configs/evaluation/reuse_v8_direct_sparse_cluster_pack.json.
+
+CUDA oracle:
+~~~
+python -m pytest -q tests/test_direct_compact_pack.py
+~~~
+
+The oracle compares every selected ID set, counts, invalid-state/pack flags
+and duplicate-free support to the unchanged full-Patch packer. Additional real
+all-Window trajectory tests must compare compensation weights **aligned by ID**
+and the first differing state/Key in successive layers. Reject if masks or
+weights differ beyond rounding and no justified modeling change is intended.
+
+Combined configuration with all opt-ins:
+configs/evaluation/reuse_v8_direct_sparse_all_overhead_optins.json.
+This combined version should be evaluated **only after** isolated ablations.
+
 ## Validation and measurements
 
 1. Run syntax checks on all modified Python modules.
