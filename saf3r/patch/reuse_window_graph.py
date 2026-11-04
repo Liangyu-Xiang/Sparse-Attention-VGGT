@@ -8,9 +8,14 @@ from . import reuse_inference_ops as rule
 from saf3r.triton.reuse_compact import budget
 from saf3r.triton.reuse_drop_moment import drop_norm
 
-def eager(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterations,drop_multiplier):
+def eager(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterations,drop_multiplier,uniform=None):
     context=rule.gate(prior,pi,population,old_ids,labels,reps)
-    if geometry.get('fuse_state_kernel',False) and geometry['width']<=64:
+    if geometry.get('shared_value_loss',False):
+        if uniform is None:raise RuntimeError('Missing per-Grid uniform probabilities for shared Value loss')
+        from saf3r.triton import reuse_shared_value_states as shared
+        residuals=shared.corrections(prior,old_ids,uniform,labels,geometry,context)
+        errors,costs=shared.states(uniform,allowed,population,geometry,context,residuals)
+    elif geometry.get('fuse_state_kernel',False) and geometry['width']<=64:
         if geometry.get("p0_loss_pack",False):
             from saf3r.triton.reuse_p0_states import states
         else:
@@ -26,15 +31,22 @@ def eager(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterati
         ids,real,record=pack(selected,reps,labels,population,cap,geometry,context)
     else:
         ids,real,record=rule.pack(selected,None,reps,labels,population,cap,context)
-    weights=rule.transfer(selected,labels,reps,None,prior,pi,ids,geometry,context)
+    if geometry.get('shared_value_loss',False):
+        # No population or nearest-owner compensation: each selected Key has unit weight.
+        weights=(ids>=0).to(dtype=prior.dtype)
+        context['mass_error']=torch.zeros(len(prior),device=prior.device)
+    else:
+        weights=rule.transfer(selected,labels,reps,None,prior,pi,ids,geometry,context)
     record.update(rule.diagnostics(errors,selected,None,old_ids,labels,reps,context))
     record['history_cap_discarded']=torch.zeros(len(prior),device=prior.device)
     return ids,real,weights,record
 
 class Window:
-    def __init__(self,prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterations,drop_multiplier,bucket_bins=False):
-        self.inputs=[torch.empty_like(t) for t in [prior,pi,old_ids,allowed]]
-        for dest,src in zip(self.inputs,[prior,pi,old_ids,allowed]):dest.copy_(src)
+    def __init__(self,prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterations,drop_multiplier,bucket_bins=False,uniform=None):
+        if geometry.get('shared_value_loss',False) and uniform is None:raise ValueError('Missing shared Value uniform input')
+        sources=[prior,pi,old_ids,allowed]+([uniform] if uniform is not None else [])
+        self.inputs=[torch.empty_like(t) for t in sources]
+        for dest,src in zip(self.inputs,sources):dest.copy_(src)
         self.constants=[t.clone() for t in [z,reps,labels,population]]
         self.geometry={k:(v.clone() if torch.is_tensor(v) else v) for k,v in geometry.items() if k not in ['drop_values','objective','drop_bins']}
         self.geometry['drop_bins']=[(size,ids.clone()) for size,ids in geometry['drop_bins']]
@@ -44,7 +56,8 @@ class Window:
             self.geometry['drop_bin_counts']=[torch.empty(1,device=z.device,dtype=torch.int32) for _ in geometry['drop_bins']]
             self.update_constants(z,reps,labels,population,geometry)
         def run():
-            return eager(*self.inputs,*self.constants,self.geometry,cap,iterations,drop_multiplier)
+            return eager(*self.inputs[:4],*self.constants,self.geometry,cap,iterations,drop_multiplier,
+                         uniform=self.inputs[4] if len(self.inputs)>4 else None)
         run()  # Compile, initialize constants, allocate outside capture.
         self.graph=torch.cuda.CUDAGraph()
         with torch.cuda.graph(self.graph):
@@ -59,8 +72,10 @@ class Window:
         for i,((size,dst),(_,src)) in enumerate(zip(self.geometry['drop_bins'],geometry['drop_bins'])):
             dst[:len(src)].copy_(src)
             if 'drop_bin_counts' in self.geometry:self.geometry['drop_bin_counts'][i].fill_(len(src))
-    def __call__(self,prior,pi,old_ids,allowed):
-        for dest,src in zip(self.inputs,[prior,pi,old_ids,allowed]):dest.copy_(src)
+    def __call__(self,prior,pi,old_ids,allowed,uniform=None):
+        sources=[prior,pi,old_ids,allowed]+([uniform] if uniform is not None else [])
+        if len(sources)!=len(self.inputs):raise ValueError('Mismatched shared Value graph inputs')
+        for dest,src in zip(self.inputs,sources):dest.copy_(src)
         self.graph.replay()
         record={}
         for dtype,static in self.records.items():
@@ -68,18 +83,18 @@ class Window:
             record.update(zip(self.keys[dtype],values))
         return self.ids,self.real,self.weights,record
 
-def select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometry):
+def select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometry,uniform=None):
     geometry["p0_loss_pack"]=getattr(state.config,"p0_loss_pack",False)
     if getattr(state.config,'reuse_window_graphs',False) and geometry.get('fuse_state_kernel',False) and geometry['width']<=64:
         import triton
         from collections import OrderedDict
         if not hasattr(state,'_reused_window_graphs'):state._reused_window_graphs=OrderedDict()
-        key=(tuple(prior.shape),len(reps),geometry['width'],tuple((size,triton.next_power_of_2(len(ids))) for size,ids in geometry['drop_bins']))
+        key=(tuple(prior.shape),len(reps),geometry['width'],tuple((size,triton.next_power_of_2(len(ids))) for size,ids in geometry['drop_bins']),bool(geometry.get('shared_value_loss',False)))
         tag=(state._forward_serial,layer)
         graphs=state._reused_window_graphs
         if key not in graphs:
             state.graph_cache_misses+=1
-            graphs[key]=Window(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,state.budget,state.config.dual_iterations,state.config.drop_multiplier,True)
+            graphs[key]=Window(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,state.budget,state.config.dual_iterations,state.config.drop_multiplier,True,uniform=uniform)
             graphs[key].loaded=tag
             if len(graphs)>getattr(state.config,'graph_cache_capacity',24):
                 graphs.popitem(last=False);state.graph_cache_evictions+=1
@@ -87,10 +102,10 @@ def select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometr
         window=graphs[key];graphs.move_to_end(key)
         if window.loaded!=tag:
             window.update_constants(z,reps,labels,population,geometry);window.loaded=tag;state.graph_constant_updates+=1
-        return window(prior,pi,old_ids,allowed)
+        return window(prior,pi,old_ids,allowed,uniform=uniform)
     if getattr(state,'_window_graph_layer',None)!=layer:
         state._window_graphs={};state._window_graph_layer=layer
-    key=(len(prior),geometry['width'])
+    key=(len(prior),geometry['width'],bool(geometry.get('shared_value_loss',False)))
     if key not in state._window_graphs:
-        state._window_graphs[key]=Window(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,state.budget,state.config.dual_iterations,state.config.drop_multiplier)
-    return state._window_graphs[key](prior,pi,old_ids,allowed)
+        state._window_graphs[key]=Window(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,state.budget,state.config.dual_iterations,state.config.drop_multiplier,uniform=uniform)
+    return state._window_graphs[key](prior,pi,old_ids,allowed,uniform=uniform)
