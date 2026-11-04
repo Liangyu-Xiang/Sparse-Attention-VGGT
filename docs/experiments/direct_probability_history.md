@@ -68,3 +68,21 @@ End-to-end Dense speedup N/A: no unchanged Dense rerun is authorized by default.
 Historical timing values are identified by campaign and are not paired timings.
 The main report must describe measured quality changes without calling a
 completed evaluation a quality acceptance. Default backend stays unchanged.
+
+## Completed results
+
+All18 pose+unposed-reconstruction evaluations completed with all six metrics.
+Full-forward warmed median15.641640s,peak allocated18.794601GiB. AV core in a
+separate profile2.842266s;four-probe export0.887521s;probe summary0.417437s;
+completion/cache0.398454s. Older Direct18.999162s is a historical timing reference,
+not a paired comparison. End-to-end Dense speedup remains N/A.
+
+7Scenes macro:AUC3=22.5517%,AUC30=84.4984%,ACC=.142468m,Comp=.124380m,
+CD=.133424m,F1=44.9711%. ETH3D macro:AUC3=22.5800%,AUC30=79.3415%,
+ACC=.342087m,Comp=.882130m,CD=.612108m,F1=54.7835%. Against preceding Direct,
+F1 drops1.453357/6.197351percentage points;do not call this quality equivalent.
+
+See outputs/direct_probability_quality_20261104/report.md for complete controls,
+per-scene rows,audits and timing. The inherited seed-normalization field is a
+finite-denominator guard here;actual normalization error is the recorded prior
+patch-mass error. Reproduce report with `python -m scripts.report_probability_history`.

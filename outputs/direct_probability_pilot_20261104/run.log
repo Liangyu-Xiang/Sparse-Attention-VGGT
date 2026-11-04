@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-direct-probability-history-20261104/scripts/benchmark_direct_sparse_forward.py", line 69, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/tmp/sparse-vggt-direct-probability-history-20261104/scripts/benchmark_direct_sparse_forward.py", line 38, in main
+    images=load_images(model,'vggt',json.loads(a.input.read_text())['image_paths']).cuda();samples=[];cold=None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-probability-history-20261104/saf3r/utils/data_utils.py", line 20, in load_images
+    return load_and_process_images_vggt(image_files)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-direct-probability-history-20261104/saf3r/utils/data_utils.py", line 77, in load_and_process_images_vggt
+    img = Image.open(image_path)
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/PIL/Image.py", line 3654, in open
+    fp = builtins.open(filename, "rb")
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000000.color.png'
