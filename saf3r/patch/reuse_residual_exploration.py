@@ -631,7 +631,7 @@ class ReuseResidualExploration(nn.Module):
             canonical_qk_per_head=0 if self.layer==0 else 4*s.groups*s.regions,
             fine_probe_qk_per_head=0 if self.layer==0 or c.compact else 4*s.groups*candidates,
             compact=c.compact,geometry_width=0 if geometry is None else geometry['width'],
-            geometry_cache_bytes=0 if geometry is None else sum(geometry[name].numel()*geometry[name].element_size() for name in ('members','rank','distances','rep_distance')),
+            geometry_cache_bytes=0 if geometry is None else sum(geometry[name].numel()*geometry[name].element_size() for name in ('members','rank','distances','rep_distance','norm2','shared_cells','shared_drop','shared_rep','shared_grid') if name in geometry),
             final_unique_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),
             evidence_extra_qk_per_head=0,
             evidence_scratch_peak_bytes=min(c.window_groups*32,s.n)*q.shape[0]*s.budget*4 if c.evidence_mode=='saved_logits' else 0,
