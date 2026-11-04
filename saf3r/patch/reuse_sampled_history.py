@@ -25,7 +25,7 @@ def ensure_cache(s,q):
     s.ready_coarse=torch.empty_like(s.ready_uniform)
 
 
-def build_prior(s,start,old_ids,obs):
+def build_prior(s,start,old_ids,obs,return_uniform=False):
     if s.ready_written.get(start)!=s.previous_layer:raise RuntimeError('Stale sampled history')
     step=stride(s);g=len(old_ids);begin=start//step;count=triton.cdiv(g,step)
     current=obs['coarse_grid_probability'][:,:,0,:].mean(1).contiguous()
@@ -38,7 +38,7 @@ def build_prior(s,start,old_ids,obs):
     predict(s.ready_edges[begin:begin+count],old_ids[::step].contiguous(),s.grid,s.grid_sizes,cur,previous,prior,step,EPS)
     pi=torch.zeros((g,s.fine.base_count),device=prior.device).scatter_add_(1,s.fine.labels[None].expand(g,-1),prior)
     s.m5c_prior_errors.append((prior.sum(-1)-current.sum(-1)).abs().max())
-    return prior,pi
+    return (prior,pi,base) if return_uniform else (prior,pi)
 
 
 def observe_execution(s,q,k,start,ids,actual,bias,obs,scale,evidence):
