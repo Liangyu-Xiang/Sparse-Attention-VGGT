@@ -21,7 +21,10 @@ def eager(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterati
         errors,costs=rule.states(pi,z,reps,labels,population,None,allowed,prior,drop_multiplier,geometry,context)
     selected,count=budget(geometry['objective'],costs,errors[:,:,0].amax(1)+1e-12,cap,iterations)
     selected=rule.decode(selected)
-    if geometry.get("p0_loss_pack",False):
+    if geometry.get('direct_compact_pack',False):
+        from saf3r.triton.reuse_direct_pack import pack
+        ids,real,record=pack(selected,reps,labels,population,cap,geometry,context)
+    elif geometry.get("p0_loss_pack",False):
         from saf3r.triton.reuse_p0_pack import pack
         ids,real,record=pack(selected,reps,labels,population,cap,geometry,context)
     else:
@@ -76,6 +79,7 @@ class Window:
 def select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometry):
     geometry["p0_loss_pack"]=getattr(state.config,"p0_loss_pack",False)
     geometry["minimal_diagnostics"]=getattr(state.config,"minimal_diagnostics",False)
+    geometry["direct_compact_pack"]=getattr(state.config,"direct_compact_pack",False)
     if getattr(state.config,'reuse_window_graphs',False) and geometry.get('fuse_state_kernel',False) and geometry['width']<=64:
         import triton
         from collections import OrderedDict
