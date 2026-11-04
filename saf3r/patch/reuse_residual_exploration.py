@@ -15,6 +15,7 @@ from .value_evolving_attention import token_layout
 
 @dataclass(frozen=True)
 class ReuseExploreConfig:
+    history_query_interval:int=32
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
     fused_coarse:bool=False
@@ -69,6 +70,8 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.history_query_interval not in (32,256):raise ValueError('History Query interval must be32 or256')
+        if self.history_evidence_backend=='direct_sampled' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices or self.window_groups%(self.history_query_interval//32)):raise ValueError('Sampled history requires aligned Direct Sparse windows and coarse probe cache')
         if self.history_evidence_backend=='direct_probability' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices):raise ValueError('Probability history requires Direct Sparse, dense_m5c consumer and cached probe indices')
         if self.hierarchical and (not self.compact or self.history_mode!='dense_m5c' or self.history_per_cluster!=4 or not self.mass_transfer or self.disable_population_compensation or self.attention_backend!='indexed'):raise ValueError('Hierarchy requires full M5c compact transfer with History Top-4')
         if self.parent_arity not in (2,4) or self.parent_passes not in (1,2) or self.parent_moment_mode not in ('exact','calibrated'):raise ValueError('Invalid parent operating-point configuration')
@@ -355,7 +358,9 @@ class ReuseResidualExploration(nn.Module):
             s.query_order=order
             q=q[:,order].contiguous()
         if c.history_mode=='dense_m5c':
-            if c.history_evidence_backend=='direct_probability':
+            if c.history_evidence_backend=='direct_sampled':
+                from . import reuse_sampled_history as m5c
+            elif c.history_evidence_backend=='direct_probability':
                 from . import reuse_probability_history as m5c
             elif c.history_evidence_backend=='direct_legacy':
                 from . import reuse_direct_history as m5c
@@ -368,6 +373,7 @@ class ReuseResidualExploration(nn.Module):
             else:raise ValueError('Unknown history evidence backend')
             if self.layer==0:m5c.ensure_cache(s,q)
             s.m5c_next={};s.m5c_count_errors=[];s.m5c_reconstruction_qk=0;s.m5c_prior_errors=[];s.m5c_seed_errors=[];s.m5c_probe_qk=0
+        s.sampled_scratch_peak=0
         output=torch.empty_like(v);history=[];grids=[];real_grids=[];stats=[];capture=[];relative_evidence=[]
         candidates=max(1,math.ceil(s.fine.base_count*c.candidate_fraction))
         for start in range(0,s.groups,c.window_groups):
@@ -375,7 +381,7 @@ class ReuseResidualExploration(nn.Module):
             if c.history_mode=='dense_m5c':
                 with stage(s,'m5c_coarse_observation'),torch.autocast(x.device.type,enabled=False):
                     observer=m5c.observe
-                    if c.cache_probe_indices and c.history_evidence_backend not in ('direct_legacy','direct_probability'):
+                    if c.cache_probe_indices and c.history_evidence_backend not in ('direct_legacy','direct_probability','direct_sampled'):
                         from .reuse_probe_cache import observe as observer
                     m5c_observation=observer(s,q,k,start,g,o.scale)
             if self.layer==0:
@@ -393,7 +399,7 @@ class ReuseResidualExploration(nn.Module):
                            torch.tensor([4,12,20,28],device=x.device)).clamp_max(s.n-1)
                     pq=q[:,probe]
                 with stage(s,'coarse_observation'):
-                    if c.history_evidence_backend in ('direct_legacy','direct_probability'):
+                    if c.history_evidence_backend in ('direct_legacy','direct_probability','direct_sampled'):
                         probability=m5c_observation['patch_probability']
                         previous=s.previous_grid[start:start+g].float()
                         beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
@@ -514,11 +520,18 @@ class ReuseResidualExploration(nn.Module):
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
                 if q.is_cuda and c.execution_kernel=='direct_sparse':
-                    from saf3r.triton.reuse_direct_sparse_attention import direct_sparse_attention
-                    probability_history=c.history_evidence_backend=='direct_probability'
-                    result,direct_evidence=direct_sparse_attention(q[:,first:end],k,v,actual,s.specials,o.scale,logit_bias=bias,
-                        probe_positions=(m5c_observation['positions']-first).int().contiguous() if probability_history else None,
-                        return_history_probability=probability_history,history_export='debiased_log_lse_probe' if probability_history else 'lse_probe',scope=getattr(s,'direct_scope',None))
+                    if c.history_evidence_backend=='direct_sampled':
+                        from saf3r.triton.reuse_direct_sampled_probability import direct_sparse_attention_sampled
+                        result,direct_evidence=direct_sparse_attention_sampled(q[:,first:end],k,v,actual,s.specials,o.scale,bias,
+                            probe_positions=(m5c_observation['positions'][:,:1]-first).int().contiguous(),probe_count=1,
+                            probe_group_stride=c.history_query_interval//32,debiased_log=True,scope=getattr(s,'direct_scope',None))
+                        s.sampled_scratch_peak=max(s.sampled_scratch_peak,direct_evidence['scratch_bytes']);s.sampled_compiler_resources=direct_evidence['compiler_resources']
+                    else:
+                        from saf3r.triton.reuse_direct_sparse_attention import direct_sparse_attention
+                        probability_history=c.history_evidence_backend=='direct_probability'
+                        result,direct_evidence=direct_sparse_attention(q[:,first:end],k,v,actual,s.specials,o.scale,logit_bias=bias,
+                            probe_positions=(m5c_observation['positions']-first).int().contiguous() if probability_history else None,
+                            return_history_probability=probability_history,history_export='debiased_log_lse_probe' if probability_history else 'lse_probe',scope=getattr(s,'direct_scope',None))
                     ready_logits=None
                 elif q.is_cuda:
                     if c.execution_kernel=='serial_tuned':
@@ -556,7 +569,7 @@ class ReuseResidualExploration(nn.Module):
                         ref=(q[:,first:end].float().mean(1)[:,None,None,:]*pooled[:,s.grid[ids.clamp_min(0)]].float()).sum(-1)*o.scale
                         relative_evidence.append((raw-ref).mean(0).masked_fill(ids<0,0))
             if c.execution_kernel=='direct_sparse':
-                with stage(s,'sparse_probe_grid_summary' if c.history_evidence_backend=='direct_probability' else 'direct_independent_legacy_observation'):
+                with stage(s,'sampled_probe_grid_summary' if c.history_evidence_backend=='direct_sampled' else 'sparse_probe_grid_summary' if c.history_evidence_backend=='direct_probability' else 'direct_independent_legacy_observation'):
                     mass=m5c.observe_execution(s,q,k,start,ids,actual,bias,m5c_observation,o.scale,direct_evidence)
             output[:,first:end]=result
             if c.history_mode=='dense_m5c' and self.layer<23:
@@ -648,6 +661,17 @@ class ReuseResidualExploration(nn.Module):
                 evidence_extra_qk_per_head=((joined['counts']+len(s.specials))*4).sum(),
                 ready_probe_scratch_bytes=min(c.window_groups,s.groups)*4*(s.budget+len(s.specials))*4,
                 history_estimator_head_aware=False,history_probe_summary=True)
+        if c.history_evidence_backend=='direct_sampled':
+            s.records[-1].update(history_estimator='One-Probe debiased sparse history with own-Grid uniform fallback',
+                history_query_interval=c.history_query_interval,history_sampled_groups=math.ceil(s.groups/(c.history_query_interval//32)),
+                history_unsampled_groups=s.groups-math.ceil(s.groups/(c.history_query_interval//32)),
+                history='Sampled groups:Probe0,M5c beta and missing-key completion;unsampled groups:own coarse-uniform prior,no neighbor support reuse',
+                history_cache_dtype='signed_fp16_log_conditionals_one_probe_sampled_groups_only',history_cache_device='gpu_compact_sampled',
+                evidence='inline_one_probe_no_extra_QK',legacy_observation_repeats_qk=False,
+                direct_logical_legacy_observation_qk_per_head=0,direct_logical_conditional_cache_qk_per_head=0,
+                extra_known_probe_qk_per_head=0,evidence_extra_qk_per_head=0,extra_previous_layer_probe_qk_per_head=0,
+                ready_probe_scratch_bytes=s.sampled_scratch_peak,history_estimator_head_aware=False,
+                sampled_compiler_resources=s.sampled_compiler_resources,coarse_observation_probes=4)
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
             query_order=None if order is None else order.clone(),canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
         if order is not None:

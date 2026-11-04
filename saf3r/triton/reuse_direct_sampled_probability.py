@@ -5,6 +5,7 @@ AFTER per-Head final normalization. No extra QK; only sampled groups export.
 """
 import torch,triton
 import triton.language as tl
+from contextlib import nullcontext
 from .reuse_direct_sparse_attention import _attention as _body,_inline_mean,_inline_log_mean
 
 @triton.jit
@@ -18,7 +19,8 @@ def _branch(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,
   _body(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,H,R,N,A,S,D,QH,KH,VH,SCALE,BD,BK,HAS_BIAS,False,P,T,0,STRIDE,0)
 
 
-def direct_sparse_attention_sampled(q,k,v,sparse_key_ids,special_key_ids,scale,logit_bias=None,probe_positions=None,*,probe_count=1,probe_group_stride=8,debiased_log=False,block_keys=128,num_warps=4,num_stages=2):
+def direct_sparse_attention_sampled(q,k,v,sparse_key_ids,special_key_ids,scale,logit_bias=None,probe_positions=None,*,probe_count=1,probe_group_stride=8,debiased_log=False,block_keys=128,num_warps=4,num_stages=2,scope=None):
+ scope=scope or (lambda name:nullcontext())
  h,r,d=q.shape;g,a=sparse_key_ids.shape;s=len(special_key_ids)
  if g!=triton.cdiv(r,32):raise ValueError('One sparse support per32 Queries')
  if probe_count not in (1,4) or not isinstance(probe_group_stride,int) or probe_group_stride<1:raise ValueError('One/four probes and positive integer stride required')
@@ -30,10 +32,12 @@ def direct_sparse_attention_sampled(q,k,v,sparse_key_ids,special_key_ids,scale,l
  sampled=triton.cdiv(g,probe_group_stride);tiles=triton.cdiv(s+a,block_keys)
  out=torch.empty((h,r,d),device=q.device,dtype=q.dtype);lse=torch.empty((h,r),device=q.device,dtype=torch.float32)
  local=torch.empty((sampled,h,p,s+a),device=q.device,dtype=torch.float16);shift=torch.empty((sampled,h,p,tiles),device=q.device,dtype=torch.float32)
- compiled=_branch[(g,h)](q,k,v,sparse_key_ids,special_key_ids,logit_bias if logit_bias is not None else lse,probe_positions,out,lse,local,shift,h,r,k.shape[1],a,s,d,q.stride(0),k.stride(0),v.stride(0),scale,max(16,triton.next_power_of_2(d)),block_keys,logit_bias is not None,p,tiles,4 if debiased_log else 3,probe_group_stride,num_warps=num_warps,num_stages=num_stages)
+ with scope('sampled_direct_av'):
+  compiled=_branch[(g,h)](q,k,v,sparse_key_ids,special_key_ids,logit_bias if logit_bias is not None else lse,probe_positions,out,lse,local,shift,h,r,k.shape[1],a,s,d,q.stride(0),k.stride(0),v.stride(0),scale,max(16,triton.next_power_of_2(d)),block_keys,logit_bias is not None,p,tiles,4 if debiased_log else 3,probe_group_stride,num_warps=num_warps,num_stages=num_stages)
  probability=torch.empty((sampled,p,s+a),device=q.device,dtype=torch.float32)
- if debiased_log:_inline_log_mean[(tiles,sampled,p)](local,shift,lse,probe_positions,probability,h,r,a,s,p,tiles,block_keys,triton.next_power_of_2(h),True,probe_group_stride,num_warps=4)
- else:_inline_mean[(tiles,sampled,p)](local,shift,lse,probe_positions,probability,h,r,a,s,p,tiles,block_keys,triton.next_power_of_2(h),True,probe_group_stride,num_warps=4)
+ with scope('sampled_probability_export'):
+  if debiased_log:_inline_log_mean[(tiles,sampled,p)](local,shift,lse,probe_positions,probability,h,r,a,s,p,tiles,block_keys,triton.next_power_of_2(h),True,probe_group_stride,num_warps=4)
+  else:_inline_mean[(tiles,sampled,p)](local,shift,lse,probe_positions,probability,h,r,a,s,p,tiles,block_keys,triton.next_power_of_2(h),True,probe_group_stride,num_warps=4)
  prefix='debiased_log_' if debiased_log else ''
  evidence={prefix+'special_probability':probability[:,:,:s],prefix+'patch_probability':probability[:,:,s:],'lse':lse,'probe_positions':probe_positions[::probe_group_stride],'scratch_bytes':local.numel()*local.element_size()+shift.numel()*shift.element_size(),'compiler_resources':dict(registers=getattr(compiled,'n_regs',None),spills=getattr(compiled,'n_spills',None),shared_bytes=getattr(compiled.metadata,'shared',None))}
  return out,evidence

@@ -23,6 +23,8 @@ def main():
  torch.manual_seed(0);torch.set_num_threads(2);torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
  model,state=build(a.config);resources={}
  from saf3r.triton import reuse_direct_sparse_attention as backend
+ # Bind the real JIT body before installing a diagnostic launch wrapper.
+ from saf3r.triton import reuse_direct_sampled_probability as sampled_backend
  original_kernel=backend._attention
  class ResourceLaunch:
   def __getitem__(self,grid):
