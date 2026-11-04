@@ -67,6 +67,8 @@ def run(args):
         model=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,seed=0))
     sources=json.loads((ROOT/'baseline_source_hashes.json').read_text())
     names=set(sources)|{'saf3r/patch/reuse_inference_ops.py','saf3r/triton/reuse_inference_ops.py','saf3r/patch/reuse_window_graph.py','saf3r/triton/reuse_fused_states.py','saf3r/patch/reuse_grid_fused_history.py','saf3r/triton/reuse_grid_fused_normalizer.py','saf3r/triton/reuse_split_fused_history.py','saf3r/triton/reuse_split_grid_attention.py','saf3r/patch/reuse_probe_cache.py','configs/evaluation/reuse_efficiency_v6.json','saf3r/patch/reuse_grid_local_history.py','saf3r/triton/reuse_grid_local_history.py','saf3r/patch/reuse_headmean_history.py','saf3r/triton/reuse_headmean_history.py','saf3r/triton/reuse_single_qk_grid.py','configs/evaluation/reuse_grid_local_history.json','saf3r/patch/reuse_headmean_history.py','saf3r/triton/reuse_headmean_history.py','saf3r/triton/reuse_single_qk_grid.py','saf3r/patch/reuse_ready_history.py','saf3r/triton/reuse_ready_history.py','saf3r/triton/reuse_explore_av_ready.py','saf3r/patch/zdrop_history_cleanup.py','saf3r/triton/zdrop_history_cleanup.py','saf3r/patch/zdrop_history_states.py','saf3r/triton/zdrop_history_states.py','scripts/evaluate_zdrop_history_states.py','configs/evaluation/reuse_zdrop_history_states.json'}
+    names.update({'saf3r/patch/reuse_sparse_beta_history.py','saf3r/triton/reuse_sparse_beta_history.py','saf3r/triton/reuse_serial_sparseprob.py','saf3r/triton/reuse_serial_tuned.py'})
+    names.add(str(args.config.resolve().relative_to(ROOT.resolve())))
     hashes={};buffer=io.BytesIO()
     with tarfile.open(fileobj=buffer,mode='w') as archive:
         for name in sorted(names):

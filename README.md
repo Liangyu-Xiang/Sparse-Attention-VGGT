@@ -1,3 +1,5 @@
+> [Beta + Grid mass history experiment](docs/experiments/beta_gridmass_history.md): experimental; severe quality regression. Heads128 warmed median19.553523s; complete raw metrics and limitations in [report](outputs/beta_gridmass_20261104/report.md).
+
 <div align="center">
 
 <h1>SAF3R: Dynamic Sparse Attention for Feed-Forward 3D Reconstruction Transformers</h1>

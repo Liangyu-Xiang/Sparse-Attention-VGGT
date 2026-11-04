@@ -352,7 +352,9 @@ class ReuseResidualExploration(nn.Module):
             s.query_order=order
             q=q[:,order].contiguous()
         if c.history_mode=='dense_m5c':
-            if c.history_evidence_backend=='grid_fused':
+            if c.history_evidence_backend=='sparse_beta_gridmass':
+                from . import reuse_sparse_beta_history as m5c
+            elif c.history_evidence_backend=='grid_fused':
                 from . import reuse_grid_fused_history as m5c
             elif c.history_evidence_backend=='grid_local':
                 from . import reuse_grid_local_history as m5c
@@ -501,7 +503,11 @@ class ReuseResidualExploration(nn.Module):
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
                 if q.is_cuda:
-                    if c.execution_kernel=='serial_tuned':
+                    if c.execution_kernel=='serial_sparseprob':
+                        from saf3r.triton.reuse_serial_sparseprob import weighted_attention
+                        from functools import partial
+                        weighted_attention=partial(weighted_attention,stages=c.attention_stages)
+                    elif c.execution_kernel=='serial_tuned':
                         from saf3r.triton.reuse_serial_tuned import weighted_attention
                         from functools import partial
                         weighted_attention=partial(weighted_attention,stages=c.attention_stages)
@@ -519,7 +525,7 @@ class ReuseResidualExploration(nn.Module):
                     if c.history_mode=='all_relative_logit':
                         reference=(pooled,token_grid)
                     execution=weighted_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale,
-                        key_grid=s.grid[ids.clamp_min(0)],regions=s.regions,emit_evidence=self.layer<23,evidence_layout=m5c_observation if c.history_evidence_backend in ('grid_local','grid_fused') else None)
+                        key_grid=s.grid[ids.clamp_min(0)],regions=s.regions,emit_evidence=self.layer<23,evidence_layout=m5c_observation if c.history_evidence_backend in ('grid_local','grid_fused','sparse_beta_gridmass') else None)
                     if reference is None:result,mass,ready_logits=execution;del execution
                     else:
                         result,mass,delta=execution

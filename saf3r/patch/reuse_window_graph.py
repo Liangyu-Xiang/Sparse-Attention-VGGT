@@ -1,8 +1,7 @@
 """Capture execution of unchanged window selection; no cached input values.
 
 Geometry is copied anew once per current layer; priors, history, eligibility
-are overwritten before EVERY replay. Reusable graphs cache execution only,
-keyed by tensor shapes and member-bin capacities; no layer decision is frozen.
+are overwritten before EVERY replay. Graphs live for one layer only.
 """
 import torch
 from . import reuse_inference_ops as rule
