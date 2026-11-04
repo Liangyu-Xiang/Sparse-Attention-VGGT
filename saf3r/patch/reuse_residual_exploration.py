@@ -18,6 +18,7 @@ class ReuseExploreConfig:
     history_query_interval:int=32
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
+    shared_value_loss: bool = False
     fused_coarse:bool=False
     graph_cache_capacity:int=24
     attention_block_keys:int=64
@@ -71,6 +72,7 @@ class ReuseExploreConfig:
 
     def __post_init__(self):
         if self.history_query_interval not in (32,256):raise ValueError('History Query interval must be32 or256')
+        if self.shared_value_loss and (self.history_evidence_backend!='direct_sampled' or not self.window_graph or not self.fuse_state_kernel or not self.fuse_mask_ops or self.p0_loss_pack or self.hierarchical or not self.state_l2 or not self.direction_drop or not self.compact):raise ValueError('Shared Value loss requires the fused non-hierarchical sampled-history window path')
         if self.history_evidence_backend=='direct_sampled' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices or self.window_groups%(self.history_query_interval//32)):raise ValueError('Sampled history requires aligned Direct Sparse windows and coarse probe cache')
         if self.history_evidence_backend=='direct_probability' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices):raise ValueError('Probability history requires Direct Sparse, dense_m5c consumer and cached probe indices')
         if self.hierarchical and (not self.compact or self.history_mode!='dense_m5c' or self.history_per_cluster!=4 or not self.mass_transfer or self.disable_population_compensation or self.attention_backend!='indexed'):raise ValueError('Hierarchy requires full M5c compact transfer with History Top-4')
@@ -341,6 +343,9 @@ class ReuseResidualExploration(nn.Module):
                 if geometry is not None:geometry['drop_bins']=prepare_drop(population)
             if self.layer and (c.state_l2 or c.direction_drop) and geometry is None:raise RuntimeError('Combined method requires compact geometry')
             if geometry is not None:geometry['fuse_state_kernel']=c.fuse_state_kernel
+            if c.shared_value_loss and self.layer:
+                from saf3r.triton.reuse_shared_value_states import prepare as prepare_shared_value
+                prepare_shared_value(zvalues,s.fine.labels,s.fine.reps,s.grid,s.regions,geometry)
             token_grid=None
             if c.history_mode=='all_relative_logit':
                 token_grid=torch.zeros(s.n,device=x.device,dtype=torch.long)
@@ -431,8 +436,12 @@ class ReuseResidualExploration(nn.Module):
                     if c.window_graph:
                         from .reuse_window_graph import select
                         old_ids=s.history_ids[start:start+g]
-                        prior,pi=m5c.build_prior(s,start,old_ids,m5c_observation)
-                        ids,real,pops,record=select(s,self.layer,prior,pi,old_ids,allowed,zvalues,s.fine.reps,s.fine.labels,population,geometry)
+                        if c.shared_value_loss:
+                            prior,pi,uniform=m5c.build_prior(s,start,old_ids,m5c_observation,return_uniform=True)
+                        else:
+                            prior,pi=m5c.build_prior(s,start,old_ids,m5c_observation)
+                            uniform=None
+                        ids,real,pops,record=select(s,self.layer,prior,pi,old_ids,allowed,zvalues,s.fine.reps,s.fine.labels,population,geometry,uniform=uniform)
                     else:
                         old_ids=None if s.history_ids is None else s.history_ids[start:start+g]
                         if c.history_mode=='dense_m5c':
@@ -515,7 +524,7 @@ class ReuseResidualExploration(nn.Module):
                             record['proxy_drop_error']=(errors[:,:,0]).sum(1)
                             record['proxy_selected_error']=errors.gather(2,selected[:,:,None]).sum((1,2))
             actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous()
-            if c.disable_population_compensation:
+            if c.disable_population_compensation or c.shared_value_loss:
                 pops=(ids>=0).to(dtype=pops.dtype)
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
