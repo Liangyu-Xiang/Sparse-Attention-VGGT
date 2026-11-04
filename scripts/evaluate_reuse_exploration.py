@@ -98,6 +98,96 @@ def run(args):
                     peak_reserved_gib=torch.cuda.max_memory_reserved()/2**30)
         (cold if iteration<args.warmup else samples).append(sample)
         print('FORWARD',args.scene,args.method,iteration,sample,flush=True)
+    if getattr(args,'profile_stages',False) and state is not None:
+        # A SEPARATE instrumented forward follows the unprofiled timing
+        # samples. Never mix instrumentation overhead with speed claims.
+        from collections import defaultdict
+        from saf3r.patch import reuse_residual_exploration as reuse_module
+        from saf3r.patch.fused_shared_av import stage as profile_stage
+        names=(
+            'count_history_rep_overlap',
+            'history_relation_items',
+            'direct_sparse_history_transport',
+            'history_cluster_prefixes',
+            'joint_history_exploration_operating_points',
+            'exploration_operating_points',
+            'physical_joint_operating_points',
+            'joint_operating_points',
+            'budget_states',
+            'pack_joint_history_exploration',
+            'pack_support_physical',
+            'pack_support',
+            'compact_history_bank',
+        )
+        # This module imports sparse_transport inside forward(), so the
+        # dynamic local symbol must be wrapped separately.
+        from saf3r.patch import reuse_history_transport as transport_module
+        patched=[]
+        def wrap(module,name,fn):
+            def instrument(*a,**kw):
+                with profile_stage(state,'sub/'+name):
+                    return fn(*a,**kw)
+            setattr(module,name,instrument)
+            patched.append((module,name,fn))
+        try:
+            for name in names:
+                module=transport_module if name=='direct_sparse_history_transport' else reuse_module
+                if hasattr(module,name):
+                    fn=getattr(module,name)
+                    wrap(module,name,fn)
+            state.profile_events=[]
+            state.profiling=True
+            torch.cuda.synchronize()
+            profile_start=time.perf_counter()
+            with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):
+                profiled_raw=model(images)
+            torch.cuda.synchronize()
+            profile_wall_ms=(time.perf_counter()-profile_start)*1000
+            del profiled_raw
+            by_layer=defaultdict(lambda:defaultdict(lambda:[0,0.]))
+            for layer,name,start_event,end_event in state.profile_events:
+                item=by_layer[int(layer)][name]
+                item[0]+=1
+                item[1]+=start_event.elapsed_time(end_event)
+            parents=('value_update','pooling','coarse_observation','reuse_prior',
+                     'reuse_and_budget','history_summary','sub/compact_history_bank')
+            rows=[]
+            for layer in sorted(by_layer):
+                stages={name:dict(calls=count,ms=ms,mean_ms=ms/count)
+                        for name,(count,ms) in sorted(by_layer[layer].items())}
+                mask_ms=sum(stages.get(name,{}).get('ms',0.) for name in parents)
+                attention_ms=stages.get('execution_and_evidence',{}).get('ms',0.)
+                sub_ms=sum(val['ms'] for key,val in stages.items()
+                           if key.startswith('sub/') and key!='sub/compact_history_bank')
+                rows.append(dict(layer=layer,stages=stages,
+                    mask_parent_ms=mask_ms,execution_and_evidence_ms=attention_ms,
+                    reuse_and_budget_exclusive_ms=stages.get('reuse_and_budget',{}).get('ms',0.)-sub_ms))
+            total_mask_ms=sum(r['mask_parent_ms'] for r in rows)
+            total_execution_ms=sum(r['execution_and_evidence_ms'] for r in rows)
+            save(out/'stage_profile.json',dict(
+                scope='Separate instrumented forward, GPU CUDA-event timing; nested sub/ stages are INCLUDED in reuse_and_budget, never add them twice.',
+                profile_wall_ms=profile_wall_ms,
+                mask_parent_ms=total_mask_ms,
+                execution_and_evidence_ms=total_execution_ms,
+                unattributed_wall_minus_stage_ms=profile_wall_ms-total_mask_ms-total_execution_ms,
+                layers=rows,
+                caveats=[
+                    'Timing samples in forward.json are measured with profiling disabled',
+                    'GPU-event spans include CPU kernel-launch gaps between events and are not pure kernel self time',
+                    'profile_wall_ms is NOT directly comparable to uninstrumented median forward latency',
+                    'execution_and_evidence includes sparse attention and four-probe evidence',
+                    'stage names omitted by the code are part of the unattributed wall time',
+                    'nested sub/ timing is included in the reuse_and_budget parent',
+                ]))
+            print('STAGE_PROFILE',out/'stage_profile.json',
+                  'mask_parent_ms',round(total_mask_ms,3),
+                  'execution_and_evidence_ms',round(total_execution_ms,3),
+                  'profile_wall_ms',round(profile_wall_ms,3),flush=True)
+        finally:
+            state.profiling=False
+            for module,name,fn in reversed(patched):
+                setattr(module,name,fn)
+            state.profile_events=[]
     if not torch.isfinite(raw['pose_enc']).all() or not torch.isfinite(raw['depth']).all():raise ValueError('Nonfinite model output')
     if state is not None:
         if len(state.records)!=24:raise ValueError('Missing sparse layers')
@@ -169,6 +259,8 @@ if __name__=='__main__':
     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')
     p.add_argument('--warmup',type=int,default=1);p.add_argument('--repeats',type=int,default=3)
     p.add_argument('--capture',action='store_true');p.add_argument('--diagnostic',action='store_true')
+    p.add_argument('--profile-stages',action='store_true',
+        help='Run one additional instrumented forward after clean timing; write stage_profile.json')
     a=p.parse_args()
     if a.warmup<0 or a.repeats<1:raise ValueError('Invalid timing protocol')
     try:run(a)
