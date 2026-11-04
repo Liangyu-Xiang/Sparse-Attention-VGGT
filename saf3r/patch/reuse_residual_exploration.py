@@ -73,6 +73,12 @@ class ReuseExploreConfig:
 
     def __post_init__(self):
         if self.direct_compact_pack and self.execution_kernel!='direct_sparse':raise ValueError('Direct compact pack requires direct_sparse AV')
+        if self.direct_compact_pack and (self.p0_loss_pack or not self.fuse_mask_ops or not self.state_l2):
+            raise ValueError('Direct compact pack requires the fused state-loss layout and cannot combine with P0')
+        if self.minimal_diagnostics and not self.fuse_mask_ops:
+            raise ValueError('Minimal diagnostics requires the fused pack/mass validation backend')
+        if self.direct_probe_grid_summary and (self.execution_kernel!='direct_sparse' or self.history_evidence_backend!='direct_legacy'):
+            raise ValueError('Sampled Grid summary requires direct_sparse AV with original direct_legacy evidence')
         if self.hierarchical and (not self.compact or self.history_mode!='dense_m5c' or self.history_per_cluster!=4 or not self.mass_transfer or self.disable_population_compensation or self.attention_backend!='indexed'):raise ValueError('Hierarchy requires full M5c compact transfer with History Top-4')
         if self.parent_arity not in (2,4) or self.parent_passes not in (1,2) or self.parent_moment_mode not in ('exact','calibrated'):raise ValueError('Invalid parent operating-point configuration')
         if self.clustering_mode not in ('source_anchored','adaptive_local','adaptive_certified') or self.cluster_neighbors<1:raise ValueError('Invalid clustering policy')
