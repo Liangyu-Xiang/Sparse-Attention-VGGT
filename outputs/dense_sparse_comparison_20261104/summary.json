@@ -1,0 +1,966 @@
+{
+  "complete": true,
+  "timings": [
+    {
+      "method": "dense",
+      "warmed_median_s": 12.48086781008169,
+      "sample_min_s": 12.458180172368884,
+      "sample_max_s": 12.556858740281314,
+      "dense_speedup": 1.0,
+      "peak_allocated_gib": 14.359551429748535,
+      "peak_reserved_gib": 17.56640625
+    },
+    {
+      "method": "v8",
+      "warmed_median_s": 20.525772181805223,
+      "sample_min_s": 20.38129020575434,
+      "sample_max_s": 20.96812674216926,
+      "dense_speedup": 0.6080583814111109,
+      "peak_allocated_gib": 18.742395401000977,
+      "peak_reserved_gib": 26.1875
+    },
+    {
+      "method": "p0",
+      "warmed_median_s": 20.806060352828354,
+      "sample_min_s": 20.735420744866133,
+      "sample_max_s": 21.211980426684022,
+      "dense_speedup": 0.5998669425365314,
+      "peak_allocated_gib": 18.22284746170044,
+      "peak_reserved_gib": 25.4140625
+    },
+    {
+      "method": "beta",
+      "warmed_median_s": 19.79829362919554,
+      "sample_min_s": 19.378833073191345,
+      "sample_max_s": 22.849094161298126,
+      "dense_speedup": 0.6304011872859986,
+      "peak_allocated_gib": 18.866563320159912,
+      "peak_reserved_gib": 25.662109375
+    }
+  ],
+  "accounting": [
+    {
+      "method": "dense",
+      "profile_full_s": 12.877114193048328,
+      "global_attention_s": 8.091225128173829,
+      "common_qkv_norm_rope_proj_s": 0.5195059818029404,
+      "attention_core_s": 7.562791625976562,
+      "other_global_s": 0.008927520394326649,
+      "outside_global_s": 4.7858890648745
+    },
+    {
+      "method": "v8",
+      "profile_full_s": 20.854165924247354,
+      "global_attention_s": 16.34497332763672,
+      "common_qkv_norm_rope_proj_s": 0.5199795182943344,
+      "attention_core_s": 6.462368641495705,
+      "other_global_s": 9.36262516784668,
+      "outside_global_s": 4.509192596610635
+    },
+    {
+      "method": "p0",
+      "profile_full_s": 21.57451358810067,
+      "global_attention_s": 16.658163452148436,
+      "common_qkv_norm_rope_proj_s": 0.5193519665002823,
+      "attention_core_s": 6.454261823296547,
+      "other_global_s": 9.684549662351607,
+      "outside_global_s": 4.916350135952236
+    },
+    {
+      "method": "beta",
+      "profile_full_s": 19.659593658987433,
+      "global_attention_s": 15.050484985351563,
+      "common_qkv_norm_rope_proj_s": 0.5278638730049133,
+      "attention_core_s": 6.454043937087059,
+      "other_global_s": 8.068577175259591,
+      "outside_global_s": 4.60910867363587
+    }
+  ],
+  "common": [
+    {
+      "operation": "image_backbone",
+      "dense_s": 0.6044190673828125,
+      "v8_s": 0.6079324340820312,
+      "p0_s": 0.6097192993164062,
+      "beta_s": 0.6079037475585938
+    },
+    {
+      "operation": "frame_attention",
+      "dense_s": 0.7588531188964844,
+      "v8_s": 0.6747884178161622,
+      "p0_s": 0.6844944915771485,
+      "beta_s": 0.6573020477294922
+    },
+    {
+      "operation": "ffn",
+      "dense_s": 0.5596396808624269,
+      "v8_s": 0.5504486694335937,
+      "p0_s": 0.5685138835906983,
+      "beta_s": 0.5542655992507934
+    },
+    {
+      "operation": "block_norm",
+      "dense_s": 0.1128842561244965,
+      "v8_s": 0.06975036722421653,
+      "p0_s": 0.06970915144681934,
+      "beta_s": 0.06999225527048117
+    },
+    {
+      "operation": "global_qkv",
+      "dense_s": 0.09989833450317383,
+      "v8_s": 0.1001299524307251,
+      "p0_s": 0.1001289281845093,
+      "beta_s": 0.10004944038391113
+    },
+    {
+      "operation": "global_qk_norm",
+      "dense_s": 0.15775683307647703,
+      "v8_s": 0.15806803107261658,
+      "p0_s": 0.1580067505836486,
+      "beta_s": 0.15794326448440546
+    },
+    {
+      "operation": "global_output_projection",
+      "dense_s": 0.03110502374172211,
+      "v8_s": 0.029863999962806705,
+      "p0_s": 0.029976319909095765,
+      "beta_s": 0.038793312072753904
+    },
+    {
+      "operation": "camera_head",
+      "dense_s": 0.022185792922973634,
+      "v8_s": 0.008971551895141601,
+      "p0_s": 0.009112607955932618,
+      "beta_s": 0.008970656394958497
+    },
+    {
+      "operation": "depth_head",
+      "dense_s": 0.9994635620117187,
+      "v8_s": 1.0113582153320313,
+      "p0_s": 1.0105465698242186,
+      "beta_s": 1.0101438598632813
+    },
+    {
+      "operation": "point_head",
+      "dense_s": 1.008466064453125,
+      "v8_s": 1.0203321533203125,
+      "p0_s": 1.0211635131835937,
+      "beta_s": 1.0174970703125
+    }
+  ],
+  "same_qkv_sample": {
+    "dense_core_s": 0.15877375888824463,
+    "sparse_core_s": 0.09829718446731568,
+    "sparse_executor_s": 0.11470332741737366,
+    "dense_over_sparse_core": 1.6152421836765603,
+    "dense_over_sparse_executor": 1.3842123194082319
+  },
+  "quality_diagnostic": {
+    "complete": true,
+    "sampling": "heads128 beta trajectory;first4 groups/window0,all24 layers;original4probes/head",
+    "rows": [
+      {
+        "layer": 0,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.00043531175469979644,
+        "current_support_true_dense_mass_mean": 0.21534403786063194,
+        "sparse_cache_zero_fraction": 0.0,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9885379672050476,
+        "compensation_logbias_mean": 1.2555638551712036,
+        "compensation_logbias_max": 4.174387454986572,
+        "compensation_logbias_above20_fraction": 0.0,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.0,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 1,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.1956727504730225,
+          "kl_truth_est_mean": 5.675293922424316,
+          "entropy_mean": 10.631036758422852
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.08968348801136017,
+          "kl_truth_est_mean": 0.008595136925578117,
+          "entropy_mean": 11.783888816833496
+        },
+        "prior_l1_beta_v8": 1.146777629852295,
+        "dense_patch_mass": 0.9935910701751709,
+        "beta_prior_zero_fraction": 0.07914869487285614,
+        "beta_prior_below_1e_20_fraction": 0.07914869487285614,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.7843304872512817,
+        "shadow_v8_previous_support_mass": 0.22327876091003418,
+        "dense_previous_support_mass": 0.1964631825685501,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0014623200986534357,
+        "current_support_true_dense_mass_mean": 0.2031157650053501,
+        "sparse_cache_zero_fraction": 0.984364926815033,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.000012993812561,
+        "compensation_logbias_mean": 1.6899182796478271,
+        "compensation_logbias_max": 61.2362060546875,
+        "compensation_logbias_above20_fraction": 0.016596632078289986,
+        "selected_prior_zero_fraction": 0.015635065734386444,
+        "selected_prior_below1e_20_fraction": 0.015635065734386444,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.984364926815033,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 2,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 0.7361064553260803,
+          "kl_truth_est_mean": 14.967205047607422,
+          "entropy_mean": 11.168312072753906
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.3869047164916992,
+          "kl_truth_est_mean": 0.12323834002017975,
+          "entropy_mean": 11.783439636230469
+        },
+        "prior_l1_beta_v8": 0.5415650606155396,
+        "dense_patch_mass": 0.9691721200942993,
+        "beta_prior_zero_fraction": 0.2551354467868805,
+        "beta_prior_below_1e_20_fraction": 0.2551354467868805,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.10054115206003189,
+        "shadow_v8_previous_support_mass": 0.19410932064056396,
+        "dense_previous_support_mass": 0.18420954048633575,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0008729302644496784,
+        "current_support_true_dense_mass_mean": 0.20830640569329262,
+        "sparse_cache_zero_fraction": 0.7433921098709106,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.000000238418579,
+        "compensation_logbias_mean": 15.918991088867188,
+        "compensation_logbias_max": 60.76573181152344,
+        "compensation_logbias_above20_fraction": 0.2571597099304199,
+        "selected_prior_zero_fraction": 0.27116936445236206,
+        "selected_prior_below1e_20_fraction": 0.27116936445236206,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7433921098709106,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 3,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.3585472106933594,
+          "kl_truth_est_mean": 17.471782684326172,
+          "entropy_mean": 9.839953422546387
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.5683890581130981,
+          "kl_truth_est_mean": 0.2737187445163727,
+          "entropy_mean": 11.740653991699219
+        },
+        "prior_l1_beta_v8": 1.1516749858856201,
+        "dense_patch_mass": 0.9644337892532349,
+        "beta_prior_zero_fraction": 0.29291030764579773,
+        "beta_prior_below_1e_20_fraction": 0.29291030764579773,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.6279577612876892,
+        "shadow_v8_previous_support_mass": 0.208222895860672,
+        "dense_previous_support_mass": 0.17789030075073242,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0012750881141982973,
+        "current_support_true_dense_mass_mean": 0.22732847929000854,
+        "sparse_cache_zero_fraction": 0.7433882355690002,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.0000001192092896,
+        "compensation_logbias_mean": 15.412671089172363,
+        "compensation_logbias_max": 60.30901336669922,
+        "compensation_logbias_above20_fraction": 0.2567862272262573,
+        "selected_prior_zero_fraction": 0.2808590233325958,
+        "selected_prior_below1e_20_fraction": 0.2808590233325958,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7433882355690002,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 4,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.3125100135803223,
+          "kl_truth_est_mean": 18.025798797607422,
+          "entropy_mean": 10.009828567504883
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.6695511341094971,
+          "kl_truth_est_mean": 0.38166943192481995,
+          "entropy_mean": 11.691875457763672
+        },
+        "prior_l1_beta_v8": 1.0486170053482056,
+        "dense_patch_mass": 0.9844760894775391,
+        "beta_prior_zero_fraction": 0.2774832546710968,
+        "beta_prior_below_1e_20_fraction": 0.2774832546710968,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.5763732194900513,
+        "shadow_v8_previous_support_mass": 0.2642478346824646,
+        "dense_previous_support_mass": 0.17700722813606262,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0011315033480059355,
+        "current_support_true_dense_mass_mean": 0.19390690699219704,
+        "sparse_cache_zero_fraction": 0.7522567510604858,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.000002145767212,
+        "compensation_logbias_mean": 14.941788673400879,
+        "compensation_logbias_max": 60.447147369384766,
+        "compensation_logbias_above20_fraction": 0.24793905019760132,
+        "selected_prior_zero_fraction": 0.2586206793785095,
+        "selected_prior_below1e_20_fraction": 0.2586206793785095,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7522567510604858,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 5,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.3841981887817383,
+          "kl_truth_est_mean": 17.936262130737305,
+          "entropy_mean": 9.728530883789062
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.6592807769775391,
+          "kl_truth_est_mean": 0.37535494565963745,
+          "entropy_mean": 11.650644302368164
+        },
+        "prior_l1_beta_v8": 1.1282497644424438,
+        "dense_patch_mass": 0.9782320857048035,
+        "beta_prior_zero_fraction": 0.3014090359210968,
+        "beta_prior_below_1e_20_fraction": 0.3014090359210968,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.6201609373092651,
+        "shadow_v8_previous_support_mass": 0.2650001049041748,
+        "dense_previous_support_mass": 0.17197786271572113,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0013179471134208143,
+        "current_support_true_dense_mass_mean": 0.20515955612063408,
+        "sparse_cache_zero_fraction": 0.7298939228057861,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.000002384185791,
+        "compensation_logbias_mean": 16.191606521606445,
+        "compensation_logbias_max": 60.28839874267578,
+        "compensation_logbias_above20_fraction": 0.270281583070755,
+        "selected_prior_zero_fraction": 0.28791099786758423,
+        "selected_prior_below1e_20_fraction": 0.28791099786758423,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7298939228057861,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 6,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.3545808792114258,
+          "kl_truth_est_mean": 17.723957061767578,
+          "entropy_mean": 9.921304702758789
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.7244226336479187,
+          "kl_truth_est_mean": 0.46728384494781494,
+          "entropy_mean": 11.661920547485352
+        },
+        "prior_l1_beta_v8": 1.0553970336914062,
+        "dense_patch_mass": 0.9837242960929871,
+        "beta_prior_zero_fraction": 0.26948410272598267,
+        "beta_prior_below_1e_20_fraction": 0.26948410272598267,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.5827043056488037,
+        "shadow_v8_previous_support_mass": 0.2694099545478821,
+        "dense_previous_support_mass": 0.17518851161003113,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0014106756425462663,
+        "current_support_true_dense_mass_mean": 0.1920328177511692,
+        "sparse_cache_zero_fraction": 0.7314454317092896,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999991655349731,
+        "compensation_logbias_mean": 16.131534576416016,
+        "compensation_logbias_max": 60.28614044189453,
+        "compensation_logbias_above20_fraction": 0.26859351992607117,
+        "selected_prior_zero_fraction": 0.27839648723602295,
+        "selected_prior_below1e_20_fraction": 0.27839648723602295,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7314454317092896,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 7,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.392528772354126,
+          "kl_truth_est_mean": 18.157554626464844,
+          "entropy_mean": 9.786462783813477
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.7245856523513794,
+          "kl_truth_est_mean": 0.4597674012184143,
+          "entropy_mean": 11.634346008300781
+        },
+        "prior_l1_beta_v8": 1.090311050415039,
+        "dense_patch_mass": 0.9774811863899231,
+        "beta_prior_zero_fraction": 0.2799171209335327,
+        "beta_prior_below_1e_20_fraction": 0.2799171209335327,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.6038964986801147,
+        "shadow_v8_previous_support_mass": 0.2702297568321228,
+        "dense_previous_support_mass": 0.17451511323451996,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.001429405005183071,
+        "current_support_true_dense_mass_mean": 0.1976943202316761,
+        "sparse_cache_zero_fraction": 0.7074930667877197,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.000002384185791,
+        "compensation_logbias_mean": 17.526620864868164,
+        "compensation_logbias_max": 60.065269470214844,
+        "compensation_logbias_above20_fraction": 0.2925167381763458,
+        "selected_prior_zero_fraction": 0.30683910846710205,
+        "selected_prior_below1e_20_fraction": 0.30683910846710205,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7074930667877197,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 8,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.2369797229766846,
+          "kl_truth_est_mean": 17.377408981323242,
+          "entropy_mean": 9.875375747680664
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.42372992634773254,
+          "kl_truth_est_mean": 0.15766404569149017,
+          "entropy_mean": 11.647014617919922
+        },
+        "prior_l1_beta_v8": 1.1013386249542236,
+        "dense_patch_mass": 0.9850454330444336,
+        "beta_prior_zero_fraction": 0.27154847979545593,
+        "beta_prior_below_1e_20_fraction": 0.27154847979545593,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.6195273995399475,
+        "shadow_v8_previous_support_mass": 0.2842356562614441,
+        "dense_previous_support_mass": 0.18736329674720764,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0010922165820375085,
+        "current_support_true_dense_mass_mean": 0.20030730217695236,
+        "sparse_cache_zero_fraction": 0.7327512502670288,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999988079071045,
+        "compensation_logbias_mean": 16.08584213256836,
+        "compensation_logbias_max": 60.05185317993164,
+        "compensation_logbias_above20_fraction": 0.26732632517814636,
+        "selected_prior_zero_fraction": 0.28138336539268494,
+        "selected_prior_below1e_20_fraction": 0.28138336539268494,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7327512502670288,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 9,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.4304864406585693,
+          "kl_truth_est_mean": 20.72207260131836,
+          "entropy_mean": 9.735790252685547
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.5955845713615417,
+          "kl_truth_est_mean": 0.31700044870376587,
+          "entropy_mean": 11.75479507446289
+        },
+        "prior_l1_beta_v8": 1.2345020771026611,
+        "dense_patch_mass": 0.971922755241394,
+        "beta_prior_zero_fraction": 0.33297765254974365,
+        "beta_prior_below_1e_20_fraction": 0.33297765254974365,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.6721504330635071,
+        "shadow_v8_previous_support_mass": 0.2138965129852295,
+        "dense_previous_support_mass": 0.1879512369632721,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0012427330075297505,
+        "current_support_true_dense_mass_mean": 0.22758269309997559,
+        "sparse_cache_zero_fraction": 0.7273150086402893,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999998807907104,
+        "compensation_logbias_mean": 16.245080947875977,
+        "compensation_logbias_max": 60.137760162353516,
+        "compensation_logbias_above20_fraction": 0.2727721631526947,
+        "selected_prior_zero_fraction": 0.29247722029685974,
+        "selected_prior_below1e_20_fraction": 0.29247722029685974,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7273150086402893,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 10,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.306145429611206,
+          "kl_truth_est_mean": 17.961658477783203,
+          "entropy_mean": 9.975305557250977
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.6062272787094116,
+          "kl_truth_est_mean": 0.3444087505340576,
+          "entropy_mean": 11.641956329345703
+        },
+        "prior_l1_beta_v8": 1.023831844329834,
+        "dense_patch_mass": 0.953091025352478,
+        "beta_prior_zero_fraction": 0.2947804629802704,
+        "beta_prior_below_1e_20_fraction": 0.2947804629802704,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.5702179670333862,
+        "shadow_v8_previous_support_mass": 0.27083635330200195,
+        "dense_previous_support_mass": 0.1966981291770935,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0017218145658262074,
+        "current_support_true_dense_mass_mean": 0.251421544700861,
+        "sparse_cache_zero_fraction": 0.7458881735801697,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999998807907104,
+        "compensation_logbias_mean": 15.256169319152832,
+        "compensation_logbias_max": 60.28807830810547,
+        "compensation_logbias_above20_fraction": 0.25423794984817505,
+        "selected_prior_zero_fraction": 0.27505168318748474,
+        "selected_prior_below1e_20_fraction": 0.27505168318748474,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7458881735801697,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 11,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.3790606260299683,
+          "kl_truth_est_mean": 18.1982421875,
+          "entropy_mean": 10.032341003417969
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.8271065354347229,
+          "kl_truth_est_mean": 0.8031562566757202,
+          "entropy_mean": 11.635320663452148
+        },
+        "prior_l1_beta_v8": 0.8502160310745239,
+        "dense_patch_mass": 0.9240897297859192,
+        "beta_prior_zero_fraction": 0.2822548449039459,
+        "beta_prior_below_1e_20_fraction": 0.2822548449039459,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.4598855972290039,
+        "shadow_v8_previous_support_mass": 0.22977012395858765,
+        "dense_previous_support_mass": 0.2007197141647339,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.002888122573494911,
+        "current_support_true_dense_mass_mean": 0.2943152189254761,
+        "sparse_cache_zero_fraction": 0.7425283193588257,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999945163726807,
+        "compensation_logbias_mean": 15.392473220825195,
+        "compensation_logbias_max": 60.55158233642578,
+        "compensation_logbias_above20_fraction": 0.25760653614997864,
+        "selected_prior_zero_fraction": 0.28051048517227173,
+        "selected_prior_below1e_20_fraction": 0.28051048517227173,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7425283193588257,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 12,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.3214943408966064,
+          "kl_truth_est_mean": 17.03277587890625,
+          "entropy_mean": 10.054405212402344
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.8403981924057007,
+          "kl_truth_est_mean": 0.7229849100112915,
+          "entropy_mean": 11.400617599487305
+        },
+        "prior_l1_beta_v8": 0.7917970418930054,
+        "dense_patch_mass": 0.9032373428344727,
+        "beta_prior_zero_fraction": 0.24709104001522064,
+        "beta_prior_below_1e_20_fraction": 0.24709104001522064,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.40141579508781433,
+        "shadow_v8_previous_support_mass": 0.3153461813926697,
+        "dense_previous_support_mass": 0.2306656539440155,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.002825294970534742,
+        "current_support_true_dense_mass_mean": 0.34147146344184875,
+        "sparse_cache_zero_fraction": 0.7788194417953491,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999908208847046,
+        "compensation_logbias_mean": 13.34885311126709,
+        "compensation_logbias_max": 60.944828033447266,
+        "compensation_logbias_above20_fraction": 0.22131796181201935,
+        "selected_prior_zero_fraction": 0.24498100578784943,
+        "selected_prior_below1e_20_fraction": 0.24498100578784943,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7788194417953491,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 13,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.2603187561035156,
+          "kl_truth_est_mean": 17.877954483032227,
+          "entropy_mean": 10.116323471069336
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.8120220899581909,
+          "kl_truth_est_mean": 0.706484317779541,
+          "entropy_mean": 11.260309219360352
+        },
+        "prior_l1_beta_v8": 0.8622399568557739,
+        "dense_patch_mass": 0.9615079164505005,
+        "beta_prior_zero_fraction": 0.203735813498497,
+        "beta_prior_below_1e_20_fraction": 0.203735813498497,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.39769506454467773,
+        "shadow_v8_previous_support_mass": 0.37248605489730835,
+        "dense_previous_support_mass": 0.2749616503715515,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.004057663376443088,
+        "current_support_true_dense_mass_mean": 0.30156511813402176,
+        "sparse_cache_zero_fraction": 0.800791323184967,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.000007152557373,
+        "compensation_logbias_mean": 12.233610153198242,
+        "compensation_logbias_max": 61.63966369628906,
+        "compensation_logbias_above20_fraction": 0.19934409856796265,
+        "selected_prior_zero_fraction": 0.22949820756912231,
+        "selected_prior_below1e_20_fraction": 0.22949820756912231,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.800791323184967,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 14,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.4629859924316406,
+          "kl_truth_est_mean": 26.2565860748291,
+          "entropy_mean": 8.985177993774414
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 1.073746919631958,
+          "kl_truth_est_mean": 1.3449184894561768,
+          "entropy_mean": 10.049595832824707
+        },
+        "prior_l1_beta_v8": 0.8919214010238647,
+        "dense_patch_mass": 0.9265078902244568,
+        "beta_prior_zero_fraction": 0.26747065782546997,
+        "beta_prior_below_1e_20_fraction": 0.26747065782546997,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.23351207375526428,
+        "shadow_v8_previous_support_mass": 0.3943524956703186,
+        "dense_previous_support_mass": 0.35107237100601196,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.006264358875341713,
+        "current_support_true_dense_mass_mean": 0.5204243510961533,
+        "sparse_cache_zero_fraction": 0.8377391695976257,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999842643737793,
+        "compensation_logbias_mean": 9.848861694335938,
+        "compensation_logbias_max": 61.43067932128906,
+        "compensation_logbias_above20_fraction": 0.1630723625421524,
+        "selected_prior_zero_fraction": 0.23359517753124237,
+        "selected_prior_below1e_20_fraction": 0.23359517753124237,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.8377391695976257,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 15,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.2309308052062988,
+          "kl_truth_est_mean": 21.211454391479492,
+          "entropy_mean": 9.721686363220215
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.8156000971794128,
+          "kl_truth_est_mean": 0.6603251695632935,
+          "entropy_mean": 10.620461463928223
+        },
+        "prior_l1_beta_v8": 0.9880679845809937,
+        "dense_patch_mass": 0.9805126190185547,
+        "beta_prior_zero_fraction": 0.16446971893310547,
+        "beta_prior_below_1e_20_fraction": 0.16446971893310547,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.22428280115127563,
+        "shadow_v8_previous_support_mass": 0.49693089723587036,
+        "dense_previous_support_mass": 0.3615378737449646,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.00347588473232463,
+        "current_support_true_dense_mass_mean": 0.33549559116363525,
+        "sparse_cache_zero_fraction": 0.8869803547859192,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999972581863403,
+        "compensation_logbias_mean": 7.514554500579834,
+        "compensation_logbias_max": 61.810508728027344,
+        "compensation_logbias_above20_fraction": 0.11309821903705597,
+        "selected_prior_zero_fraction": 0.1557997763156891,
+        "selected_prior_below1e_20_fraction": 0.1557997763156891,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.8869803547859192,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 16,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.251084804534912,
+          "kl_truth_est_mean": 17.937768936157227,
+          "entropy_mean": 9.977537155151367
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.8576168417930603,
+          "kl_truth_est_mean": 0.7406257390975952,
+          "entropy_mean": 11.124330520629883
+        },
+        "prior_l1_beta_v8": 0.8425296545028687,
+        "dense_patch_mass": 0.9251155853271484,
+        "beta_prior_zero_fraction": 0.20170916616916656,
+        "beta_prior_below_1e_20_fraction": 0.20170916616916656,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.33284419775009155,
+        "shadow_v8_previous_support_mass": 0.3629811406135559,
+        "dense_previous_support_mass": 0.25861209630966187,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0023201057920232415,
+        "current_support_true_dense_mass_mean": 0.34754373133182526,
+        "sparse_cache_zero_fraction": 0.8305504322052002,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999947547912598,
+        "compensation_logbias_mean": 10.7166748046875,
+        "compensation_logbias_max": 61.79304504394531,
+        "compensation_logbias_above20_fraction": 0.1694694459438324,
+        "selected_prior_zero_fraction": 0.18815572559833527,
+        "selected_prior_below1e_20_fraction": 0.18815572559833527,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.8305504322052002,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 17,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.0584485530853271,
+          "kl_truth_est_mean": 14.930495262145996,
+          "entropy_mean": 10.44892406463623
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.5503286123275757,
+          "kl_truth_est_mean": 0.24961556494235992,
+          "entropy_mean": 11.599630355834961
+        },
+        "prior_l1_beta_v8": 0.8329546451568604,
+        "dense_patch_mass": 0.981726884841919,
+        "beta_prior_zero_fraction": 0.21096199750900269,
+        "beta_prior_below_1e_20_fraction": 0.21096199750900269,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.4116900563240051,
+        "shadow_v8_previous_support_mass": 0.29737013578414917,
+        "dense_previous_support_mass": 0.21244792640209198,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.000879648607224226,
+        "current_support_true_dense_mass_mean": 0.23177499696612358,
+        "sparse_cache_zero_fraction": 0.8225252032279968,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.0000003576278687,
+        "compensation_logbias_mean": 11.10846996307373,
+        "compensation_logbias_max": 60.75117111206055,
+        "compensation_logbias_above20_fraction": 0.17770203948020935,
+        "selected_prior_zero_fraction": 0.18995258212089539,
+        "selected_prior_below1e_20_fraction": 0.18995258212089539,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.8225252032279968,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 18,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.1973998546600342,
+          "kl_truth_est_mean": 18.586803436279297,
+          "entropy_mean": 9.751076698303223
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.17898714542388916,
+          "kl_truth_est_mean": 0.03968488425016403,
+          "entropy_mean": 11.712961196899414
+        },
+        "prior_l1_beta_v8": 1.16144859790802,
+        "dense_patch_mass": 0.9773972630500793,
+        "beta_prior_zero_fraction": 0.29293859004974365,
+        "beta_prior_below_1e_20_fraction": 0.29293859004974365,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.6072048544883728,
+        "shadow_v8_previous_support_mass": 0.25703513622283936,
+        "dense_previous_support_mass": 0.19326266646385193,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0007872651040088385,
+        "current_support_true_dense_mass_mean": 0.22703400254249573,
+        "sparse_cache_zero_fraction": 0.8075038194656372,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999995231628418,
+        "compensation_logbias_mean": 12.10499382019043,
+        "compensation_logbias_max": 60.53303527832031,
+        "compensation_logbias_above20_fraction": 0.19341681897640228,
+        "selected_prior_zero_fraction": 0.21627481281757355,
+        "selected_prior_below1e_20_fraction": 0.21627481281757355,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.8075038194656372,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 19,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.3615314960479736,
+          "kl_truth_est_mean": 26.80590057373047,
+          "entropy_mean": 9.352136611938477
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.3647518754005432,
+          "kl_truth_est_mean": 0.1315477192401886,
+          "entropy_mean": 11.384880065917969
+        },
+        "prior_l1_beta_v8": 1.1801856756210327,
+        "dense_patch_mass": 0.9081228971481323,
+        "beta_prior_zero_fraction": 0.40749990940093994,
+        "beta_prior_below_1e_20_fraction": 0.40749990940093994,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.5152385234832764,
+        "shadow_v8_previous_support_mass": 0.24397042393684387,
+        "dense_previous_support_mass": 0.2582664489746094,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0009100339084398001,
+        "current_support_true_dense_mass_mean": 0.312818743288517,
+        "sparse_cache_zero_fraction": 0.785381019115448,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.0000027418136597,
+        "compensation_logbias_mean": 13.002683639526367,
+        "compensation_logbias_max": 60.19633102416992,
+        "compensation_logbias_above20_fraction": 0.2153121531009674,
+        "selected_prior_zero_fraction": 0.24958737194538116,
+        "selected_prior_below1e_20_fraction": 0.24958737194538116,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.785381019115448,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 20,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 0.9749454259872437,
+          "kl_truth_est_mean": 15.55467700958252,
+          "entropy_mean": 10.360749244689941
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.16729691624641418,
+          "kl_truth_est_mean": 0.028905518352985382,
+          "entropy_mean": 11.763669967651367
+        },
+        "prior_l1_beta_v8": 0.9183079600334167,
+        "dense_patch_mass": 0.9804045557975769,
+        "beta_prior_zero_fraction": 0.2400420755147934,
+        "beta_prior_below_1e_20_fraction": 0.2400420755147934,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.47950008511543274,
+        "shadow_v8_previous_support_mass": 0.20105555653572083,
+        "dense_previous_support_mass": 0.18340039253234863,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0006441763107432052,
+        "current_support_true_dense_mass_mean": 0.22278804332017899,
+        "sparse_cache_zero_fraction": 0.8367279767990112,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999987483024597,
+        "compensation_logbias_mean": 10.221829414367676,
+        "compensation_logbias_max": 60.983734130859375,
+        "compensation_logbias_above20_fraction": 0.16344644129276276,
+        "selected_prior_zero_fraction": 0.17680859565734863,
+        "selected_prior_below1e_20_fraction": 0.17680859565734863,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.8367279767990112,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 21,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.2857686281204224,
+          "kl_truth_est_mean": 22.588455200195312,
+          "entropy_mean": 9.735635757446289
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.487975150346756,
+          "kl_truth_est_mean": 0.23667949438095093,
+          "entropy_mean": 11.456531524658203
+        },
+        "prior_l1_beta_v8": 1.0118844509124756,
+        "dense_patch_mass": 0.923052966594696,
+        "beta_prior_zero_fraction": 0.40318456292152405,
+        "beta_prior_below_1e_20_fraction": 0.40318456292152405,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.4658495783805847,
+        "shadow_v8_previous_support_mass": 0.20761539041996002,
+        "dense_previous_support_mass": 0.2183944582939148,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.001779252226697281,
+        "current_support_true_dense_mass_mean": 0.36783718317747116,
+        "sparse_cache_zero_fraction": 0.7933046817779541,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 1.000001072883606,
+        "compensation_logbias_mean": 12.52315902709961,
+        "compensation_logbias_max": 60.678985595703125,
+        "compensation_logbias_above20_fraction": 0.20748890936374664,
+        "selected_prior_zero_fraction": 0.2427268922328949,
+        "selected_prior_below1e_20_fraction": 0.2427268922328949,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.7933046817779541,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 22,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 0.781116783618927,
+          "kl_truth_est_mean": 13.42679214477539,
+          "entropy_mean": 10.675065994262695
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.15418002009391785,
+          "kl_truth_est_mean": 0.03611086308956146,
+          "entropy_mean": 11.733678817749023
+        },
+        "prior_l1_beta_v8": 0.7665709257125854,
+        "dense_patch_mass": 0.99111008644104,
+        "beta_prior_zero_fraction": 0.22100098431110382,
+        "beta_prior_below_1e_20_fraction": 0.22100098431110382,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.3825923800468445,
+        "shadow_v8_previous_support_mass": 0.25373828411102295,
+        "dense_previous_support_mass": 0.19793249666690826,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0006665769906248897,
+        "current_support_true_dense_mass_mean": 0.20263951644301414,
+        "sparse_cache_zero_fraction": 0.833957314491272,
+        "v8_conditional_cache_zero_fraction": 0.0,
+        "sparse_cache_selected_mass": 0.9999997615814209,
+        "compensation_logbias_mean": 10.446554183959961,
+        "compensation_logbias_max": 60.67660140991211,
+        "compensation_logbias_above20_fraction": 0.16630659997463226,
+        "selected_prior_zero_fraction": 0.1766195148229599,
+        "selected_prior_below1e_20_fraction": 0.1766195148229599,
+        "sparse_probability_below_fp16_halfsubnormal_fraction": 0.833957314491272,
+        "sparse_probability_fp32_zero_fraction": 0.0
+      },
+      {
+        "layer": 23,
+        "sampling": "first4 groups of first64-group window;4 original probes/head",
+        "beta_prior": {
+          "l1_mean": 1.2420246601104736,
+          "kl_truth_est_mean": 21.691761016845703,
+          "entropy_mean": 9.747264862060547
+        },
+        "shadow_v8_prior": {
+          "l1_mean": 0.14711564779281616,
+          "kl_truth_est_mean": 0.01870002970099449,
+          "entropy_mean": 11.771439552307129
+        },
+        "prior_l1_beta_v8": 1.2001368999481201,
+        "dense_patch_mass": 0.9824807047843933,
+        "beta_prior_zero_fraction": 0.3696571886539459,
+        "beta_prior_below_1e_20_fraction": 0.3696571886539459,
+        "shadow_v8_prior_zero_fraction": 0.0,
+        "beta_previous_support_mass": 0.6207753419876099,
+        "shadow_v8_previous_support_mass": 0.1905568689107895,
+        "dense_previous_support_mass": 0.1941756159067154,
+        "sparse_core_vs_same_support_fp32_relative_l2_mean": 0.0005826808483107015,
+        "current_support_true_dense_mass_mean": 0.23095815256237984
+      }
+    ],
+    "diagnostic_wall_seconds": 20.815793186891824,
+    "peak_allocated_gib": 18.92257308959961,
+    "quality": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "quality_reason": "Same-input estimator and kernel diagnostics; geometry quality is in frozen18-scene experiment; diagnostic wall is not benchmark",
+    "dense_speedup": null,
+    "dense_reason": "This diagnostic includes extra oracle computations, no speedup claimed"
+  },
+  "paired_gpu": 7,
+  "quality_retuning": false,
+  "changed_method_quality": "v8_p0_quality_v2_20261104 evaluated separately",
+  "quality_scores_source": "historical complete matched18-scene controls and beta experiment,not regenerated by timing runs"
+}
