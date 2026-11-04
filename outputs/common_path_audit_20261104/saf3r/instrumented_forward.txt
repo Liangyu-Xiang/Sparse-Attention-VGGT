@@ -1,0 +1,18 @@
+  def forward(self,x,pos=None):
+   with audit.scope('saf3r.qkv_prepare_total','pipeline'):
+    B,N,C=x.shape;qkv=self.orig_module.qkv(x).reshape(B,N,3,self.orig_module.num_heads,self.orig_module.head_dim).permute(2,0,3,1,4);q,k,v=qkv.unbind(0)
+    q,k=self.orig_module.q_norm(q),self.orig_module.k_norm(k)
+    if self.orig_module.rope is not None:q=self.orig_module.rope(q,pos);k=self.orig_module.rope(k,pos)
+   audit.note(f'saf3r.prepared_qkv.L{audit.layer}',meta((q,k,v)))
+   x=self.compute_multihead_attention(q,k,v)
+   with audit.scope('saf3r.output_layout','mechanics'):x=x.transpose(1,2).reshape(B,N,C)
+   x=self.orig_module.proj(x);x=self.orig_module.proj_drop(x);return x
+
+  def compute(self,q,k,v):
+   outputs=[]
+   for h in range(self.num_heads):
+    qh,kh,vh=q[:,h:h+1],k[:,h:h+1],v[:,h:h+1]
+    with audit.scope('saf3r.attention_and_routing','attention_pipeline'):
+     result=F.scaled_dot_product_attention(qh,kh,vh) if self.head_cfg[h]['mode']=='full' else self.sparse_attention(qh,kh,vh,self.head_cfg[h],head_idx=h)
+    outputs.append(result)
+   with audit.scope('saf3r.output_head_concat','mechanics'):return torch.cat(outputs,dim=1)

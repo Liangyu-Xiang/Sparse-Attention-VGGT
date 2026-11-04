@@ -1,0 +1,241 @@
+{
+  "complete": true,
+  "base_commit": "c85543db",
+  "methods": [
+    "ours256",
+    "saf3r_lazy4"
+  ],
+  "input_matched": true,
+  "hardware_matched": true,
+  "model_flags_matched": true,
+  "shape_dtype_stride_checks": 488,
+  "shape_dtype_stride_all_equal": true,
+  "common": [
+    {
+      "operation": "image_backbone",
+      "calls": 1,
+      "ours_seconds": 0.5999605712890625,
+      "saf3r_seconds": 0.6006784057617187,
+      "difference_seconds": -0.0007178344726561647
+    },
+    {
+      "operation": "frame_block",
+      "calls": 24,
+      "ours_seconds": 1.0320848922729493,
+      "saf3r_seconds": 1.0558900451660158,
+      "difference_seconds": -0.023805152893066506
+    },
+    {
+      "operation": "global_qkv",
+      "calls": 24,
+      "ours_seconds": 0.09959161567687988,
+      "saf3r_seconds": 0.09935926198959352,
+      "difference_seconds": 0.0002323536872863574
+    },
+    {
+      "operation": "global_q_norm",
+      "calls": 24,
+      "ours_seconds": 0.07877811336517335,
+      "saf3r_seconds": 0.07867971277236939,
+      "difference_seconds": 9.840059280395719e-05
+    },
+    {
+      "operation": "global_k_norm",
+      "calls": 24,
+      "ours_seconds": 0.07873814487457274,
+      "saf3r_seconds": 0.07867363262176516,
+      "difference_seconds": 6.45122528075831e-05
+    },
+    {
+      "operation": "global_rope",
+      "calls": 48,
+      "ours_seconds": 0.23117011213302613,
+      "saf3r_seconds": 0.2312921905517578,
+      "difference_seconds": -0.00012207841873165814
+    },
+    {
+      "operation": "global_proj",
+      "calls": 24,
+      "ours_seconds": 0.03579283177852631,
+      "saf3r_seconds": 0.029755967974662772,
+      "difference_seconds": 0.006036863803863538
+    },
+    {
+      "operation": "global_proj_drop",
+      "calls": 24,
+      "ours_seconds": 2.5695999676827348e-05,
+      "saf3r_seconds": 9.12000011885539e-06,
+      "difference_seconds": 1.657599955797196e-05
+    },
+    {
+      "operation": "global_ffn",
+      "calls": 24,
+      "ours_seconds": 0.2854053440093994,
+      "saf3r_seconds": 0.2746425609588623,
+      "difference_seconds": 0.010762783050537073
+    },
+    {
+      "operation": "global_norm1",
+      "calls": 24,
+      "ours_seconds": 0.01721977597475052,
+      "saf3r_seconds": 0.017246559917926788,
+      "difference_seconds": -2.67839431762687e-05
+    },
+    {
+      "operation": "global_norm2",
+      "calls": 24,
+      "ours_seconds": 0.01723404777050018,
+      "saf3r_seconds": 0.01725964790582657,
+      "difference_seconds": -2.5600135326389606e-05
+    },
+    {
+      "operation": "camera_head",
+      "calls": 1,
+      "ours_seconds": 0.008932607650756836,
+      "saf3r_seconds": 0.00936188793182373,
+      "difference_seconds": -0.00042928028106689435
+    },
+    {
+      "operation": "depth_head",
+      "calls": 1,
+      "ours_seconds": 0.9942440795898437,
+      "saf3r_seconds": 0.987489013671875,
+      "difference_seconds": 0.006755065917968706
+    },
+    {
+      "operation": "point_head",
+      "calls": 1,
+      "ours_seconds": 1.0039594116210937,
+      "saf3r_seconds": 0.9959132690429687,
+      "difference_seconds": 0.00804614257812497
+    },
+    {
+      "operation": "global_block_residual_and_layerscale",
+      "calls": 24,
+      "ours_seconds": 0.07553380709886581,
+      "saf3r_seconds": 0.07528467428684242,
+      "difference_seconds": 0.0002491328120233921
+    }
+  ],
+  "other_pipeline": [
+    {
+      "operation": "qkv_prepare_views_casts_and_contiguous_extra",
+      "ours_seconds": 0.033805279254913334,
+      "saf3r_seconds": 5.165004730223882e-05,
+      "difference_seconds": 0.033753629207611095
+    },
+    {
+      "operation": "output_assembly_and_layout",
+      "ours_seconds": 0.02457967998017567,
+      "saf3r_seconds": 0.01755769598484039,
+      "difference_seconds": 0.0070219839953352785
+    },
+    {
+      "operation": "post_attention_checks_and_stats",
+      "ours_seconds": 0.03927635192871093,
+      "saf3r_seconds": 0.0,
+      "difference_seconds": 0.03927635192871093
+    },
+    {
+      "operation": "other_wrapper_and_model_dispatch",
+      "ours_seconds": 0.1089787972096195,
+      "saf3r_seconds": 0.12451475723314945,
+      "difference_seconds": -0.015535960023529943
+    }
+  ],
+  "totals": [
+    {
+      "method": "ours256",
+      "warmed_median_seconds": 13.83972296025604,
+      "profile_wall_seconds": 14.083999225869775,
+      "profile_gpu_span_seconds": 14.083884765625,
+      "common_model_seconds": 4.558671051105074,
+      "excluded_policy_seconds": 5.948888903928929,
+      "excluded_attention_and_routing_seconds": 2.9999670704007193,
+      "common_allocator_gap_seconds": 0.369717631816864,
+      "other_pipeline_seconds": 0.20664010837341107,
+      "remaining_after_exclusions_seconds": 5.135028791295349,
+      "extra_graph_allocator_seconds_nested_in_policy": 0.034183903560042375,
+      "dense_speedup": null
+    },
+    {
+      "method": "saf3r",
+      "warmed_median_seconds": 6.4769844501279294,
+      "profile_wall_seconds": 6.711813718080521,
+      "profile_gpu_span_seconds": 6.71169921875,
+      "common_model_seconds": 4.551535950554124,
+      "excluded_policy_seconds": 0.0,
+      "excluded_attention_and_routing_seconds": 1.5779251512587071,
+      "common_allocator_gap_seconds": 0.4401140136718749,
+      "other_pipeline_seconds": 0.14212410326529373,
+      "remaining_after_exclusions_seconds": 5.133774067491292,
+      "extra_graph_allocator_seconds_nested_in_policy": 0.0,
+      "dense_speedup": null
+    }
+  ],
+  "common_difference_seconds": 0.007135100550950568,
+  "common_difference_percent": 0.15676247817140165,
+  "saf3r_head_modes": [
+    {
+      "mode": "all_to_first",
+      "head_calls": 85,
+      "pipeline_seconds": 0.01971027216315268
+    },
+    {
+      "mode": "stride",
+      "head_calls": 212,
+      "pipeline_seconds": 0.9813460810780524
+    },
+    {
+      "mode": "global_to_frame",
+      "head_calls": 5,
+      "pipeline_seconds": 0.0012783039808273316
+    },
+    {
+      "mode": "q_probe_topk",
+      "head_calls": 75,
+      "pipeline_seconds": 0.4285073899030686
+    },
+    {
+      "mode": "dino_topk",
+      "head_calls": 7,
+      "pipeline_seconds": 0.14708310413360595
+    }
+  ],
+  "fresh_topk_one_per_forward_verified": true,
+  "historical_saf3r_driver": "scripts/evaluate_saf3r_matched.py",
+  "historical_saf3r_driver_sha256": "7bab97c9e6170310dac033cc2f2de2e164db7f5a294e357becf10301118388e8",
+  "historical_saf3r_reset_each_forward": true,
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Runtime/code audit only;new diagnostic runs do not evaluate geometry;complete historical quality is unchanged and reused",
+      "auc30": "Runtime/code audit only;new diagnostic runs do not evaluate geometry;complete historical quality is unchanged and reused",
+      "acc": "Runtime/code audit only;new diagnostic runs do not evaluate geometry;complete historical quality is unchanged and reused",
+      "comp": "Runtime/code audit only;new diagnostic runs do not evaluate geometry;complete historical quality is unchanged and reused",
+      "cd": "Runtime/code audit only;new diagnostic runs do not evaluate geometry;complete historical quality is unchanged and reused",
+      "f1": "Runtime/code audit only;new diagnostic runs do not evaluate geometry;complete historical quality is unchanged and reused"
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "dense_speedup": null,
+  "dense_reason": "No new Dense run;this is a two-method diagnostic comparison"
+}
