@@ -354,7 +354,9 @@ class ReuseResidualExploration(nn.Module):
             s.query_order=order
             q=q[:,order].contiguous()
         if c.history_mode=='dense_m5c':
-            if c.history_evidence_backend=='grid_fused':
+            if c.history_evidence_backend=='direct_legacy':
+                from . import reuse_direct_history as m5c
+            elif c.history_evidence_backend=='grid_fused':
                 from . import reuse_grid_fused_history as m5c
             elif c.history_evidence_backend=='grid_local':
                 from . import reuse_grid_local_history as m5c
@@ -370,7 +372,7 @@ class ReuseResidualExploration(nn.Module):
             if c.history_mode=='dense_m5c':
                 with stage(s,'m5c_coarse_observation'),torch.autocast(x.device.type,enabled=False):
                     observer=m5c.observe
-                    if c.cache_probe_indices:
+                    if c.cache_probe_indices and c.history_evidence_backend!='direct_legacy':
                         from .reuse_probe_cache import observe as observer
                     m5c_observation=observer(s,q,k,start,g,o.scale)
             if self.layer==0:
@@ -388,7 +390,13 @@ class ReuseResidualExploration(nn.Module):
                            torch.tensor([4,12,20,28],device=x.device)).clamp_max(s.n-1)
                     pq=q[:,probe]
                 with stage(s,'coarse_observation'):
-                    if c.fused_coarse:
+                    if c.history_evidence_backend=='direct_legacy':
+                        probability=m5c_observation['patch_probability']
+                        previous=s.previous_grid[start:start+g].float()
+                        beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
+                        demand=(probability-beta*s.previous_real_grid[start:start+g].float()).clamp_min(0)
+                        normalizer=None
+                    elif c.fused_coarse:
                         from saf3r.triton.reuse_coarse_observation import patch
                         dot=pq@pooled[:,None].transpose(-1,-2)
                         probability,demand=patch(dot,s.grid_log_sizes,s.previous_grid[start:start+g],s.previous_real_grid[start:start+g],o.scale)
@@ -502,7 +510,11 @@ class ReuseResidualExploration(nn.Module):
                 pops=(ids>=0).to(dtype=pops.dtype)
             bias=pops.log().contiguous()
             with stage(s,'execution_and_evidence'):
-                if q.is_cuda:
+                if q.is_cuda and c.execution_kernel=='direct_sparse':
+                    from saf3r.triton.reuse_direct_sparse_attention import direct_sparse_attention
+                    result,direct_evidence=direct_sparse_attention(q[:,first:end],k,v,actual,s.specials,o.scale,logit_bias=bias,return_history_probability=False)
+                    ready_logits=None
+                elif q.is_cuda:
                     if c.execution_kernel=='serial_tuned':
                         from saf3r.triton.reuse_serial_tuned import weighted_attention
                         from functools import partial
@@ -537,6 +549,9 @@ class ReuseResidualExploration(nn.Module):
                         raw=(q[:,first:end].float().mean(1)[:,None,:]*k[:,safe].float()).sum(-1)*o.scale
                         ref=(q[:,first:end].float().mean(1)[:,None,None,:]*pooled[:,s.grid[ids.clamp_min(0)]].float()).sum(-1)*o.scale
                         relative_evidence.append((raw-ref).mean(0).masked_fill(ids<0,0))
+            if c.execution_kernel=='direct_sparse':
+                with stage(s,'direct_independent_legacy_observation'):
+                    mass=m5c.observe_execution(s,q,k,start,ids,actual,bias,m5c_observation,o.scale,direct_evidence)
             output[:,first:end]=result
             if c.history_mode=='dense_m5c' and self.layer<23:
                 m5c_observation['ready_logits']=ready_logits
@@ -611,10 +626,12 @@ class ReuseResidualExploration(nn.Module):
                 history_cache_device='gpu_prepared_conditionals',history_cache_dtype='headmean_positive_fp16_u14_edges_float32_grid_statistics',
                 history_estimator_head_aware=False,history='Previous conditional probabilities averaged over heads before caching; current grid probabilities averaged before confidence; M5c beta(1,2); no head matching',
                 history_gpu_reconstruction_bytes=0,
-                extra_previous_layer_probe_qk_per_head=s.m5c_reconstruction_qk,history_cpu_bytes=m5c.host_bytes(s),history_calibration_gpu_bytes=m5c.device_bytes(s),ready_probe_scratch_bytes=min(c.window_groups,s.groups)*q.shape[0]*4*s.budget*4 if self.layer<23 else 0,ready_edge_cache_bytes=0 if s.ready_edges is None else s.ready_edges.numel()*s.ready_edges.element_size(),ready_allocator_trims=s.ready_allocator_trims,
+                extra_previous_layer_probe_qk_per_head=s.m5c_reconstruction_qk,history_cpu_bytes=m5c.host_bytes(s),history_calibration_gpu_bytes=m5c.device_bytes(s),ready_probe_scratch_bytes=0 if c.execution_kernel=='direct_sparse' else (min(c.window_groups,s.groups)*q.shape[0]*4*s.budget*4 if self.layer<23 else 0),ready_edge_cache_bytes=0 if s.ready_edges is None else s.ready_edges.numel()*s.ready_edges.element_size(),ready_allocator_trims=s.ready_allocator_trims,
                 seed_normalization_max_error=torch.stack(s.m5c_seed_errors).max() if s.m5c_seed_errors else torch.tensor(0.,device=x.device),
                 prior_patch_mass_max_error=torch.stack(s.m5c_prior_errors).max() if s.m5c_prior_errors else torch.tensor(0.,device=x.device),
                 extra_known_probe_qk_per_head=s.m5c_probe_qk,extra_coarse_probe_qk_per_head=4*s.groups*(s.regions+len(s.specials)))
+        if c.execution_kernel=='direct_sparse':
+            s.records[-1].update(direct_logical_main_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),direct_logical_legacy_observation_qk_per_head=(joined['counts']*rows).sum(),direct_logical_conditional_cache_qk_per_head=(joined['counts']*4).sum() if self.layer<23 else 0,extra_known_probe_qk_per_head=(joined['counts']*4).sum() if self.layer<23 else 0,grid_reordering_in_attention=False,legacy_observation_repeats_qk=True)
         if c.capture:s.captured[self.layer]=dict(windows=capture,specials=s.specials.clone(),
             query_order=None if order is None else order.clone(),canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
         if order is not None:
