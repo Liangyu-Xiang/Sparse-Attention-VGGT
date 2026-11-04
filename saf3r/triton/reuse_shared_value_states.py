@@ -13,8 +13,8 @@ import triton.language as tl
 def prepare_geometry(z, labels, reps, population):
     """Compute only the Value scalars required by the new loss, not O(N*width) pair distances."""
     width = triton.next_power_of_2(int(population.max()))
-    if width > 256:
-        raise ValueError("Shared Value loss currently supports at most 256 members per cluster")
+    if width > 512:
+        raise ValueError("Shared Value loss currently supports at most 512 members per cluster")
     v_rep = z[reps[labels]]
     return dict(
         width=width,
