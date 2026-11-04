@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-torch-flash-20261104/scripts/validate_direct_sparse_attention.py", line 31, in <module>
+    with torch.cuda.graph(graph):captured,ce=direct_sparse_attention(q,k,v,ids,specials,.125,bias,return_history_probability=True)
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-torch-flash-20261104/saf3r/triton/reuse_direct_sparse_attention.py", line 68, in direct_sparse_attention
+    probe_positions=(torch.arange(g,device=q.device)[:,None]*32+torch.tensor([4,12,20,28],device=q.device)[None]).clamp_max(r-1).int().contiguous()
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.AcceleratorError: CUDA error: operation not permitted when stream is capturing
+Search for `cudaErrorStreamCaptureUnsupported' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-torch-flash-20261104/scripts/validate_direct_sparse_attention.py", line 31, in <module>
+    with torch.cuda.graph(graph):captured,ce=direct_sparse_attention(q,k,v,ids,specials,.125,bias,return_history_probability=True)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/graphs.py", line 265, in __exit__
+    self.cuda_graph.capture_end()
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/graphs.py", line 128, in capture_end
+    super().capture_end()
+torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture
+Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.

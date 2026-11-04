@@ -1,3 +1,5 @@
+> New opt-in Direct Sparse backend: [implementation and results](docs/experiments/direct_sparse_no_grid.md). Grid-free AV is faster on matched inputs; full forward is18.999s. Quality changes are mixed, so the default remains unchanged.
+
 > Runtime comparison and beta-regression diagnosis: [experiment report](outputs/dense_sparse_comparison_20261104/report.md). The opt-in v8 P0 prototypes have not passed full routing equivalence or improved full-forward speed; the default path is unchanged.
 
 <div align="center">

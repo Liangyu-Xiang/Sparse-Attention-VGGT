@@ -1,0 +1,131 @@
+0 {'seconds': 23.335110360290855, 'peak_allocated_gib': 17.390913009643555, 'peak_reserved_gib': 22.78515625}
+1 {'seconds': 18.54164741607383, 'peak_allocated_gib': 17.82947587966919, 'peak_reserved_gib': 24.314453125}
+2 {'seconds': 18.857597291935235, 'peak_allocated_gib': 18.737060546875, 'peak_reserved_gib': 25.923828125}
+3 {'seconds': 19.02779817720875, 'peak_allocated_gib': 18.73801040649414, 'peak_reserved_gib': 26.1796875}
+{
+  "complete": true,
+  "median_seconds": 18.857597291935235,
+  "samples": [
+    {
+      "seconds": 18.54164741607383,
+      "peak_allocated_gib": 17.82947587966919,
+      "peak_reserved_gib": 24.314453125
+    },
+    {
+      "seconds": 18.857597291935235,
+      "peak_allocated_gib": 18.737060546875,
+      "peak_reserved_gib": 25.923828125
+    },
+    {
+      "seconds": 19.02779817720875,
+      "peak_allocated_gib": 18.73801040649414,
+      "peak_reserved_gib": 26.1796875
+    }
+  ],
+  "cold": {
+    "seconds": 23.335110360290855,
+    "peak_allocated_gib": 17.390913009643555,
+    "peak_reserved_gib": 22.78515625
+  },
+  "config": {
+    "retention": 0.2,
+    "state_l2": true,
+    "direction_drop": true,
+    "clustering_mode": "adaptive_local",
+    "cluster_neighbors": 32,
+    "hierarchical": false,
+    "parent_arity": 4,
+    "parent_passes": 2,
+    "parent_moment_mode": "exact",
+    "cluster_fraction": null,
+    "disable_population_compensation": false,
+    "grid_y": 2,
+    "grid_x": 2,
+    "source_width": 32,
+    "local_iterations": 2,
+    "window_groups": 64,
+    "history_per_cluster": 4,
+    "candidate_fraction": 0.25,
+    "dual_iterations": 16,
+    "capture": false,
+    "query_shift": 0,
+    "allocation_objective": "min_error",
+    "evidence_mode": "fused_grid",
+    "state_loss": "cosine_distortion",
+    "prior_floor_fraction": 1e-06,
+    "drop_multiplier": 1.0,
+    "history_mode": "dense_m5c",
+    "mass_transfer": true,
+    "rep_gain": true,
+    "compact": true,
+    "attention_backend": "indexed",
+    "layer_retentions": null,
+    "refresh_interval": 1,
+    "reference_dual_iterations": 16,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "history_evidence_backend": "direct_legacy",
+    "history_cache_format": "packed",
+    "execution_kernel": "direct_sparse",
+    "fuse_mask_ops": true,
+    "budget_graph": false,
+    "window_graph": true,
+    "cache_probe_indices": true,
+    "fuse_state_kernel": true,
+    "reuse_window_graphs": true,
+    "attention_stages": 1,
+    "attention_warps": 4,
+    "fused_coarse": true,
+    "graph_cache_capacity": 24
+  },
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Performance-only full-forward diagnostic",
+  "dense_speedup": null,
+  "dense_reason": "User prohibited unchanged Dense rerun; historical heads128 Dense 12.216022619977593 s is not paired",
+  "historical_dense_seconds": 12.216022619977593,
+  "profile": {
+    "wall_seconds": 18.77692012907937,
+    "exclusive_seconds": {
+      "value_update": 1.0768607025146484,
+      "pooling": 0.08035414421558378,
+      "m5c_coarse_observation": 0.1436538261026151,
+      "execution_and_evidence": 2.8857936981022383,
+      "direct_independent_legacy_observation": 3.6574668184965855,
+      "m5c_evidence_and_host_copy": 1.3050597761943925,
+      "history_summary": 0.043781535936519345,
+      "coarse_observation": 0.02746899181045592,
+      "residual_fine_probe": 0.3568034549951558,
+      "reuse_and_budget": 4.017706520318978
+    },
+    "unattributed_seconds": 5.181970660392199,
+    "scope": "Disjoint top-level stages; direct_parts are nested inside execution_and_evidence,never added twice",
+    "direct_parts": {
+      "legacy_full_query_grid_and_probe_observation": 3.6105588508248347,
+      "legacy_grid_conditional_cache": 1.303553504176437
+    },
+    "direct_calls": 1584
+  },
+  "kernel_resources": {
+    "((2048, 133248, 26009, 640, 64, 8527872), 4, 2)": {
+      "registers_per_thread": 128,
+      "spills": 0,
+      "shared_bytes": 45568,
+      "warps": 4,
+      "stages": 2
+    },
+    "((128, 133248, 26009, 640, 64, 8527872), 4, 2)": {
+      "registers_per_thread": 128,
+      "spills": 0,
+      "shared_bytes": 45568,
+      "warps": 4,
+      "stages": 2
+    }
+  }
+}

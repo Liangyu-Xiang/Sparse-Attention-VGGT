@@ -1,0 +1,143 @@
+{
+  "complete": true,
+  "scope": "Actual heads128 L0 first64-group window,all16heads,2048queries,exact same QKV/support/bias;CUDA event list distinguishes data kernels and memsets",
+  "launches": [
+    {
+      "method": "dense_flash",
+      "cuda_events": 1,
+      "event_counts": {
+        "void pytorch_flash::flash_fwd_kernel<Flash_fwd_kernel_traits<64, 128, 128, 4, false, false, cutlass::bfloat16_t, Flash_kernel_traits<64, 128, 128, 4, cutlass::bfloat16_t> >, false, false, false, false, true, true, false, false>(pytorch_flash::Flash_fwd_params)": 1
+      },
+      "memory_events": 0,
+      "kernel_launches": 1
+    },
+    {
+      "method": "grid_sparse",
+      "cuda_events": 45,
+      "event_counts": {
+        "void at::native::vectorized_elementwise_kernel<4, at::native::compare_scalar_kernel<int>(at::TensorIteratorBase&, at::native::(anonymous namespace)::OpType, int)::{lambda(int)#1}, std::array<char*, 2ul> >(int, at::native::compare_scalar_kernel<int>(at::TensorIteratorBase&, at::native::(anonymous namespace)::OpType, int)::{lambda(int)#1}, std::array<char*, 2ul>)": 1,
+        "Memcpy DtoD (Device -> Device)": 2,
+        "void at::native::vectorized_elementwise_kernel<2, at::native::(anonymous namespace)::masked_fill_kernel(at::TensorIterator&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#4}::operator()() const::{lambda(long, bool)#1}, std::array<char*, 3ul> >(int, at::native::(anonymous namespace)::masked_fill_kernel(at::TensorIterator&, c10::Scalar const&)::{lambda()#1}::operator()() const::{lambda()#4}::operator()() const::{lambda(long, bool)#1}, std::array<char*, 3ul>)": 1,
+        "at::native::(anonymous namespace)::fill_index_and_segment_kernel(int2*, int, at::cuda::detail::IntDivider<unsigned int>)": 1,
+        "Memset (Device)": 13,
+        "void at_cuda_detail::cub::DeviceRadixSortHistogramKernel<at_cuda_detail::cub::DeviceRadixSortPolicy<long, at::cuda::cub::detail::OpaqueType<8>, unsigned long long>::Policy900, false, long, unsigned long long, at_cuda_detail::cub::detail::identity_decomposer_t>(unsigned long long*, long const*, unsigned long long, int, int, at_cuda_detail::cub::detail::identity_decomposer_t)": 1,
+        "void at_cuda_detail::cub::DeviceRadixSortExclusiveSumKernel<at_cuda_detail::cub::DeviceRadixSortPolicy<long, at::cuda::cub::detail::OpaqueType<8>, unsigned long long>::Policy900, unsigned long long>(unsigned long long*)": 1,
+        "void at_cuda_detail::cub::DeviceRadixSortOnesweepKernel<at_cuda_detail::cub::DeviceRadixSortPolicy<long, at::cuda::cub::detail::OpaqueType<8>, unsigned long long>::Policy900, false, long, at::cuda::cub::detail::OpaqueType<8>, unsigned long long, int, int, at_cuda_detail::cub::detail::identity_decomposer_t>(int*, int*, unsigned long long*, unsigned long long const*, long*, long const*, at::cuda::cub::detail::OpaqueType<8>*, at::cuda::cub::detail::OpaqueType<8> const*, int, int, int, at_cuda_detail::cub::detail::identity_decomposer_t)": 8,
+        "void at_cuda_detail::cub::DeviceRadixSortHistogramKernel<at_cuda_detail::cub::DeviceRadixSortPolicy<long, at_cuda_detail::cub::NullType, unsigned long long>::Policy900, false, long, unsigned long long, at_cuda_detail::cub::detail::identity_decomposer_t>(unsigned long long*, long const*, unsigned long long, int, int, at_cuda_detail::cub::detail::identity_decomposer_t)": 1,
+        "void at_cuda_detail::cub::DeviceRadixSortExclusiveSumKernel<at_cuda_detail::cub::DeviceRadixSortPolicy<long, at_cuda_detail::cub::NullType, unsigned long long>::Policy900, unsigned long long>(unsigned long long*)": 1,
+        "void at_cuda_detail::cub::DeviceRadixSortOnesweepKernel<at_cuda_detail::cub::DeviceRadixSortPolicy<long, at_cuda_detail::cub::NullType, unsigned long long>::Policy900, false, long, at_cuda_detail::cub::NullType, unsigned long long, int, int, at_cuda_detail::cub::detail::identity_decomposer_t>(int*, int*, unsigned long long*, unsigned long long const*, long*, long const*, at_cuda_detail::cub::NullType*, at_cuda_detail::cub::NullType const*, int, int, int, at_cuda_detail::cub::detail::identity_decomposer_t)": 1,
+        "void at::native::(anonymous namespace)::sort_postprocess_kernel<long>(long const*, long*, long*, int2 const*, int, int)": 1,
+        "void at::native::_scatter_gather_elementwise_kernel<128, 8, at::native::_cuda_scatter_gather_internal_kernel<false, at::native::OpaqueType<4>, long>::operator()<at::native::TensorAssign>(at::TensorIterator&, long, long, long, at::native::TensorAssign const&)::{lambda(int)#1}>(int, at::native::_cuda_scatter_gather_internal_kernel<false, at::native::OpaqueType<4>, long>::operator()<at::native::TensorAssign>(at::TensorIterator&, long, long, long, at::native::TensorAssign const&)::{lambda(int)#1})": 2,
+        "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<int>, std::array<char*, 1ul> >(int, at::native::FillFunctor<int>, std::array<char*, 1ul>)": 3,
+        "void at::native::_scatter_gather_elementwise_kernel<128, 8, at::native::_cuda_scatter_gather_internal_kernel<true, int, long>::operator()<at::native::ReduceAdd>(at::TensorIterator&, long, long, long, at::native::ReduceAdd const&)::{lambda(int)#1}>(int, at::native::_cuda_scatter_gather_internal_kernel<true, int, long>::operator()<at::native::ReduceAdd>(at::TensorIterator&, long, long, long, at::native::ReduceAdd const&)::{lambda(int)#1})": 1,
+        "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#3}::operator()() const::{lambda(int)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#3}::operator()() const::{lambda(int)#1} const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#3}::operator()() const::{lambda(int)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#3}::operator()() const::{lambda(int)#1} const&)::{lambda(int)#1})": 2,
+        "void at::native::tensor_kernel_scan_innermost_dim<int, std::plus<int> >(int*, int const*, unsigned int, unsigned int, unsigned int, int, std::plus<int>)": 1,
+        "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#3}::operator()() const::{lambda(int)#1}, std::array<char*, 2ul>, 4, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1> >(int, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#3}::operator()() const::{lambda(int)#1}, std::array<char*, 2ul>, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1>)": 1,
+        "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<float>, std::array<char*, 1ul> >(int, at::native::FillFunctor<float>, std::array<char*, 1ul>)": 1,
+        "_attention": 1,
+        "_reduce": 1
+      },
+      "memory_events": 15,
+      "kernel_launches": 30
+    },
+    {
+      "method": "direct_pure",
+      "cuda_events": 1,
+      "event_counts": {
+        "_attention": 1
+      },
+      "memory_events": 0,
+      "kernel_launches": 1
+    },
+    {
+      "method": "direct_compensated",
+      "cuda_events": 1,
+      "event_counts": {
+        "_attention": 1
+      },
+      "memory_events": 0,
+      "kernel_launches": 1
+    },
+    {
+      "method": "direct_A",
+      "cuda_events": 2,
+      "event_counts": {
+        "_attention": 1,
+        "_inline_mean": 1
+      },
+      "memory_events": 0,
+      "kernel_launches": 2
+    },
+    {
+      "method": "direct_B",
+      "cuda_events": 2,
+      "event_counts": {
+        "_attention": 1,
+        "_probe": 1
+      },
+      "memory_events": 0,
+      "kernel_launches": 2
+    }
+  ],
+  "compiler_resources": {
+    "direct_pure:_attention": {
+      "registers_per_thread": 130,
+      "spills": 0,
+      "shared_bytes": 45056,
+      "warps": 4,
+      "stages": 2
+    },
+    "direct_compensated:_attention": {
+      "registers_per_thread": 128,
+      "spills": 0,
+      "shared_bytes": 45568,
+      "warps": 4,
+      "stages": 2
+    },
+    "direct_A:_attention": {
+      "registers_per_thread": 168,
+      "spills": 0,
+      "shared_bytes": 53760,
+      "warps": 4,
+      "stages": 2
+    },
+    "direct_A:_inline_mean": {
+      "registers_per_thread": 56,
+      "spills": 0,
+      "shared_bytes": 0,
+      "warps": 4,
+      "stages": null
+    },
+    "direct_B:_attention": {
+      "registers_per_thread": 128,
+      "spills": 0,
+      "shared_bytes": 45568,
+      "warps": 4,
+      "stages": 2
+    },
+    "direct_B:_probe": {
+      "registers_per_thread": 118,
+      "spills": 0,
+      "shared_bytes": 18432,
+      "warps": 4,
+      "stages": 1
+    }
+  },
+  "occupancy": null,
+  "occupancy_reason": "Separate Nsight Compute attempt ERR_NVGPUCTRPERM;no measured hardware occupancy",
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "CUDA launch/resource diagnostic;no geometry evaluation",
+  "dense_speedup": null,
+  "dense_reason": "Not full-forward performance timing",
+  "peak_memory_gib": null,
+  "peak_reason": "Numerical/availability diagnostic did not isolate peak;full-forward/all-window diagnostics record peak separately",
+  "runtime_seconds": null,
+  "runtime_reason": "Non-benchmark diagnostic;no trustworthy isolated runtime recorded"
+}

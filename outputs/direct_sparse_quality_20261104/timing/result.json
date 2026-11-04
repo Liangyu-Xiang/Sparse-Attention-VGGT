@@ -1,0 +1,129 @@
+{
+  "complete": true,
+  "median_seconds": 18.999162088148296,
+  "samples": [
+    {
+      "seconds": 18.61317575117573,
+      "peak_allocated_gib": 18.02711820602417,
+      "peak_reserved_gib": 24.0234375
+    },
+    {
+      "seconds": 18.999162088148296,
+      "peak_allocated_gib": 18.73665189743042,
+      "peak_reserved_gib": 25.345703125
+    },
+    {
+      "seconds": 19.34976469632238,
+      "peak_allocated_gib": 18.739395141601562,
+      "peak_reserved_gib": 25.595703125
+    }
+  ],
+  "cold": {
+    "seconds": 20.33637627027929,
+    "peak_allocated_gib": 17.58776044845581,
+    "peak_reserved_gib": 23.314453125
+  },
+  "config": {
+    "retention": 0.2,
+    "state_l2": true,
+    "direction_drop": true,
+    "clustering_mode": "adaptive_local",
+    "cluster_neighbors": 32,
+    "hierarchical": false,
+    "parent_arity": 4,
+    "parent_passes": 2,
+    "parent_moment_mode": "exact",
+    "cluster_fraction": null,
+    "disable_population_compensation": false,
+    "grid_y": 2,
+    "grid_x": 2,
+    "source_width": 32,
+    "local_iterations": 2,
+    "window_groups": 64,
+    "history_per_cluster": 4,
+    "candidate_fraction": 0.25,
+    "dual_iterations": 16,
+    "capture": false,
+    "query_shift": 0,
+    "allocation_objective": "min_error",
+    "evidence_mode": "fused_grid",
+    "state_loss": "cosine_distortion",
+    "prior_floor_fraction": 1e-06,
+    "drop_multiplier": 1.0,
+    "history_mode": "dense_m5c",
+    "mass_transfer": true,
+    "rep_gain": true,
+    "compact": true,
+    "attention_backend": "indexed",
+    "layer_retentions": null,
+    "refresh_interval": 1,
+    "reference_dual_iterations": 16,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "history_evidence_backend": "direct_legacy",
+    "history_cache_format": "packed",
+    "execution_kernel": "direct_sparse",
+    "fuse_mask_ops": true,
+    "budget_graph": false,
+    "window_graph": true,
+    "cache_probe_indices": true,
+    "fuse_state_kernel": true,
+    "reuse_window_graphs": true,
+    "attention_stages": 1,
+    "attention_warps": 4,
+    "fused_coarse": true,
+    "graph_cache_capacity": 24
+  },
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Performance-only full-forward diagnostic",
+  "dense_speedup": null,
+  "dense_reason": "User prohibited unchanged Dense rerun; historical heads128 Dense 12.216022619977593 s is not paired",
+  "historical_dense_seconds": 12.216022619977593,
+  "profile": {
+    "wall_seconds": 19.001787392888218,
+    "exclusive_seconds": {
+      "value_update": 1.1416528320312498,
+      "pooling": 0.0823511040210724,
+      "m5c_coarse_observation": 0.14330915259942437,
+      "execution_and_evidence": 2.764419295996428,
+      "direct_independent_legacy_observation": 3.610974430918696,
+      "m5c_evidence_and_host_copy": 1.3597591653242698,
+      "history_summary": 0.04367606400139592,
+      "coarse_observation": 0.027639519948512273,
+      "residual_fine_probe": 0.35146377469599216,
+      "reuse_and_budget": 4.006900509417058
+    },
+    "unattributed_seconds": 5.469641543934122,
+    "scope": "Disjoint top-level stages; direct_parts are nested inside execution_and_evidence,never added twice",
+    "direct_parts": {
+      "legacy_full_query_grid_and_probe_observation": 3.5649860523641035,
+      "legacy_grid_conditional_cache": 1.3583844759613244
+    },
+    "direct_calls": 1584
+  },
+  "kernel_resources": {
+    "((2048, 133248, 26009, 640, 64, 8527872), 4, 2)": {
+      "registers_per_thread": 128,
+      "spills": 0,
+      "shared_bytes": 45568,
+      "warps": 4,
+      "stages": 2
+    },
+    "((128, 133248, 26009, 640, 64, 8527872), 4, 2)": {
+      "registers_per_thread": 128,
+      "spills": 0,
+      "shared_bytes": 45568,
+      "warps": 4,
+      "stages": 2
+    }
+  },
+  "peak_memory_gib": null,
+  "peak_reason": "Numerical/availability diagnostic did not isolate peak;full-forward/all-window diagnostics record peak separately"
+}

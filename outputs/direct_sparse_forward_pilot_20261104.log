@@ -1,0 +1,115 @@
+0 {'seconds': 26.23603984992951, 'peak_allocated_gib': 17.58299684524536, 'peak_reserved_gib': 22.8046875}
+1 {'seconds': 22.47586685884744, 'peak_allocated_gib': 18.254374504089355, 'peak_reserved_gib': 24.388671875}
+2 {'seconds': 22.315666304901242, 'peak_allocated_gib': 18.729177474975586, 'peak_reserved_gib': 25.7109375}
+3 {'seconds': 22.32062368420884, 'peak_allocated_gib': 18.725590705871582, 'peak_reserved_gib': 25.7109375}
+{
+  "complete": true,
+  "median_seconds": 22.32062368420884,
+  "samples": [
+    {
+      "seconds": 22.47586685884744,
+      "peak_allocated_gib": 18.254374504089355,
+      "peak_reserved_gib": 24.388671875
+    },
+    {
+      "seconds": 22.315666304901242,
+      "peak_allocated_gib": 18.729177474975586,
+      "peak_reserved_gib": 25.7109375
+    },
+    {
+      "seconds": 22.32062368420884,
+      "peak_allocated_gib": 18.725590705871582,
+      "peak_reserved_gib": 25.7109375
+    }
+  ],
+  "cold": {
+    "seconds": 26.23603984992951,
+    "peak_allocated_gib": 17.58299684524536,
+    "peak_reserved_gib": 22.8046875
+  },
+  "config": {
+    "retention": 0.2,
+    "state_l2": true,
+    "direction_drop": true,
+    "clustering_mode": "adaptive_local",
+    "cluster_neighbors": 32,
+    "hierarchical": false,
+    "parent_arity": 4,
+    "parent_passes": 2,
+    "parent_moment_mode": "exact",
+    "cluster_fraction": null,
+    "disable_population_compensation": false,
+    "grid_y": 2,
+    "grid_x": 2,
+    "source_width": 32,
+    "local_iterations": 2,
+    "window_groups": 64,
+    "history_per_cluster": 4,
+    "candidate_fraction": 0.25,
+    "dual_iterations": 16,
+    "capture": false,
+    "query_shift": 0,
+    "allocation_objective": "min_error",
+    "evidence_mode": "fused_grid",
+    "state_loss": "cosine_distortion",
+    "prior_floor_fraction": 1e-06,
+    "drop_multiplier": 1.0,
+    "history_mode": "dense_m5c",
+    "mass_transfer": true,
+    "rep_gain": true,
+    "compact": true,
+    "attention_backend": "indexed",
+    "layer_retentions": null,
+    "refresh_interval": 1,
+    "reference_dual_iterations": 16,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "history_evidence_backend": "direct_legacy",
+    "history_cache_format": "packed",
+    "execution_kernel": "direct_sparse",
+    "fuse_mask_ops": true,
+    "budget_graph": false,
+    "window_graph": true,
+    "cache_probe_indices": true,
+    "fuse_state_kernel": true,
+    "reuse_window_graphs": true,
+    "attention_stages": 1,
+    "attention_warps": 4,
+    "fused_coarse": true,
+    "graph_cache_capacity": 24
+  },
+  "quality": {
+    "auc03": null,
+    "auc30": null,
+    "acc": null,
+    "comp": null,
+    "cd": null,
+    "f1": null
+  },
+  "quality_reason": "Performance-only full-forward diagnostic",
+  "dense_speedup": null,
+  "dense_reason": "User prohibited unchanged Dense rerun; historical heads128 Dense 12.216022619977593 s is not paired",
+  "historical_dense_seconds": 12.216022619977593,
+  "profile": {
+    "wall_seconds": 22.72348385490477,
+    "exclusive_seconds": {
+      "value_update": 1.0937519607543944,
+      "pooling": 0.08616700804233553,
+      "m5c_coarse_observation": 0.1368752014301715,
+      "execution_and_evidence": 2.8064168308377266,
+      "direct_independent_legacy_observation": 5.7042557089775725,
+      "m5c_evidence_and_host_copy": 3.16410310328008,
+      "history_summary": 0.04421855994127655,
+      "coarse_observation": 0.03011753592267627,
+      "residual_fine_probe": 0.36236601501703286,
+      "reuse_and_budget": 4.1493415678739645
+    },
+    "unattributed_seconds": 5.145870362827541,
+    "scope": "Disjoint top-level stages; direct_parts are nested inside execution_and_evidence,never added twice",
+    "direct_parts": {
+      "legacy_full_query_grid_and_probe_observation": 5.656743356212975,
+      "legacy_grid_conditional_cache": 3.162237630620602
+    },
+    "direct_calls": 1584
+  }
+}
