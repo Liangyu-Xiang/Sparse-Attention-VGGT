@@ -1,3 +1,5 @@
+> Runtime comparison and beta-regression diagnosis: [experiment report](outputs/dense_sparse_comparison_20261104/report.md). The opt-in v8 P0 prototypes have not passed full routing equivalence or improved full-forward speed; the default path is unchanged.
+
 <div align="center">
 
 <h1>SAF3R: Dynamic Sparse Attention for Feed-Forward 3D Reconstruction Transformers</h1>
