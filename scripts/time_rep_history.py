@@ -14,7 +14,8 @@ def main():
  speed=OUT/'speed_heads128';speed.mkdir(exist_ok=True,parents=True)
  for name,method in [('baseline','zdrop_history_states'),('A','zdrop_history_states'),('B','zdrop_history_states'),('dense','dense'),('saf3r','saf3r')]:
   config=OUT/'full/configs'/f"{name if name in ['baseline','A','B'] else 'baseline'}.json"
-  cmd=[sys.executable,str(ROOT/'scripts/launch_local_evaluation.py'),str(ROOT/'scripts/evaluate_zdrop_history_states.py'),'--dataset','7scenes','--scene','heads','--frames','128','--method',method,'--config',str(config),'--expected-input',str(ROOT/'outputs/global_state_loss_oracle_20261105/speed_heads128/layout_fixed/input.json'),'--output-dir',str(speed/name),'--warmup','2','--repeats','5','--timing-only']
+  runner='scripts/evaluate_rep_history_timing_profile.py' if name in ['baseline','A','B'] else 'scripts/evaluate_zdrop_history_states.py'
+  cmd=[sys.executable,str(ROOT/'scripts/launch_local_evaluation.py'),str(ROOT/runner),'--dataset','7scenes','--scene','heads','--frames','128','--method',method,'--config',str(config),'--expected-input',str(ROOT/'outputs/global_state_loss_oracle_20261105/speed_heads128/layout_fixed/input.json'),'--output-dir',str(speed/name),'--warmup','2','--repeats','5','--timing-only']
   print('TIMING_START',name,flush=True)
   with (speed/f'{name}.log').open('w') as log:subprocess.run(cmd,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,check=True)
   print('TIMING_END',name,flush=True)
