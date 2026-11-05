@@ -99,3 +99,21 @@ entirely;retry on healthy GPU0. Other queues use independent monitored GPUs.
 The15 CPU/CUDA loss/layout/special tests pass again on GPU0. No reset of the
 faulty shared device is attempted. Monitor queries only the assigned GPU index
 so unrelated GPU7 errors do not corrupt healthy-card process monitoring.
+
+## Independent Query-128 extension
+
+The aligned fixed-budget Key diagnostic shows most helpful missed keys are in
+clusters already represented,and most were not previous-layer history. A single
+Probe/Mask over256Queries can miss query-specific peaks. Open a separate19-row
+RGB-only family (including unchanged current reference):Query groups128 and
+aligned fully-sampled history interval128;clusters6/8/10%;head_mean/head_sketch;
+flat12%,flat14%,or10/18/10% retention. Fewer clusters/edges offset twice the
+number of decisions;Query count and sparse Attention kernels are unchanged.
+All-Exact eligibility and validated removal of unread observations remain.
+
+The existing Query-256 primary/alternative stay frozen,run once and are not
+retuned. Query-128 candidates are ranked ONLY on independent ScanNet/TUM RGB
+local error and same-card time,then separate RGB validation if eligible. This
+is not choosing budgets against7Scenes/ETH3D test quality. No additional control
+quality/timing reruns. The API now accepts history_query_interval128 using the
+existing generic stride and probe kernels;defaults remain unchanged.

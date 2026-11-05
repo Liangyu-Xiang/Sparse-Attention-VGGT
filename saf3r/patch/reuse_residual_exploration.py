@@ -146,7 +146,7 @@ class ReuseExploreConfig:
             raise ValueError('Shared Value repair options require shared_value_loss')
         if self.shared_value_weighting != 'unit' and self.disable_population_compensation:
             raise ValueError('Shared Value weighting requires disable_population_compensation=false')
-        if self.history_query_interval not in (32,256):raise ValueError('History Query interval must be32 or256')
+        if self.history_query_interval not in (32,128,256):raise ValueError('History Query interval must be32/128/256')
         if self.shared_value_loss and (self.history_evidence_backend!='direct_sampled' or not self.window_graph or not self.fuse_state_kernel or not self.fuse_mask_ops or self.p0_loss_pack or self.hierarchical or not self.state_l2 or not self.direction_drop or not self.compact):raise ValueError('Shared Value loss requires the fused non-hierarchical sampled-history window path')
         if self.history_evidence_backend=='direct_sampled' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices or self.window_groups%(self.history_query_interval//self.query_group_size)):raise ValueError('Sampled history requires aligned Direct Sparse windows and coarse probe cache')
         if self.history_evidence_backend=='direct_probability' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices):raise ValueError('Probability history requires Direct Sparse, dense_m5c consumer and cached probe indices')
