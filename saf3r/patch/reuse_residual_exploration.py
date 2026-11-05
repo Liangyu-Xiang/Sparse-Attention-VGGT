@@ -44,6 +44,7 @@ class ReuseExploreConfig:
     partial_key_states:bool=False
     operator_feature_dim:int=4
     operator_mass_penalty:float=0.
+    operator_weighting:str='population'
     fused_coarse:bool=False
     graph_cache_capacity:int=24
     attention_block_keys:int=128
@@ -97,6 +98,7 @@ class ReuseExploreConfig:
 
     def __post_init__(self):
         if self.operator_loss not in ('legacy','normalized_moment') or self.operator_feature_dim not in (4,8):raise ValueError('Invalid operator repair configuration')
+        if self.operator_weighting not in ('population','calibrated'):raise ValueError('Invalid operator weighting')
         if (self.operator_loss!='legacy' or self.partial_key_states) and (not self.shared_value_loss or self.shared_value_weighting!='cluster_population' or self.state_loss_variant!='legacy'):
             raise ValueError('Operator repair requires legacy shared cluster_population base')
         if self.sampled_split_launch and (self.query_group_size!=256 or self.history_query_interval!=256 or self.attention_block_queries not in (32,64,128) or self.history_evidence_backend!='direct_sampled'):raise ValueError('Split sampled execution requires Query-256, interval256 and supported tiles')
@@ -435,6 +437,11 @@ class ReuseResidualExploration(nn.Module):
                     else:geometry['drop_bins']=prepare_drop(population)
             if self.layer and (c.state_l2 or c.direction_drop) and geometry is None:raise RuntimeError('Combined method requires compact geometry')
             if geometry is not None:geometry['fuse_state_kernel']=c.fuse_state_kernel
+            if geometry is not None and geometry.get('operator_states',False) and c.stable_binned_graph:
+                bins=dict(geometry['drop_bins'])
+                geometry['drop_bins']=[(size,bins.get(size,torch.empty(0,device=x.device,dtype=torch.int32)))
+                    for size in (1,2,4,8,16,32,64,128,256,512) if size<=geometry['width']]
+                geometry['bounded_bins']=True
             if c.shared_value_loss and self.layer and c.state_loss_variant=='legacy' and c.operator_loss=='legacy' and not c.partial_key_states:
                 from saf3r.triton.reuse_shared_value_states import prepare as prepare_shared_value
                 prepare_shared_value(zvalues,s.fine.labels,s.fine.reps,s.grid,s.regions,geometry)
