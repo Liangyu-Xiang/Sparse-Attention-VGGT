@@ -1,0 +1,746 @@
+{
+  "label": "anchor_fullq",
+  "config": {
+    "allocation_objective": "min_error",
+    "attention_backend": "indexed",
+    "attention_block_keys": 128,
+    "attention_block_queries": 64,
+    "attention_stages": 1,
+    "attention_warps": 4,
+    "budget_graph": false,
+    "cache_probe_indices": true,
+    "candidate_fraction": 0.25,
+    "capture": false,
+    "cluster_fraction": 0.12,
+    "cluster_neighbors": 32,
+    "clustering_mode": "source_local_unanchored",
+    "compact": true,
+    "dense_special_queries": 1,
+    "deterministic_reductions": false,
+    "direction_drop": true,
+    "disable_population_compensation": false,
+    "drop_multiplier": 1,
+    "dual_iterations": 16,
+    "evidence_mode": "fused_grid",
+    "execution_kernel": "direct_sparse",
+    "flash_group_chunk": 16,
+    "fuse_mask_ops": true,
+    "fuse_state_kernel": true,
+    "fused_coarse": true,
+    "graph_cache_capacity": 8,
+    "graph_cache_max_mib": 2048,
+    "grid_x": 2,
+    "grid_y": 2,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "hierarchical": false,
+    "history_cache_format": "compact_sampled_log_fp16",
+    "history_evidence_backend": "direct_sampled",
+    "history_mode": "dense_m5c",
+    "history_per_cluster": 4,
+    "history_query_interval": 256,
+    "history_split_export": true,
+    "layer_retentions": [
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.22,
+      0.22,
+      0.22,
+      0.22,
+      0.22,
+      0.22,
+      0.22,
+      0.22,
+      0.22,
+      0.22,
+      0.22,
+      0.22,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1
+    ],
+    "local_iterations": 1,
+    "mass_transfer": true,
+    "p0_loss_pack": false,
+    "parent_arity": 4,
+    "parent_moment_mode": "exact",
+    "parent_passes": 2,
+    "prior_floor_fraction": 1e-06,
+    "query_group_size": 256,
+    "query_shift": 0,
+    "reference_dual_iterations": 16,
+    "refresh_interval": 1,
+    "rep_gain": true,
+    "retention": 0.2,
+    "reuse_window_graphs": true,
+    "sampled_split_launch": false,
+    "shared_value_allow_observed_rep": true,
+    "shared_value_features": "head_mean",
+    "shared_value_loss": true,
+    "shared_value_weighting": "cluster_population",
+    "source_layout": "sequential",
+    "source_temporal_span": 1,
+    "source_width": 32,
+    "stable_binned_graph": true,
+    "state_l2": true,
+    "state_loss": "cosine_distortion",
+    "state_loss_history_gate": "observed",
+    "state_loss_operator": "group_history",
+    "state_loss_sketch_dim": 8,
+    "state_loss_variant": "legacy",
+    "static_shared_graph": false,
+    "window_graph": true,
+    "window_groups": 64,
+    "protect_first_frame": true,
+    "dense_first_frame_queries": true
+  },
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Independent Dense trajectory / causal numerical diagnostic; no pose/recon_unposed ground truth or warmed speed comparison",
+      "auc30": "Independent Dense trajectory / causal numerical diagnostic; no pose/recon_unposed ground truth or warmed speed comparison",
+      "acc": "Independent Dense trajectory / causal numerical diagnostic; no pose/recon_unposed ground truth or warmed speed comparison",
+      "comp": "Independent Dense trajectory / causal numerical diagnostic; no pose/recon_unposed ground truth or warmed speed comparison",
+      "cd": "Independent Dense trajectory / causal numerical diagnostic; no pose/recon_unposed ground truth or warmed speed comparison",
+      "f1": "Independent Dense trajectory / causal numerical diagnostic; no pose/recon_unposed ground truth or warmed speed comparison"
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "instrumented_seconds": 3.8108298080042005,
+  "peak_allocated_gib": 9.405927181243896,
+  "scope": "Instrumented diagnostic including extra sampled Dense QK after sparse mask/output; not performance comparison",
+  "layers": [
+    {
+      "layer": 0,
+      "local_same_qkv": {
+        "camera": 0.0031262652889898182,
+        "register": 0.07145230663138724,
+        "patch": 0.017667998430109914
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.0,
+          "register": 0.0,
+          "patch": 0.0
+        },
+        "attention": {
+          "camera": 0.0,
+          "register": 0.07107799127435757,
+          "patch": 0.01764892354119039
+        },
+        "block": {
+          "camera": 0.0,
+          "register": 0.0457183037315316,
+          "patch": 0.002623298813171256
+        }
+      }
+    },
+    {
+      "layer": 1,
+      "local_same_qkv": {
+        "camera": 0.003075251596552563,
+        "register": 0.2279822082285845,
+        "patch": 0.20579256316291783
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.0025806070164583845,
+          "register": 0.02579319566087859,
+          "patch": 0.002302429833221338
+        },
+        "attention": {
+          "camera": 0.00437445180016339,
+          "register": 0.2286661988763663,
+          "patch": 0.20570716659800198
+        },
+        "block": {
+          "camera": 0.002217904488468039,
+          "register": 0.088992229982409,
+          "patch": 0.030113108102934313
+        }
+      }
+    },
+    {
+      "layer": 2,
+      "local_same_qkv": {
+        "camera": 0.0032305009066989653,
+        "register": 0.14937978862524687,
+        "patch": 0.1802620306570092
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.030529738864306863,
+          "register": 0.06331126625585555,
+          "patch": 0.02371496505522488
+        },
+        "attention": {
+          "camera": 0.0577165587246275,
+          "register": 0.12858569863933014,
+          "patch": 0.1572929858053441
+        },
+        "block": {
+          "camera": 0.011647287168859337,
+          "register": 0.0392777398879999,
+          "patch": 0.03206727731980517
+        }
+      }
+    },
+    {
+      "layer": 3,
+      "local_same_qkv": {
+        "camera": 0.0031628713301369645,
+        "register": 0.15705687090876866,
+        "patch": 0.19777245140244246
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.011186794692321927,
+          "register": 0.02647469709284036,
+          "patch": 0.029049058689679
+        },
+        "attention": {
+          "camera": 0.037776218011665724,
+          "register": 0.1475801680601675,
+          "patch": 0.17703434088787226
+        },
+        "block": {
+          "camera": 0.006338840676628215,
+          "register": 0.020230183016412245,
+          "patch": 0.036165020094385936
+        }
+      }
+    },
+    {
+      "layer": 4,
+      "local_same_qkv": {
+        "camera": 0.0029647832608872804,
+        "register": 0.12532948491816717,
+        "patch": 0.15146923931932912
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.01773860069825002,
+          "register": 0.0331014362765632,
+          "patch": 0.03729502299330779
+        },
+        "attention": {
+          "camera": 0.06618185909866178,
+          "register": 0.12534288228318813,
+          "patch": 0.14950819727701667
+        },
+        "block": {
+          "camera": 0.008712634939047703,
+          "register": 0.018999155548261874,
+          "patch": 0.03577139727888822
+        }
+      }
+    },
+    {
+      "layer": 5,
+      "local_same_qkv": {
+        "camera": 0.0031325793064868007,
+        "register": 0.2413441062617386,
+        "patch": 0.209173224141828
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.01966105480706305,
+          "register": 0.0348869763454409,
+          "patch": 0.031021550668533793
+        },
+        "attention": {
+          "camera": 0.10691968836144862,
+          "register": 0.19993424489494913,
+          "patch": 0.17701737961466452
+        },
+        "block": {
+          "camera": 0.009978157605080935,
+          "register": 0.019462895736703234,
+          "patch": 0.040409861474139726
+        }
+      }
+    },
+    {
+      "layer": 6,
+      "local_same_qkv": {
+        "camera": 0.0031462770821881667,
+        "register": 0.10367370626848788,
+        "patch": 0.12593248616453914
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.02477857038912745,
+          "register": 0.037321167072041174,
+          "patch": 0.04217862172660624
+        },
+        "attention": {
+          "camera": 0.14811045607457915,
+          "register": 0.13959276650233682,
+          "patch": 0.1305326896165253
+        },
+        "block": {
+          "camera": 0.01262417564505423,
+          "register": 0.01866841987166357,
+          "patch": 0.03902116018529412
+        }
+      }
+    },
+    {
+      "layer": 7,
+      "local_same_qkv": {
+        "camera": 0.0030833584114975856,
+        "register": 0.11028993624353049,
+        "patch": 0.13806565849392036
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.03220481210816566,
+          "register": 0.0430935947940665,
+          "patch": 0.042332574024488985
+        },
+        "attention": {
+          "camera": 0.0951994761267491,
+          "register": 0.10731291446733501,
+          "patch": 0.12776819621304183
+        },
+        "block": {
+          "camera": 0.013557159300827943,
+          "register": 0.017904532656235997,
+          "patch": 0.03967699762834433
+        }
+      }
+    },
+    {
+      "layer": 8,
+      "local_same_qkv": {
+        "camera": 0.003211931066369829,
+        "register": 0.10071002380202823,
+        "patch": 0.16829087175863278
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.03337857753207875,
+          "register": 0.045379546318652875,
+          "patch": 0.04375096100790544
+        },
+        "attention": {
+          "camera": 0.06723887854942254,
+          "register": 0.0948648083025724,
+          "patch": 0.1576935307891333
+        },
+        "block": {
+          "camera": 0.014805845085460515,
+          "register": 0.017173356127980016,
+          "patch": 0.04134063160318666
+        }
+      }
+    },
+    {
+      "layer": 9,
+      "local_same_qkv": {
+        "camera": 0.0031681567480271555,
+        "register": 0.06639857808843402,
+        "patch": 0.137537385453084
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.025636295999531464,
+          "register": 0.024654147315023106,
+          "patch": 0.04407139149658387
+        },
+        "attention": {
+          "camera": 0.06710312335701361,
+          "register": 0.06741033558651179,
+          "patch": 0.14778336271049136
+        },
+        "block": {
+          "camera": 0.016342982281438063,
+          "register": 0.017001063636100152,
+          "patch": 0.04239884158017995
+        }
+      }
+    },
+    {
+      "layer": 10,
+      "local_same_qkv": {
+        "camera": 0.003198032176606429,
+        "register": 0.10288245060020128,
+        "patch": 0.1345280266640353
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.021806541998708948,
+          "register": 0.020063860010645286,
+          "patch": 0.04521754392713908
+        },
+        "attention": {
+          "camera": 0.060375467059943067,
+          "register": 0.10110752736300051,
+          "patch": 0.13111059073851836
+        },
+        "block": {
+          "camera": 0.016127589043447903,
+          "register": 0.015869960396940306,
+          "patch": 0.04887978681796844
+        }
+      }
+    },
+    {
+      "layer": 11,
+      "local_same_qkv": {
+        "camera": 0.0031835070018910692,
+        "register": 0.07538392205162554,
+        "patch": 0.18138002344045825
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.020789580732385335,
+          "register": 0.0190000539562438,
+          "patch": 0.05032861474105923
+        },
+        "attention": {
+          "camera": 0.0538305576138816,
+          "register": 0.09390712524996346,
+          "patch": 0.18305965613412273
+        },
+        "block": {
+          "camera": 0.017821709578475224,
+          "register": 0.017327861644791998,
+          "patch": 0.10741063405957367
+        }
+      }
+    },
+    {
+      "layer": 12,
+      "local_same_qkv": {
+        "camera": 0.0032474888849082545,
+        "register": 0.08744848887269777,
+        "patch": 0.14319096113490062
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.027041606216414833,
+          "register": 0.025183183315820604,
+          "patch": 0.122856291511621
+        },
+        "attention": {
+          "camera": 0.08725474057496953,
+          "register": 0.10613036590581074,
+          "patch": 0.18215841918402412
+        },
+        "block": {
+          "camera": 0.021927953652654562,
+          "register": 0.025141518759947665,
+          "patch": 0.1356524575693493
+        }
+      }
+    },
+    {
+      "layer": 13,
+      "local_same_qkv": {
+        "camera": 0.0032911484429579514,
+        "register": 0.10789964374411831,
+        "patch": 0.18903648142261173
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.03453962316232737,
+          "register": 0.03820167129428479,
+          "patch": 0.15710341327951818
+        },
+        "attention": {
+          "camera": 0.14068784236781567,
+          "register": 0.1372486132945168,
+          "patch": 0.22795080007070467
+        },
+        "block": {
+          "camera": 0.035724538669554794,
+          "register": 0.039362995845388035,
+          "patch": 0.18048024491862072
+        }
+      }
+    },
+    {
+      "layer": 14,
+      "local_same_qkv": {
+        "camera": 0.0032320560058014818,
+        "register": 0.04975899067872072,
+        "patch": 0.1174029237843605
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.05736910623855815,
+          "register": 0.061361819626806466,
+          "patch": 0.1887839188004273
+        },
+        "attention": {
+          "camera": 0.1428996276000885,
+          "register": 0.13139423267784098,
+          "patch": 0.191257555288788
+        },
+        "block": {
+          "camera": 0.05014521923159329,
+          "register": 0.050259641604714675,
+          "patch": 0.25229466377187515
+        }
+      }
+    },
+    {
+      "layer": 15,
+      "local_same_qkv": {
+        "camera": 0.0031279151002759336,
+        "register": 0.09114865968500092,
+        "patch": 0.15890087681240928
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.06583149854539233,
+          "register": 0.06642044490678159,
+          "patch": 0.3155202469873296
+        },
+        "attention": {
+          "camera": 0.13411247535703208,
+          "register": 0.1151989745058938,
+          "patch": 0.2568788528849547
+        },
+        "block": {
+          "camera": 0.06543791420303609,
+          "register": 0.06108002348696648,
+          "patch": 0.33441247329004564
+        }
+      }
+    },
+    {
+      "layer": 16,
+      "local_same_qkv": {
+        "camera": 0.003317276704349735,
+        "register": 0.07643971365170209,
+        "patch": 0.13503396229579037
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.08606393951796033,
+          "register": 0.08608071899279364,
+          "patch": 0.35875555223561356
+        },
+        "attention": {
+          "camera": 0.19710132630827087,
+          "register": 0.1918001500955249,
+          "patch": 0.2798463711171213
+        },
+        "block": {
+          "camera": 0.12285261108242042,
+          "register": 0.11849046582812091,
+          "patch": 0.3954830585786532
+        }
+      }
+    },
+    {
+      "layer": 17,
+      "local_same_qkv": {
+        "camera": 0.0031056409604754286,
+        "register": 0.02778913199179044,
+        "patch": 0.030774519731902292
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.16461914295133848,
+          "register": 0.16377853045819615,
+          "patch": 0.3618210188639854
+        },
+        "attention": {
+          "camera": 0.3294483700635951,
+          "register": 0.3288249656106749,
+          "patch": 0.31498656429671185
+        },
+        "block": {
+          "camera": 0.24909929354338545,
+          "register": 0.25330804634838067,
+          "patch": 0.403933670618391
+        }
+      }
+    },
+    {
+      "layer": 18,
+      "local_same_qkv": {
+        "camera": 0.003188440893986534,
+        "register": 0.10113195253922301,
+        "patch": 0.172410299355927
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.1974759161274135,
+          "register": 0.199893938567137,
+          "patch": 0.3504730510405235
+        },
+        "attention": {
+          "camera": 0.4380081665560184,
+          "register": 0.4362472240611077,
+          "patch": 0.5451089954751591
+        },
+        "block": {
+          "camera": 0.2625481998378621,
+          "register": 0.2682162423708301,
+          "patch": 0.3841930136917167
+        }
+      }
+    },
+    {
+      "layer": 19,
+      "local_same_qkv": {
+        "camera": 0.004266797296826028,
+        "register": 0.09096467941694593,
+        "patch": 0.09395879601137694
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.20697965518859848,
+          "register": 0.2085062064726771,
+          "patch": 0.37292959956256694
+        },
+        "attention": {
+          "camera": 1.2196347375394818,
+          "register": 1.2324886636425445,
+          "patch": 1.3336548963852242
+        },
+        "block": {
+          "camera": 0.3112432960186594,
+          "register": 0.3166305194581484,
+          "patch": 0.5353872538501786
+        }
+      }
+    },
+    {
+      "layer": 20,
+      "local_same_qkv": {
+        "camera": 0.003014523633506541,
+        "register": 0.17304056685684752,
+        "patch": 0.1590866858619263
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.23446602643167555,
+          "register": 0.23572559630156428,
+          "patch": 0.4494648963929054
+        },
+        "attention": {
+          "camera": 0.5902246672603884,
+          "register": 0.5673287607207449,
+          "patch": 0.552659450885195
+        },
+        "block": {
+          "camera": 0.3099734692603206,
+          "register": 0.31016394559984334,
+          "patch": 0.5551990245828388
+        }
+      }
+    },
+    {
+      "layer": 21,
+      "local_same_qkv": {
+        "camera": 0.0031421958002188777,
+        "register": 0.42192289292494867,
+        "patch": 0.2685727338796313
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.22453782973872374,
+          "register": 0.22111416409069173,
+          "patch": 0.4526418379048692
+        },
+        "attention": {
+          "camera": 0.644503483029669,
+          "register": 0.8520570421398735,
+          "patch": 0.7595823012857825
+        },
+        "block": {
+          "camera": 0.3072459326941231,
+          "register": 0.31068906587748263,
+          "patch": 0.5566280162788665
+        }
+      }
+    },
+    {
+      "layer": 22,
+      "local_same_qkv": {
+        "camera": 0.0025034164246148785,
+        "register": 0.11147499435298176,
+        "patch": 0.10662164868603277
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.21349862971469136,
+          "register": 0.20652526527088058,
+          "patch": 0.41946149917516334
+        },
+        "attention": {
+          "camera": 0.38134589787076606,
+          "register": 0.44863003840769994,
+          "patch": 0.3803246289766408
+        },
+        "block": {
+          "camera": 0.3388525220352416,
+          "register": 0.3289130828582606,
+          "patch": 0.47919610354629716
+        }
+      }
+    },
+    {
+      "layer": 23,
+      "local_same_qkv": {
+        "camera": 0.002589564713972326,
+        "register": 0.13006940503147263,
+        "patch": 0.1399090342803785
+      },
+      "independent_dense": {
+        "input": {
+          "camera": 0.22831764774382765,
+          "register": 0.21941325420647065,
+          "patch": 0.36395412600217525
+        },
+        "attention": {
+          "camera": 0.2171658477693353,
+          "register": 0.30797154437403285,
+          "patch": 0.37512093819106945
+        },
+        "block": {
+          "camera": 0.31470789569571944,
+          "register": 0.2993442466445787,
+          "patch": 0.40729953834686417
+        }
+      }
+    }
+  ],
+  "prediction_deviation": {
+    "pose_relative_l2": 0.05220641940832138,
+    "log_depth_rmse": 0.3883680565124036,
+    "rotation_mean_degrees": 3.9047374725341797,
+    "rotation_p90_degrees": 7.778625965118408,
+    "translation_direction_mean_degrees": 16.931873321533203
+  }
+}
