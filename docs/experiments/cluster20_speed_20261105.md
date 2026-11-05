@@ -79,3 +79,31 @@ are rerun. It is not a budget/loss/probability adjustment. Results remain pendin
 Common-forward optimization is enabled for our candidate, while SAF3R retains its
 original execution. This is an implementation runtime comparison, not proof that
 our sparse selector is intrinsically faster than every optimized SAF3R implementation.
+
+## Final conservative campaign
+
+All36 new runs completed:18 changed-method quality runs +18 authorized SAF3R
+timing-only runs. All reference quality is reused. Conservative full-forward
+averages:7Scenes6.427234s vs SAF3R6.668902s (1.0376x);ETH3D1.323959s vs
+SAF3R1.601425s (1.2096x). All18 per-scene warmed median speed comparisons pass.
+7Scenes warm peak allocated14.979GiB;ETH3D10.959GiB. Mean cold forwards8.162s
+and3.030s respectively;cold/warm samples remain separate.
+
+Quality is NOT fully accepted:7Scenes macro Comp+2.7321% exceeds2%. Other
+7Scenes macro reconstruction changes:ACC−0.6043%,CD+0.9442%,F1+0.4972%.
+ETH3D macro reconstruction changes all stay below2%,but electro,relief,terrains
+have per-scene exceptions. No candidate is promoted as meeting every constraint.
+
+The initial prefix-autotuning hypothesis was not supported by the prefix diagnostic.
+Reference self-repeat mask drift remains a material numerical-stability limitation;
+its exact single-kernel cause is not established. Neither budget tuning nor
+cherry-picking repeated quality predictions was used to hide these failures.
+
+Chinese final report:outputs/cluster20_speed_20261105/final_report_zh.md.
+Conservative detail:outputs/cluster20_speed_conservative_20261105/report.md.
+Both archives include per-scene raw JSON,six-metric tables,CSV,source hashes and
+GPU monitors. Reused references are materialized in the archive;large source tars
+and diagnostic feature tensors remain in the original local outputs,with model
+source preserved by Git commit and hashes. Conservative plan.created_utc inherited
+the earlier plan timestamp;provenance_note.json preserves the correction using
+the original manifest file mtime,without rewriting the frozen plan.
