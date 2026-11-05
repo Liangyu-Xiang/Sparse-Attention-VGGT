@@ -31,6 +31,8 @@ class ReuseExploreConfig:
     history_query_interval:int=32
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
+    rep_history_loss:str='legacy'
+    rep_history_diagnostics:bool=False
     shared_value_loss: bool = False
     shared_value_weighting: str = 'unit'
     shared_value_allow_observed_rep: bool = False
@@ -97,6 +99,8 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.rep_history_loss not in ('legacy','A','B'):raise ValueError('Invalid Rep-based History ablation')
+        if (self.rep_history_loss!='legacy' or self.rep_history_diagnostics) and (not self.shared_value_loss or not self.window_graph or self.shared_value_weighting!='cluster_population' or not self.shared_value_allow_observed_rep or self.state_loss_variant!='legacy' or self.operator_loss!='legacy' or self.partial_key_states):raise ValueError('Rep-History ablation requires the frozen shared four-state base')
         if self.operator_loss not in ('legacy','normalized_moment') or self.operator_feature_dim not in (4,8):raise ValueError('Invalid operator repair configuration')
         if self.operator_weighting not in ('population','calibrated'):raise ValueError('Invalid operator weighting')
         if (self.operator_loss!='legacy' or self.partial_key_states) and (not self.shared_value_loss or self.shared_value_weighting!='cluster_population' or self.state_loss_variant!='legacy'):
@@ -452,6 +456,8 @@ class ReuseResidualExploration(nn.Module):
                     geometry['drop_bins']=[(size,bins.get(size,torch.empty(0,device=x.device,dtype=torch.int32)))
                         for size in (1,2,4,8,16,32,64,128,256,512) if size<=geometry['width']]
                     geometry['bounded_bins']=True
+                geometry['rep_history_loss']=c.rep_history_loss
+                geometry['rep_history_diagnostics']=c.rep_history_diagnostics
                 geometry['shared_value_weighting']=c.shared_value_weighting
                 geometry['shared_value_allow_observed_rep']=c.shared_value_allow_observed_rep
             token_grid=None
