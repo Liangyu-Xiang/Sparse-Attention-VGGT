@@ -1,0 +1,55 @@
+{
+  "scope": "Synthetic two-frame attention; not a full-model or dataset quality evaluation",
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "gpu_uuid": "655da77e-783a-8bb7-a736-888ed2c7ac39",
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Synthetic attention-kernel diagnostic only; no model pose/recon_unposed quality or paired full-forward Dense timing",
+      "auc30": "Synthetic attention-kernel diagnostic only; no model pose/recon_unposed quality or paired full-forward Dense timing",
+      "acc": "Synthetic attention-kernel diagnostic only; no model pose/recon_unposed quality or paired full-forward Dense timing",
+      "comp": "Synthetic attention-kernel diagnostic only; no model pose/recon_unposed quality or paired full-forward Dense timing",
+      "cd": "Synthetic attention-kernel diagnostic only; no model pose/recon_unposed quality or paired full-forward Dense timing",
+      "f1": "Synthetic attention-kernel diagnostic only; no model pose/recon_unposed quality or paired full-forward Dense timing"
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "checks": [
+    {
+      "config": "reuse_layout_fixed_all_specials_dense.json",
+      "all_special_keys_retained": true,
+      "specials_excluded_from_sparse_patch_domain": true,
+      "all_camera_and_register_queries_dense": true,
+      "omitted_patch_key_affects_every_special_query": true,
+      "ordinary_queries_receive_special_key_values": true,
+      "max_abs_special_output_error": 1.744180917739868e-05
+    },
+    {
+      "config": "reuse_partial_states_all_specials_dense.json",
+      "all_special_keys_retained": true,
+      "specials_excluded_from_sparse_patch_domain": true,
+      "all_camera_and_register_queries_dense": true,
+      "omitted_patch_key_affects_every_special_query": true,
+      "ordinary_queries_receive_special_key_values": true,
+      "max_abs_special_output_error": 1.744180917739868e-05
+    }
+  ]
+}
