@@ -26,7 +26,7 @@ def main():
     assert not torch.cuda.is_available(),'This evaluator must run with CUDA_VISIBLE_DEVICES empty'
     torch.set_num_threads(2);np.random.seed(0);o3d.utility.random.seed(0)
     metadata=json.loads((a.run/'input.json').read_text())
-    assert not metadata['teacher_forced'],'Counterfactual trajectories are not quality candidates'
+    assert not metadata.get('teacher_forced',False),'Counterfactual trajectories are not quality candidates'
     dataset=MV_REGISTRY.get('eth3d')()
     scene,gt=load_scene_data(dataset,'eth3d',a.scene,128,'uniform',seed=0)
     assert [str(Path(x).resolve()) for x in scene.image_files]==[str(Path(x).resolve()) for x in metadata['image_paths']]

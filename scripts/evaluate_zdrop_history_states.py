@@ -69,6 +69,10 @@ def run(args):
         if saf3r_settings['topk']!=4 or not saf3r_settings['lazy_dino_topk']:raise ValueError('Frozen SAF3R configuration changed')
         update_args_per_forward(model,'vggt',*images.shape[-2:])
     canonical=dict(image_paths=scene.image_files,frame_indices=positions,shape=list(images.shape),checkpoint=str(Path(cfg.ckpt_path).resolve()),checkpoint_sha256=hashlib.sha256(Path(cfg.ckpt_path).read_bytes()).hexdigest())
+    if args.expected_input:
+        expected=json.loads(args.expected_input.read_text())
+        for key in ('image_paths','frame_indices','shape','checkpoint_sha256'):
+            if canonical[key]!=expected[key]:raise ValueError('Frozen input mismatch: '+key)
     save(out/'input.json',canonical)
     save(out/'config.json',dict(method=args.method,config=None if config is None else asdict(config),
         model=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,seed=0))
@@ -152,6 +156,17 @@ def run(args):
     common['quality_protocol'].update(voxel_length_m=dataset.voxel_length,sdf_trunc_m=dataset.sdf_trunc,mesh_sample_points=dataset.sampling_number,max_depth=dataset.max_depth,alignment='Repository unposed Umeyama/RANSAC scale+pose alignment; random_state42',depth_resize='Nearest neighbour to original RGB resolution; intrinsics scaled consistently',masking='Existing dataset _prep_unposed and GT-validity masks; no new filtering or threshold tuning')
     common['environment']=dict(python=sys.version,open3d=o3d.__version__)
     save(out/'forward.json',common)
+    if args.defer_quality:
+        if dataset_name!='eth3d' or args.method!='zdrop_history_states' or args.timing_only or args.diagnostic:
+            raise ValueError('Deferred quality supports ETH3D changed-method quality runs only')
+        # Let this process exit and release the GPU while CPU reconstruction
+        # evaluates the saved predictions in a separate process.
+        torch.save({key:raw[key].detach().cpu() for key in ('pose_enc','depth','depth_conf')},out/'predictions.pt')
+        torch.save(images.detach().cpu(),out/'images.pt')
+        q=quality_record({},'GPU inference complete; CPU pose/recon_unposed evaluation queued')
+        q['speedup_unavailable']='Speed evaluation requested only for7Scenes; no paired Dense ETH3D timing'
+        write_quality(out,q);save(out/'deferred_forward.json',dict(common,quality=q))
+        save(out/'status.json',dict(stage='gpu_forward_complete'));return
     if args.diagnostic or args.timing_only:
         reason='Explicit warmed full-forward timing-only run; geometric quality not rerun' if args.timing_only else 'Explicit implementation diagnostic; pose/recon_unposed not evaluated'
         q=quality_record({},reason)
@@ -205,6 +220,8 @@ if __name__=='__main__':
     p.add_argument('--selector-execution',choices=['graph','eager'],default='graph')
     p.add_argument('--capture',action='store_true');p.add_argument('--diagnostic',action='store_true')
     p.add_argument('--timing-only',action='store_true')
+    p.add_argument('--defer-quality',action='store_true')
+    p.add_argument('--expected-input',type=Path)
     a=p.parse_args()
     if a.warmup<0 or a.repeats<1:raise ValueError('Invalid timing protocol')
     try:run(a)
