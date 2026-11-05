@@ -46,8 +46,9 @@ def _initial_layout(frames, height, width, count, source_width, layout, temporal
 
 class SourceLocalUnanchoredValue:
     def __init__(self, frames, height, width, base_count, device, source_width=32,
-                 iterations=2, layout='sequential', temporal_span=1, batch_groups=128):
+                 iterations=2, layout='sequential', temporal_span=1, batch_groups=128, fused_scatter=False):
         labels,sources=_initial_layout(frames,height,width,base_count,source_width,layout,temporal_span)
+        self.fused_scatter=fused_scatter
         self.base_count=base_count; self.iterations=iterations; self.batch_groups=batch_groups
         self.layout=layout; self.temporal_span=temporal_span; self.merges={}; self.records=[]
         groups=int(sources.max())+1
@@ -84,6 +85,9 @@ class SourceLocalUnanchoredValue:
             centers=self._centers(x)
             centers=torch.cat((centers,torch.zeros_like(centers[:1])))
             new=self.labels.clone(); costs=torch.empty(n+1,device=x.device)
+            if self.fused_scatter:
+                from saf3r.triton.source_local_scatter import assignment,repair
+                padded_labels=torch.cat((self.labels,self.labels[:1]))
             for begin in range(0,len(self.table),self.batch_groups):
                 table=self.table[begin:begin+self.batch_groups]
                 candidate=self.candidates[begin:begin+self.batch_groups]
@@ -92,12 +96,15 @@ class SourceLocalUnanchoredValue:
                       -2*torch.bmm(xx,cc.transpose(1,2))).clamp_min_(0)
                 dist.masked_fill_(candidate[:,None]==k,torch.inf)
                 best,choice=dist.min(-1); assigned=candidate.gather(1,choice)
-                old=torch.cat((self.labels,self.labels[:1]))[table]
+                old=(padded_labels if self.fused_scatter else torch.cat((self.labels,self.labels[:1])))[table]
                 own=(xx-centers[old]).square().sum(-1)
                 assigned=torch.where(own<=best,old,assigned)
                 valid=table<n
-                new[table[valid]]=assigned[valid]
-                costs[table[valid]]=torch.minimum(own,best)[valid]
+                if self.fused_scatter:
+                    assignment(table,assigned,torch.minimum(own,best),new,costs,n)
+                else:
+                    new[table[valid]]=assigned[valid]
+                    costs[table[valid]]=torch.minimum(own,best)[valid]
             # Each donor keeps one ordinary member ONLY during this repair.
             population=torch.bincount(new,minlength=k)
             first=torch.full((k+1,),n,device=x.device,dtype=torch.long)
@@ -114,7 +121,8 @@ class SourceLocalUnanchoredValue:
                 ranks=missing.long().cumsum(1)-1
                 donors=table.gather(1,score[table].argsort(dim=1,descending=True,stable=True))
                 target=donors.gather(1,ranks.clamp_min(0))
-                new[target[missing]]=candidate[missing]
+                if self.fused_scatter:repair(target,candidate,missing,new)
+                else:new[target[missing]]=candidate[missing]
             self.labels=new
         centers=self._centers(x)
         distance=(x-centers[self.labels]).square().sum(-1)

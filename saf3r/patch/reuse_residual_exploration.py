@@ -23,6 +23,11 @@ class ReuseExploreConfig:
     static_shared_graph:bool=False
     graph_cache_max_mib:int=2048
     query_group_size:int=32
+    fused_rope:bool=False
+    autotune_dense_convolutions:bool=False
+    fused_residual_add:bool=False
+    reuse_cuda_allocations:bool=False
+    efficient_source_scatter:bool=False
     source_layout:str="sequential"
     source_temporal_span:int=1
     dense_special_queries:int=0
@@ -339,7 +344,7 @@ class ReuseExploreState:
         if c.clustering_mode=='source_anchored':self.fine=FullCoverageValue(cluster_frames,height*width,cluster_count,device,c.source_width,c.local_iterations)
         elif c.clustering_mode=='source_local_unanchored':
             from .source_local_unanchored import SourceLocalUnanchoredValue
-            self.fine=SourceLocalUnanchoredValue(cluster_frames,height,width,cluster_count,device,c.source_width,c.local_iterations,c.source_layout,c.source_temporal_span)
+            self.fine=SourceLocalUnanchoredValue(cluster_frames,height,width,cluster_count,device,c.source_width,c.local_iterations,c.source_layout,c.source_temporal_span,fused_scatter=c.efficient_source_scatter)
         else:
             from .adaptive_value_clustering import AdaptiveFullCoverageValue
             self.fine=AdaptiveFullCoverageValue(cluster_frames,height*width,cluster_count,device,c.source_width,c.local_iterations,mode='local' if c.clustering_mode=='adaptive_local' else 'certified',neighbors=c.cluster_neighbors)
@@ -837,6 +842,21 @@ def install_reuse_residual_exploration(model,config=None):
     if any(hasattr(model,name) for name in ('value_region_av_state','fused_shared_av_state','attention_first_residual_value_state','reuse_explore_state')):
         raise ValueError('Install only on a fresh unpatched model')
     config=ReuseExploreConfig() if config is None else config
+    fast_ropes=[]
+    if config.fused_rope:
+        from types import MethodType
+        from saf3r.triton.rope_fast import forward as rope_forward
+        for block in list(model.aggregator.frame_blocks)+list(model.aggregator.global_blocks):
+            rope=block.attn.rope
+            if rope is not None and all(rope is not r for r in fast_ropes):
+                rope.forward=MethodType(rope_forward,rope);fast_ropes.append(rope)
+    if config.autotune_dense_convolutions:torch.backends.cudnn.benchmark=True
+    if config.reuse_cuda_allocations:model.aggregator.release_cuda_cache_each_block=False
+    if config.fused_residual_add:
+        for block in list(model.aggregator.frame_blocks)+list(model.aggregator.global_blocks):
+            if not all(hasattr(getattr(block,name),'gamma') for name in ('ls1','ls2')):
+                raise ValueError('Fused residual requires LayerScale gamma')
+            block.fuse_inference_residual=True
     if len(model.aggregator.global_blocks)!=24:raise ValueError('24 global layers required')
     if config.attention_backend=='shared_grid_guarded':
         from .reuse_guarded import GuardedState,GuardedReuse
@@ -847,6 +867,9 @@ def install_reuse_residual_exploration(model,config=None):
     def reset(module,inputs):
         images=inputs[0]
         if images.ndim!=5 or len(images)!=1:raise ValueError('Batch-one sequences required')
+        # Native aggregator positions are raster coordinates +1, specials 0.
+        # Refresh on EVERY input shape; never reuse arbitrary prior positions.
+        for rope in fast_ropes:rope._fixed_max_position=max(images.shape[-2]//14,images.shape[-1]//14)+1
         state.reset(images.shape[1],images.shape[-2]//14,images.shape[-1]//14,images.device)
     state.reset_handle=model.aggregator.register_forward_pre_hook(reset)
     model.reuse_explore_state=state

@@ -69,6 +69,12 @@ def run(args):
         if saf3r_settings['topk']!=4 or not saf3r_settings['lazy_dino_topk']:raise ValueError('Frozen SAF3R configuration changed')
         update_args_per_forward(model,'vggt',*images.shape[-2:])
     canonical=dict(image_paths=scene.image_files,frame_indices=positions,shape=list(images.shape),checkpoint=str(Path(cfg.ckpt_path).resolve()),checkpoint_sha256=hashlib.sha256(Path(cfg.ckpt_path).read_bytes()).hexdigest())
+    if args.matched_input:
+        expected=json.loads(args.matched_input.read_text())
+        for key in ('image_paths','frame_indices','shape'):
+            if expected[key]!=canonical[key]:raise ValueError('Historical input mismatch: '+key)
+        if Path(expected['checkpoint']).resolve()!=Path(canonical['checkpoint']).resolve():raise ValueError('Checkpoint target mismatch')
+        if expected.get('checkpoint_sha256',canonical['checkpoint_sha256'])!=canonical['checkpoint_sha256']:raise ValueError('Checkpoint SHA mismatch')
     save(out/'input.json',canonical)
     save(out/'config.json',dict(method=args.method,config=None if config is None else asdict(config),
         model=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,seed=0))
@@ -186,7 +192,7 @@ def run(args):
             raise ValueError('Paired Dense timing mismatch')
         q.update(speedup_vs_vggt=bt['median_seconds']/timing['median_seconds'],speedup_unavailable=None)
     elif dataset_name!='7scenes':
-        q.update(speedup_unavailable='Speed evaluation requested only for7Scenes; no paired Dense ETH3D timing')
+        q.update(speedup_unavailable='No contemporaneous paired Dense timing; unchanged Dense not rerun')
     result=dict(common,quality=q,metrics=metrics,quality_errors=errors)
     save(out/'result.json',result);write_quality(out,q)
     save(out/'status.json',dict(stage='complete' if q['complete'] else 'quality_incomplete'))
@@ -201,6 +207,7 @@ if __name__=='__main__':
     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')
     p.add_argument('--warmup',type=int,default=1);p.add_argument('--repeats',type=int,default=3)
+    p.add_argument('--matched-input',type=Path)
     p.add_argument('--attention-timing',type=int,default=0)
     p.add_argument('--selector-execution',choices=['graph','eager'],default='graph')
     p.add_argument('--capture',action='store_true');p.add_argument('--diagnostic',action='store_true')
