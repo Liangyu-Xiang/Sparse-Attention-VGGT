@@ -117,7 +117,8 @@ def corrections(prior, old_ids, uniform, labels, geometry, context):
 def _states(UNIFORM, CELL, CELL_D, CELL_R, CORR_D, CORR_R, KEPT_D,
             REMOVE, AMOUNT, ALLOW, POP, CLUSTERS, ERROR, COST, OBJECTIVE,
             F:tl.constexpr, R:tl.constexpr, W:tl.constexpr,
-            COUNT, C:tl.constexpr, M:tl.constexpr, COUNT_PTR:tl.constexpr):
+            COUNT, C:tl.constexpr, M:tl.constexpr, COUNT_PTR:tl.constexpr,
+            ALLOW_S0:tl.constexpr, ALLOW_S1:tl.constexpr):
     if COUNT_PTR:
         COUNT = tl.load(COUNT)
     group = tl.program_id(0)
@@ -138,7 +139,7 @@ def _states(UNIFORM, CELL, CELL_D, CELL_R, CORR_D, CORR_R, KEPT_D,
     history = tl.maximum(0., drop-kept)
     remove = tl.load(REMOVE + group*F + cluster, index<COUNT, False)
     amount = tl.load(AMOUNT + group*F + cluster, index<COUNT, 0)
-    allowed = tl.load(ALLOW + group*F + cluster, index<COUNT, False)
+    allowed = tl.load(ALLOW + group*ALLOW_S0 + cluster*ALLOW_S1, index<COUNT, False)
     pop = tl.load(POP + cluster, index<COUNT, 0.)
     rep_error = tl.where(remove, float("inf"), rep)
     hist_error = tl.where(amount>0, history, float("inf"))
@@ -162,7 +163,8 @@ def _states(UNIFORM, CELL, CELL_D, CELL_R, CORR_D, CORR_R, KEPT_D,
 def _states_capacity(UNIFORM, CELL, CELL_D, CELL_R, CORR_D, CORR_R, KEPT_D,
             REMOVE, AMOUNT, ALLOW, POP, CLUSTERS, ERROR, COST, OBJECTIVE,
             F:tl.constexpr, R:tl.constexpr, W:tl.constexpr,
-            COUNT, C:tl.constexpr, M:tl.constexpr, COUNT_PTR:tl.constexpr):
+            COUNT, C:tl.constexpr, M:tl.constexpr, COUNT_PTR:tl.constexpr,
+            ALLOW_S0:tl.constexpr, ALLOW_S1:tl.constexpr):
     # A fixed resident grid walks only the live bin entries. Each iteration
     # retains the original C/M tile and reduction tree, with no empty-CTA flood.
     if COUNT_PTR:count=tl.load(COUNT)
@@ -172,7 +174,7 @@ def _states_capacity(UNIFORM, CELL, CELL_D, CELL_R, CORR_D, CORR_R, KEPT_D,
     while offset+tl.program_id(1)*C < count:
         _states(UNIFORM,CELL,CELL_D,CELL_R,CORR_D,CORR_R,KEPT_D,
                 REMOVE,AMOUNT,ALLOW,POP,CLUSTERS+offset,ERROR,COST,OBJECTIVE,
-                F,R,W,count-offset,C,M,False)
+                F,R,W,count-offset,C,M,False,ALLOW_S0,ALLOW_S1)
         offset+=step
 
 
@@ -197,7 +199,7 @@ def states(uniform, allowed, population, geometry, context, residuals):
             geometry["shared_rep"], delta_d, delta_r, kept_d,
             context["remove_rep"], context["eligible_count"], allowed,
             population, clusters, errors, costs, objectives, f,
-            geometry["shared_regions"], width, count, c, size, use_ptr,
+            geometry["shared_regions"], width, count, c, size, use_ptr,allowed.stride(0),allowed.stride(1),
             num_warps=4, enable_fp_fusion=False,
         )
     geometry["objective"] = objectives

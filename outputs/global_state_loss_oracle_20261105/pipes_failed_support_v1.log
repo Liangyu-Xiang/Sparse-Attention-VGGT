@@ -1,0 +1,58 @@
+Traceback (most recent call last):
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/scripts/audit_global_state_loss_oracle.py", line 294, in <module>
+    try:main()
+        ^^^^^^
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/scripts/audit_global_state_loss_oracle.py", line 284, in main
+    with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):model(images)
+                                                                            ^^^^^^^^^^^^^
+  File "/data_SSD2/mmc_lyxiang/anaconda3/envs/sparse-vggt/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_SSD2/mmc_lyxiang/anaconda3/envs/sparse-vggt/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/saf3r/models/official_vggt/models/vggt.py", line 65, in forward
+    aggregated_tokens_list, patch_start_idx = self.aggregator(images)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_SSD2/mmc_lyxiang/anaconda3/envs/sparse-vggt/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_SSD2/mmc_lyxiang/anaconda3/envs/sparse-vggt/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1879, in _call_impl
+    return inner()
+           ^^^^^^^
+  File "/data_SSD2/mmc_lyxiang/anaconda3/envs/sparse-vggt/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1827, in inner
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/saf3r/models/official_vggt/models/aggregator.py", line 261, in forward
+    tokens, global_idx, global_intermediates = self._process_global_attention(
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/saf3r/models/official_vggt/models/aggregator.py", line 317, in _process_global_attention
+    tokens = self.global_blocks[global_idx](tokens, pos=pos)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_SSD2/mmc_lyxiang/anaconda3/envs/sparse-vggt/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_SSD2/mmc_lyxiang/anaconda3/envs/sparse-vggt/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/saf3r/models/official_vggt/layers/block.py", line 105, in forward
+    x = x + attn_residual_func(x, pos=pos)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/saf3r/models/official_vggt/layers/block.py", line 83, in attn_residual_func
+    return self.ls1(self.attn(self.norm1(x), pos=pos))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_SSD2/mmc_lyxiang/anaconda3/envs/sparse-vggt/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_SSD2/mmc_lyxiang/anaconda3/envs/sparse-vggt/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/saf3r/patch/reuse_residual_exploration.py", line 545, in forward
+    ids,real,pops,record=select(s,self.layer,prior,pi,old_ids,allowed,zvalues,s.fine.reps,s.fine.labels,population,geometry,uniform=uniform,**extra)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/scripts/audit_global_state_loss_oracle.py", line 279, in select
+    audit(s,layer,start,group-start,prior,pi,old_ids,allowed,z,reps,labels,population,geometry,uniform,result)
+  File "/data_NVME1/mmc_lyxiang/3D/SAF3R-eth3d-regression-repair/scripts/audit_global_state_loss_oracle.py", line 133, in audit
+    assert bool(((counts==0)|is_rep|is_hist|is_exact).all()),'Native support not expressible by stated 4-state vocabulary'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Native support not expressible by stated 4-state vocabulary

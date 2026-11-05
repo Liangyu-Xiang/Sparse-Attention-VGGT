@@ -522,7 +522,10 @@ class ReuseResidualExploration(nn.Module):
                 with stage(s,'residual_fine_probe'),torch.autocast(x.device.type,enabled=False):
                     residual=torch.sparse.mm(overlap,demand.T).T
                     candidate=residual.topk(candidates,dim=1).indices
-                    allowed=torch.zeros_like(residual,dtype=torch.bool).scatter_(1,candidate,True)
+                    # sparse.mm(...).T is column-major. Production state kernels
+                    # consume Query-group x cluster masks; allocate row-major
+                    # directly, without an extra per-window transpose/copy.
+                    allowed=torch.zeros(residual.shape,device=residual.device,dtype=torch.bool).scatter_(1,candidate,True)
                     if not c.compact:
                         ck=k[:,s.patches[s.fine.reps[candidate]]]
                         logits=(pq@ck.transpose(-1,-2)).float()*o.scale+population[candidate].log()[None,:,None]
