@@ -45,3 +45,37 @@ method geometry is rerun on ETH3D. All six metrics, per-scene data and equal-sce
 macros will be retained, including failures. Acceptance: speed<=paired SAF3R,
 128-frame full forward<9s, absolute relative macro ACC/Comp/CD/F1 change<2%.
 Per-scene deviations are separately reported; they are not hidden in macros.
+
+## First complete campaign and numerical stability
+
+All43 new runs completed (25 complete quality runs +18 SAF3R timing-only runs),
+with11 additional ETH3D reference rows reused. See
+`outputs/cluster20_speed_20261105/report.md` for the full54 method/scene records.
+All18 optimized scenes are faster than paired native SAF3R.7Scenes averages:
+reference7.388654s,SAF3R6.779607s,first candidate6.161170s (1.1004x vs SAF3R).
+ETH3D:SAF3R1.579174s,candidate1.272822s (1.2407x).
+
+Strict absolute macro reconstruction-change gate: ETH3D passes (largest0.149%);
+7Scenes fails because F1 improves by2.3224%, exceeding the absolute2% threshold.
+7Scenes distance macro changes are ACC−1.280%,Comp+1.625%,CD+0.068%. There are
+also substantive per-scene changes, including degradations; these are not hidden
+by an improved mean F1. The candidate is NOT marked fully accepted.
+
+Prefix on/off autotuning diagnostics were bitwise equal for the sampled first/last
+frame patch projections and DINO outputs. This rules out the suggested prefix
+explanation in that diagnostic, not every later convolution. Full-mask numerical
+captures reveal original reference self-repeat differences starting at L14, before
+head-mean Values change at L15. Final pose relative L2 is0.001732. This is evidence
+of intrinsic numerical variability, not a proof that one specific reduction caused
+all geometry differences. Details: numerical_stability.md and trajectory/result.json.
+
+A separately frozen conservative candidate (`conservative.json`) retains only
+allocator reuse,exact-tested RoPE and residual fusions. It restores original
+Attention stage1,original source-clustering stores and native convolution selection.
+Reference quality is reused; authorized SAF3R timing and only changed-method quality
+are rerun. It is not a budget/loss/probability adjustment. Results remain pending.
+`precision_preserving.json` describes a trajectory diagnostic, not a selected model.
+
+Common-forward optimization is enabled for our candidate, while SAF3R retains its
+original execution. This is an implementation runtime comparison, not proof that
+our sparse selector is intrinsically faster than every optimized SAF3R implementation.

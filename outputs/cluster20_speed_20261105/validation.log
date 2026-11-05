@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-cluster20-speed-20261105/scripts/validate_cluster20_scatter.py", line 18, in <module>
+    old.update(x,layer);new.update(x,layer)
+    ^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-cluster20-speed-20261105/reference/cluster20_speed_20261105/source_local_unanchored.py", line 92, in update
+    -2*torch.bmm(xx,cc.transpose(1,2))).clamp_min_(0)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility
