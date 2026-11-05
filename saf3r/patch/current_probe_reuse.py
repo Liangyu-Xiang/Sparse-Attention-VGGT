@@ -21,7 +21,9 @@ def forward(module,x,pos):
  from .reuse_window_graph import select
  o,s=module.original,module.state;c=s.config;layer=module.layer
  if module.training or len(x)!=1 or layer!=s.previous_layer+1:raise ValueError('Ordered inference required')
- q,k,v=prepare_qkv(o,x,pos);q=q.to(v.dtype).contiguous();k=k.to(v.dtype).contiguous();s.budget=layer_budget(c,layer,s.n,len(s.specials))
+ s.budget=layer_budget(c,layer,s.n,len(s.specials))
+ with stage(s,'shared_qkv_and_rope'):
+  q,k,v=prepare_qkv(o,x,pos);q=q.to(v.dtype).contiguous();k=k.to(v.dtype).contiguous()
  with stage(s,'current_value_geometry'),torch.autocast(x.device.type,enabled=False):
   if c.shared_value_features=='head_sketch':
    from .head_value_sketch import projection,features as sketch
@@ -49,15 +51,17 @@ def forward(module,x,pos):
   actual=s.patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int().contiguous();bias=weights.log().contiguous()
   with stage(s,'sparse_attention_only'):
    result,_=main_attention(q[:,first:end],k,v,actual,s.specials,o.scale,bias,query_group_size=c.query_group_size,block_queries=c.attention_block_queries,block_keys=c.attention_block_keys,num_warps=c.attention_warps,num_stages=c.attention_stages)
-  output[:,first:end]=result;history.append(ids.clone());records.append(record)
- joined={key:torch.cat([r[key] for r in records]) for key in records[0]}
- if bool(joined['implementation_validation_error'].any()):raise RuntimeError('Current-probe support legality/budget failed')
- s.history_ids=torch.cat(history);s.previous_layer=layer
- rows=(s.n-torch.arange(s.groups,device=x.device)*c.query_group_size).clamp_max(c.query_group_size)
- raw=((joined['counts']+len(s.specials))*rows).sum()
- record=dict(layer=layer,query_group_size=c.query_group_size,query_groups=s.groups,fine_clusters=f,patch_budget=s.budget,special_keys=len(s.specials),counts_mean=joined['counts'].float().mean(),unused_budget_mean=(s.budget-joined['counts']).float().mean(),actual_unique_density=raw/s.n**2,final_unique_qk_per_head=raw,
-   current_probability_probes=c.current_probability_probes,probability_source='Current exact full-Key softmax,head/probe mean;previous support IDs only',history_evidence_backend='none:no sparse-logit export or grid cache',current_probe_qk_per_head=len(positions)*c.current_probability_probes*(s.n+len(s.patches)),direct_logical_main_qk_per_head=raw,geometry_width=width,rep_history_loss='A',rep_history_execution=c.rep_history_execution,shared_value_features=c.shared_value_features,
-   **{key+'_mean':value.float().mean() for key,value in joined.items() if key!='counts'})
+  with stage(s,'output_and_history_store'):
+   output[:,first:end]=result;history.append(ids.clone());records.append(record)
+ with stage(s,'history_validation_and_statistics'):
+  joined={key:torch.cat([r[key] for r in records]) for key in records[0]}
+  if bool(joined['implementation_validation_error'].any()):raise RuntimeError('Current-probe support legality/budget failed')
+  s.history_ids=torch.cat(history)
+  rows=(s.n-torch.arange(s.groups,device=x.device)*c.query_group_size).clamp_max(c.query_group_size)
+  raw=((joined['counts']+len(s.specials))*rows).sum()
+  record=dict(layer=layer,query_group_size=c.query_group_size,query_groups=s.groups,fine_clusters=f,patch_budget=s.budget,special_keys=len(s.specials),counts_mean=joined['counts'].float().mean(),unused_budget_mean=(s.budget-joined['counts']).float().mean(),actual_unique_density=raw/s.n**2,final_unique_qk_per_head=raw,
+    current_probability_probes=c.current_probability_probes,probability_source='Current exact full-Key softmax,head/probe mean;previous support IDs only',history_evidence_backend='none:no sparse-logit export or grid cache',current_probe_qk_per_head=len(positions)*c.current_probability_probes*(s.n+len(s.patches)),direct_logical_main_qk_per_head=raw,geometry_width=width,rep_history_loss='A',rep_history_execution=c.rep_history_execution,shared_value_features=c.shared_value_features,
+    **{key+'_mean':value.float().mean() for key,value in joined.items() if key!='counts'})
  if c.dense_special_queries:
   from .dense_special_queries import correct_output
   with stage(s,'dense_special_query_correction'):
@@ -65,5 +69,5 @@ def forward(module,x,pos):
   extra=(s.n-joined['counts'][dense_ids//c.query_group_size]-len(s.specials)).sum()
   record.update(dense_special_query_count=len(dense_ids),dense_special_query_physical_qk_per_head=len(dense_ids)*s.n,actual_unique_density=(raw+extra)/s.n**2,final_unique_qk_per_head=raw+extra)
  else:record['dense_special_query_count']=0
- s.records.append(record)
+ s.previous_layer=layer;s.records.append(record)
  return o.proj_drop(o.proj(output.transpose(0,1).reshape(1,s.n,-1)))
