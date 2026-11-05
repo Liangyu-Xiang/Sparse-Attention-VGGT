@@ -45,13 +45,28 @@ def main():
  for name,seconds,peak in [('layout_fixed',base_time['median_seconds'],max(s['peak_allocated_gib'] for s in base_time['samples'])),('dense',dense['timing']['median_seconds'],max(s['peak_allocated_gib'] for s in dense['timing']['samples'])),('saf3r_top4_lazy_correspondence',saf['timing']['median_seconds'],max(s['peak_allocated_gib'] for s in saf['timing']['samples']))]:
   speeds.append(dict(phase='phase2_controls',variant=name,seconds=seconds,speedup_vs_dense=dense['timing']['median_seconds']/seconds,speedup_unavailable=None,peak_allocated_gib=peak))
  for row in speeds:
-  row['relative_time_to_layout_fixed']=row['seconds']/base_time['median_seconds'];row['relative_time_to_saf3r']=row['seconds']/saf['timing']['median_seconds']
+  paired=row['speedup_vs_dense'] is not None
+  row['relative_time_to_layout_fixed']=row['seconds']/base_time['median_seconds'] if paired else None;row['relative_time_to_saf3r']=row['seconds']/saf['timing']['median_seconds'] if paired else None
+ # Attach paired speedups without inventing any geometric quality for timing-only runs.
+ for folder in [OUT/'speed_heads128',ROOT/'outputs/operator_repair_20261105/baseline_speed']:
+  timing_input=read(folder/'input.json')
+  for key in ['image_paths','shape','checkpoint_sha256']:assert timing_input[key]==dense['input'][key],(folder,key)
+  data=read(folder/'summary.json')
+  for r in data['rows']:
+   q=quality_record({},'RGB-only warmed full-forward timing/equivalence diagnostic; pose and recon_unposed not evaluated');r['quality']=q;q['speedup_vs_vggt']=dense['timing']['median_seconds']/r['median_seconds'];q['speedup_unavailable']=None
+   r['paired_timing']=dict(dense=str(OUT/'controls/dense/timing_result.json'),saf3r=str(OUT/'controls/saf3r/timing_result.json'),input_hardware_protocol_matched=True)
+   save(folder/(r['variant']+'_quality.json'),q);(folder/(r['variant']+'_quality.md')).write_text(quality_markdown(q))
+  save(folder/'summary.json',data)
+ for name in ['dense','saf3r']:
+  folder=OUT/'controls'/name;d=read(folder/'timing_result.json')
+  d['quality']['speedup_vs_vggt']=dense['timing']['median_seconds']/d['timing']['median_seconds'];d['quality']['speedup_unavailable']=None
+  save(folder/'timing_result.json',d);save(folder/'quality.json',d['quality']);(folder/'quality.md').write_text(quality_markdown(d['quality']))
  for path in [OUT/'speed_gpu.json',OUT/'controls/gpu.json',ROOT/'outputs/operator_repair_20261105/baseline_speed_gpu.json']:
   monitor=read(path);assert monitor['returncode']==0 and not monitor['same_gpu_overlap_detected'],path
  for phase in PHASES:assert not read(ROOT/'outputs'/phase/'execution.json')['failures']
  save(OUT/'summary.json',dict(scope='Three ETH3D calibration scenes, not full ETH3D11; speed only7Scenes heads128, not seven-scene macro',macros=macros,per_scene=rows,paired_heads128_speed=speeds,input_protocol_audits=audits,quality_forward_runtime=runtime,adopted=False,baseline_full_eth3d=str(baseline.relative_to(ROOT)),baseline_repeat_drift=base_time['within_variant_repeat'],reason='No candidate satisfies AUC, reconstruction and no-speed-sacrifice jointly; production layout-fixed method retained'))
  with (OUT/'per_scene.csv').open('w') as f:
-  writer=csv.DictWriter(f,fieldnames=['variant','scene']+KEYS);writer.writeheader();writer.writerows(rows)
+  writer=csv.DictWriter(f,fieldnames=['variant','scene']+KEYS,lineterminator='\n');writer.writeheader();writer.writerows(rows)
  lines=['# Operator-loss and partial-Key repair experiments','',
  'Research only. The production layout-fixed reuse method is retained. None of the eight frozen candidates has passed AUC, reconstruction and no-speed-sacrifice jointly. This is not an improved full-dataset result.','',
  '## Scope and controls','',
@@ -73,7 +88,9 @@ def main():
  '| Method/batch | Seconds | Dense speedup | Time/layout-fixed | Time/SAF3R | Peak allocated GiB |','|---|---:|---:|---:|---:|---:|']
  for r in speeds:
   speed=f"{r['speedup_vs_dense']:.3f}x" if r['speedup_vs_dense'] is not None else 'N/A (earlier batch)'
-  lines.append(f"| {r['variant']} / {r['phase']} | {r['seconds']:.6f} | {speed} | {r['relative_time_to_layout_fixed']:.4f} | {r['relative_time_to_saf3r']:.4f} | {r['peak_allocated_gib']:.3f} |")
+  layout_ratio=f"{r['relative_time_to_layout_fixed']:.4f}" if r['relative_time_to_layout_fixed'] is not None else 'N/A (earlier batch)'
+  saf_ratio=f"{r['relative_time_to_saf3r']:.4f}" if r['relative_time_to_saf3r'] is not None else 'N/A (earlier batch)'
+  lines.append(f"| {r['variant']} / {r['phase']} | {r['seconds']:.6f} | {speed} | {layout_ratio} | {saf_ratio} | {r['peak_allocated_gib']:.3f} |")
  lines += ['', '## Per-scene quality','', '| Method / scene | AUC@3 % | AUC@30 % | ACC m | Comp m | CD m | F1 % |','|---|---:|---:|---:|---:|---:|---:|']
  lines += [quality_line(r,r['variant']+' / '+r['scene']) for r in rows]
  lines += ['', '## Interpretation','',
