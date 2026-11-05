@@ -7,7 +7,12 @@ from scripts.search_quality_speed import save
 BASE=Path('/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/outputs/history_A_special5_cluster12_speed_20261106')
 def main():
  p=argparse.ArgumentParser();p.add_argument('--freeze',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();f=json.loads(a.freeze.read_text());assert f['frozen_before_target_quality'] and not a.output.exists();out=a.output;out.mkdir(parents=True)
- scope=json.loads((BASE/'scope.json').read_text());hashes={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for folder in ['saf3r','evaluation'] for p in (ROOT/folder).rglob('*.py')}
+ scope=json.loads((BASE/'scope.json').read_text())
+ for ds,scenes in scope['datasets'].items():
+  for sc in scenes:
+   expected=json.loads((BASE/'expected_inputs'/ds/(sc+'.json')).read_text())
+   assert expected['image_paths'] and all((ROOT/path).is_file() for path in expected['image_paths']),f'Missing frozen RGB files: {ds}/{sc}'
+ hashes={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for folder in ['saf3r','evaluation'] for p in (ROOT/folder).rglob('*.py')}
  plan=dict(freeze=f,datasets=scope['datasets'],source_sha256=hashes,commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),gpus=[4,5,6],warmup=1,repeats=3,dense_rerun=False,saf3r_rerun=False,timing_reference_batch=BASE.name,selection_uses_test_gt=False);save(out/'plan.json',plan)
  tasks=queue.Queue()
  for candidate in f['candidates']:
