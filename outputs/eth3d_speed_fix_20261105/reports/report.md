@@ -1,3 +1,5 @@
+> 范围纠正：本报告是SAF3R执行优化参考，不能作为用户的Value聚类/历史复用方法已修复的证据。原始测量数值保留。
+
 # ETH3D regression repair: grouped SAF3R
 
 Frozen before dataset quality. 7Scenes: all seven scenes,128frames each. ETH3D: all11scenes, up to128frames (all available selected valid frames). Same checkpoint SHA-256, exact input paths/indices, preprocessing, pose protocol, alignment/fusion, downsampling and thresholds as before_main. Dataset rows are equal-scene macro averages. No7Scenes test-truth parameter selection.
