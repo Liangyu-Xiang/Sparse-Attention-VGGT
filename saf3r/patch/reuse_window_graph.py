@@ -75,7 +75,11 @@ class Window:
         sources=[prior,pi,old_ids,allowed]+([uniform] if self.has_uniform else [])+([special_p] if self.has_special else [])
         self.inputs=[torch.empty_like(t) for t in sources]
         for dest,src in zip(self.inputs,sources):dest.copy_(src)
-        if geometry.get('state_loss_variant','legacy')!='legacy':z=z.new_empty((0,))
+        # Shared-Value selection consumes the already reduced norm/distance
+        # statistics in geometry, not the original N x feature_dim matrix.
+        # Retaining a private copy per graph needlessly thrashes the cache for
+        # full-head features. All non-shared loss paths still receive z.
+        if geometry.get('shared_value_loss',False):z=z.new_empty((0,))
         self.constants=[t.clone() for t in [z,reps,labels,population]]
         self.geometry={k:(v.clone() if torch.is_tensor(v) else v) for k,v in geometry.items() if k not in ['drop_values','objective','drop_bins']}
         self.geometry['drop_bins']=[(size,ids.clone()) for size,ids in geometry['drop_bins']]

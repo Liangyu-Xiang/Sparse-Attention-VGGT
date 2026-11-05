@@ -35,6 +35,7 @@ class ReuseExploreConfig:
     shared_value_weighting: str = 'unit'
     shared_value_allow_observed_rep: bool = False
     shared_value_features: str = 'head_mean'
+    shared_value_head_sketch_dim:int=4
     state_loss_variant: str = 'legacy'
     state_loss_operator: str = 'group_history'
     state_loss_history_gate: str = 'observed'
@@ -111,10 +112,11 @@ class ReuseExploreConfig:
                 raise ValueError('Consistent state losses require shared path, enabled Rep and explicit mass calibration')
             if self.state_loss_history_gate not in ('native','observed') or self.state_loss_sketch_dim not in (4,8,16):
                 raise ValueError('Invalid history gate or loss sketch dimension')
-        if self.shared_value_features not in ('head_mean','head_concat'):
+        if self.shared_value_features not in ('head_mean','head_concat','head_sketch'):
             raise ValueError('Invalid shared Value feature space')
         if self.shared_value_features!='head_mean' and not self.shared_value_loss:
             raise ValueError('Full-head Value features require shared_value_loss')
+        if self.shared_value_head_sketch_dim not in (4,8,16):raise ValueError('Invalid per-head Value sketch dimension')
         if self.shared_value_weighting not in ('unit', 'rep_population', 'cluster_population', 'cluster_prior'):
             raise ValueError('Invalid shared Value execution weighting')
         if (self.shared_value_weighting != 'unit' or self.shared_value_allow_observed_rep) and not self.shared_value_loss:
@@ -388,6 +390,12 @@ class ReuseResidualExploration(nn.Module):
         with stage(s,'value_update'),torch.autocast(x.device.type,enabled=False):
             if c.shared_value_features=='head_concat':
                 features=v[:,s.patches].permute(1,0,2).reshape(len(s.patches),-1).float()/math.sqrt(len(v))
+            elif c.shared_value_features=='head_sketch':
+                from .head_value_sketch import projection,features as sketch_features
+                shape=(len(v),v.shape[-1],c.shared_value_head_sketch_dim,v.device)
+                if getattr(s,'_value_sketch_shape',None)!=shape:
+                    s._value_sketch_matrix=projection(*shape[:3],shape[3]);s._value_sketch_shape=shape
+                features=sketch_features(v,s._value_sketch_matrix)[s.patches].contiguous()
             else:
                 features=v.mean(0,dtype=torch.float32)[s.patches]
             s.fine.update(features,self.layer)

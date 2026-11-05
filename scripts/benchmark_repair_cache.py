@@ -23,20 +23,22 @@ def main():
     save(a.output_dir/'input.json',dict(image_paths=paths,shape=list(images.shape),checkpoint_sha256=hashlib.sha256(Path(cfg.ckpt_path).read_bytes()).hexdigest()))
     originals=[b.attn for b in model.aggregator.global_blocks];reference=None;rows=[]
     for path in a.configs:
-        config=json.loads(path.read_text());state=install_reuse_residual_exploration(model,ReuseExploreConfig(**config));samples=[]
+        config=json.loads(path.read_text());state=install_reuse_residual_exploration(model,ReuseExploreConfig(**config));samples=[];first_timed=None
         save(a.output_dir/'status.json',dict(stage='forward',variant=path.stem))
         for i in range(4):
             torch.cuda.synchronize();torch.cuda.reset_peak_memory_stats();start=time.perf_counter()
             with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):raw=model(images)
             torch.cuda.synchronize();elapsed=time.perf_counter()-start
             if i:samples.append(dict(seconds=elapsed,peak_allocated_gib=torch.cuda.max_memory_allocated()/2**30,graph_creations=state.graph_cache_creations,graph_evictions=state.graph_cache_evictions,graph_cache_bytes=getattr(state,'graph_cache_bytes',None)))
+            if i==1:first_timed={k:raw[k].detach().cpu() for k in ('pose_enc','depth','depth_conf')}
             if i==3:prediction={k:v.detach().cpu() for k,v in raw.items() if torch.is_tensor(v)}
             del raw
         compare=None
         if reference is not None:
             compare={k:dict(exact=bool(torch.equal(v,reference[k])),relative_l2=float((v.float()-reference[k].float()).norm()/reference[k].float().norm().clamp_min(1e-12)),max_abs=float((v.float()-reference[k].float()).abs().max())) for k,v in prediction.items()}
         else:reference=prediction
-        row=dict(variant=path.stem,config=config,quality=quality,samples=samples,warmup=1,repeats=3,median_seconds=float(np.median([s['seconds'] for s in samples])),equivalence_to_first=compare,hardware=dict(gpu=torch.cuda.get_device_name(),uuid=str(torch.cuda.get_device_properties(0).uuid)),scope='Complete uninstrumented model forward, including reset/clustering/selection/history and cache construction/eviction')
+        repeat={k:dict(exact=bool(torch.equal(prediction[k],v)),relative_l2=float((prediction[k].float()-v.float()).norm()/v.float().norm().clamp_min(1e-12))) for k,v in first_timed.items()}
+        row=dict(variant=path.stem,config=config,quality=quality,samples=samples,warmup=1,repeats=3,median_seconds=float(np.median([s['seconds'] for s in samples])),equivalence_to_first=compare,within_variant_repeat=repeat,hardware=dict(gpu=torch.cuda.get_device_name(),uuid=str(torch.cuda.get_device_properties(0).uuid)),scope='Complete uninstrumented model forward, including reset/clustering/selection/history and cache construction/eviction')
         rows.append(row);save(a.output_dir/'summary.json',dict(rows=rows));print(path.stem,row['median_seconds'],compare,flush=True)
         state.reset_handle.remove()
         for block,original in zip(model.aggregator.global_blocks,originals):block.attn=original
