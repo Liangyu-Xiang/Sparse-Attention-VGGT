@@ -196,3 +196,21 @@ A12 and frozen14% references (8 rows including references). Rank only independen
 RGB held-out errors/time;validate before any further changed-method quality.
 The14% version and its complete quality are reused,never rerun for selection.
 This is the final planned parameter expansion;no7Scenes test-score tuning.
+
+## Frozen budget-only endpoint and infrastructure recovery
+
+Independent strictly unobserved-query RGB validation selected13/21/13% retention
+(mean17%) as the lowest-error extension within the original A12 latency limit.
+Clusters10%,four current probes,head-sketch4,prior-residual and all other model
+settings remain unchanged. Its role is a quality-oriented alternative;the
+previously frozen14% endpoint remains the primary low-latency recommendation.
+No target scores were used to choose this extra schedule.
+
+RFS ENOSPC occurred saving snapshots/hash JSON before some forwards. Repeated
+complete source tar archives were SHA-verified and losslessly deduplicated into
+source_snapshot_store. A second failure required relocating a byte-verified copy
+of the output tree to local /tmp,with the original RFS snapshot preserved and
+the familiar output path linked to the new destination. Resume checks identical
+frozen source/config/input,never reruns a completed quality scene,and archives
+incomplete infrastructure attempts with six unavailable fields. Source archives
+now gzip outside inference timing. This is I/O recovery,not a model change.
