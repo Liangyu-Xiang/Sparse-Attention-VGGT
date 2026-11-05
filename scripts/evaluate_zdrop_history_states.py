@@ -1,6 +1,6 @@
 """Matched Dense/SAF3R/History80/Reuse+Exploration quality and timing runner."""
 import argparse
-from dataclasses import asdict,replace
+from dataclasses import asdict,replace,is_dataclass
 import gc
 import hashlib
 import json
@@ -15,7 +15,10 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT));sys.path.insert(0,str(ROOT/'evaluation'))
 from scripts.evaluate_attention_first_residual_value import save,write_quality
 from scripts.evaluate_full_global_output_comparison import history80_config
-from scripts.quality_metrics import quality_record
+from scripts.quality_metrics import quality_record,quality_markdown
+
+def config_record(config):
+    return asdict(config) if is_dataclass(config) else config
 
 
 def run(args):
@@ -45,7 +48,8 @@ def run(args):
     saf3r_settings=dict(profile=cfg.sparse_config_path,topk=cfg.patch_module.topk,
         topk_source='lazy first-correspondence head, NOT paper DINO feature Top-K',
         lazy_dino_topk=cfg.patch_module.lazy_dino_topk)
-    if args.method!='saf3r':cfg.pop('patch_module');cfg.pop('sparse_config_path')
+    native_methods=('saf3r','saf3r_grouped')
+    if args.method not in native_methods:cfg.pop('patch_module');cfg.pop('sparse_config_path')
     model=build_model(cfg,'cuda');images=load_images(model,'vggt',scene.image_files).cuda()
     if args.selector_execution=='eager':
         import saf3r.patch.reuse_window_graph as window_graph
@@ -64,14 +68,20 @@ def run(args):
         from saf3r.patch.value_region_av import install_value_region_av
         config=replace(history80_config(),population_compensation=True,capture=args.capture)
         state=install_value_region_av(model,config)
-    elif args.method=='saf3r':
+    elif args.method in native_methods:
         from saf3r.patch import update_args_per_forward
         if saf3r_settings['topk']!=4 or not saf3r_settings['lazy_dino_topk']:raise ValueError('Frozen SAF3R configuration changed')
+        if args.method=='saf3r_grouped':
+            from saf3r.patch.grouped_saf3r import install_grouped_saf3r
+            config=json.loads(args.config.read_text())
+            if config.get('engine')!='same-pattern-head-batching' or config.get('group_q_probe_topk') is not False:raise ValueError('Explicit frozen grouped SAF3R configuration required')
+            install_grouped_saf3r(model,config['geometry_cache_capacity'],config['release_cuda_cache_each_block'])
+            saf3r_settings['execution']='Batch identical static head patterns; original scalar query-probe and lazy correspondence heads'
         update_args_per_forward(model,'vggt',*images.shape[-2:])
     canonical=dict(image_paths=scene.image_files,frame_indices=positions,shape=list(images.shape),checkpoint=str(Path(cfg.ckpt_path).resolve()),checkpoint_sha256=hashlib.sha256(Path(cfg.ckpt_path).read_bytes()).hexdigest())
     save(out/'input.json',canonical)
-    save(out/'config.json',dict(method=args.method,config=None if config is None else asdict(config),
-        model=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,seed=0))
+    save(out/'config.json',dict(method=args.method,config=config_record(config),
+        model=dict(cfg),saf3r=saf3r_settings if args.method in native_methods else None,seed=0))
     sources=json.loads((ROOT/'baseline_source_hashes.json').read_text())
     names=set(sources)|{'saf3r/patch/reuse_inference_ops.py','saf3r/triton/reuse_inference_ops.py','saf3r/patch/reuse_window_graph.py','saf3r/triton/reuse_fused_states.py','saf3r/patch/reuse_grid_fused_history.py','saf3r/triton/reuse_grid_fused_normalizer.py','saf3r/triton/reuse_split_fused_history.py','saf3r/triton/reuse_split_grid_attention.py','saf3r/patch/reuse_probe_cache.py','configs/evaluation/reuse_efficiency_v6.json','saf3r/patch/reuse_grid_local_history.py','saf3r/triton/reuse_grid_local_history.py','saf3r/patch/reuse_headmean_history.py','saf3r/triton/reuse_headmean_history.py','saf3r/triton/reuse_single_qk_grid.py','configs/evaluation/reuse_grid_local_history.json','saf3r/patch/reuse_headmean_history.py','saf3r/triton/reuse_headmean_history.py','saf3r/triton/reuse_single_qk_grid.py','saf3r/patch/reuse_ready_history.py','saf3r/triton/reuse_ready_history.py','saf3r/triton/reuse_explore_av_ready.py','saf3r/patch/zdrop_history_cleanup.py','saf3r/triton/zdrop_history_cleanup.py','saf3r/patch/zdrop_history_states.py','saf3r/triton/zdrop_history_states.py','scripts/evaluate_zdrop_history_states.py','configs/evaluation/reuse_zdrop_history_states.json'}
     names.update({'saf3r/patch/source_local_unanchored.py','saf3r/patch/adaptive_value_clustering.py','saf3r/patch/reuse_sampled_history.py','saf3r/triton/reuse_sampled_history.py','saf3r/triton/reuse_direct_sampled_probability.py','saf3r/patch/reuse_probability_history.py','saf3r/triton/reuse_probability_history.py','saf3r/patch/reuse_direct_coarse_observation.py','saf3r/triton/reuse_direct_sparse_attention.py','saf3r/triton/reuse_direct_legacy_observation.py','saf3r/patch/reuse_direct_history.py','saf3r/triton/reuse_torch_flash.py','saf3r/triton/reuse_p0_states.py','saf3r/triton/reuse_p0_pack.py','saf3r/triton/reuse_shared_value_states.py','scripts/validate_shared_value_loss.py',str(args.config.resolve().relative_to(ROOT.resolve()))})
@@ -88,7 +98,7 @@ def run(args):
         del raw;raw=None
         save(out/'status.json',dict(stage='forward',iteration=iteration,method=args.method))
         torch.cuda.synchronize();torch.cuda.reset_peak_memory_stats();begin=time.perf_counter()
-        if args.method=='saf3r':
+        if args.method in native_methods:
             # Reset INSIDE every complete-forward timer. Warmup must not cache
             # correspondence Top-K indices for the following timed inputs.
             update_args_per_forward(model,'vggt',*images.shape[-2:])
@@ -101,6 +111,34 @@ def run(args):
         (cold if iteration<args.warmup else samples).append(sample)
         print('FORWARD',args.scene,args.method,iteration,sample,flush=True)
     if not torch.isfinite(raw['pose_enc']).all() or not torch.isfinite(raw['depth']).all():raise ValueError('Nonfinite model output')
+    if args.method=='saf3r_grouped':
+        save(out/'grouped_layers.json',[dict(layer=i,**block.attn.grouped_execution_record) for i,block in enumerate(model.aggregator.global_blocks)])
+    statistics_diagnostic=None
+    if state is not None and hasattr(config,'collect_statistics') and not config.collect_statistics:
+        # Dense and SAF3R do not assemble this large per-layer research report
+        # during production inference either. Keep every numerical validation
+        # in the timed forwards, and collect the report in a separate forward.
+        def prediction_hashes():
+            return {key:hashlib.sha256(raw[key].detach().contiguous().view(torch.uint8).cpu().numpy().tobytes()).hexdigest()
+                    for key in ('pose_enc','depth','depth_conf')}
+        prediction_before=prediction_hashes()
+        save(out/'status.json',dict(stage='statistics_diagnostic',method=args.method,scene=args.scene))
+        state.config=replace(config,collect_statistics=True)
+        torch.cuda.synchronize();torch.cuda.reset_peak_memory_stats();statistics_start=time.perf_counter()
+        try:
+            with torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):statistics_raw=model(images)
+            torch.cuda.synchronize()
+            statistics_diagnostic=dict(seconds=time.perf_counter()-statistics_start,
+                peak_allocated_gib=torch.cuda.max_memory_allocated()/2**30,
+                scope='Separate report-only forward, not included in production timing or quality prediction; all timed-forward numerical/support/mass validations remain enabled',
+                timed_prediction_sha256=prediction_before,
+                timed_prediction_unchanged=prediction_hashes()==prediction_before,
+                quality=quality_record({},'Report-only forward; geometric metrics evaluated from the retained last timed production prediction instead'))
+            assert statistics_diagnostic['timed_prediction_unchanged']
+            save(out/'statistics_diagnostic.json',statistics_diagnostic)
+            (out/'statistics_quality.md').write_text(quality_markdown(statistics_diagnostic['quality']))
+            del statistics_raw
+        finally:state.config=config
     attention_profiles=[]
     if getattr(args,'attention_timing',0):
         from contextlib import contextmanager
@@ -140,12 +178,13 @@ def run(args):
             torch.save(cpu(state.captured),out/'supports.pt')
     timing=dict(median_seconds=float(np.median([s['seconds'] for s in samples])),samples=samples,cold_samples=cold,
         warmup=args.warmup,repeats=args.repeats,capture=args.capture,selector_execution=args.selector_execution,
-        saf3r_topk_reset_each_forward=args.method=='saf3r',
+        saf3r_topk_reset_each_forward=args.method in native_methods,
         scope='Complete forward, includes all reset/clustering/pooling/selection/history/repeated evidence QK; no per-layer sync')
     common=dict(method=args.method,scene=args.scene,dataset=dataset_name,frames=len(images),input=canonical,
-        config=None if config is None else asdict(config),model_config=dict(cfg),saf3r=saf3r_settings if args.method=='saf3r' else None,
-        source_sha256=hashes,timing=timing,attention_profiles=attention_profiles,
-        hardware=dict(gpu=torch.cuda.get_device_name(),gpu_uuid=str(getattr(torch.cuda.get_device_properties(0),'uuid','unavailable')),torch=torch.__version__,cuda=torch.version.cuda),
+        config=config_record(config),model_config=dict(cfg),saf3r=saf3r_settings if args.method in native_methods else None,
+        source_sha256=hashes,timing=timing,attention_profiles=attention_profiles,statistics_diagnostic=statistics_diagnostic,
+        execution_policy=dict(release_cuda_cache_each_block=getattr(model.aggregator,'release_cuda_cache_each_block',True),same_pattern_head_batching=args.method=='saf3r_grouped'),
+        hardware=dict(gpu=torch.cuda.get_device_name(),gpu_uuid=str(getattr(torch.cuda.get_device_properties(0),'uuid','unavailable')),torch=torch.__version__,cuda=torch.version.cuda,cpu_affinity=sorted(__import__('os').sched_getaffinity(0))),
         quality_protocol=dict(tasks=['pose','recon_unposed'],sampling='uniform',seed=0,
             f1_threshold_m=dataset.eval_threshold,downsample_m=dataset.down_sample,
             cd_definition='(ACC+Comp)/2 unsquared metres',reconstruction='unposed'))
@@ -196,7 +235,7 @@ def run(args):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--dataset',choices=['eth3d','7scenes'],default='eth3d')
-    p.add_argument('--method',choices=['dense','saf3r','zdrop_history_states'],required=True)
+    p.add_argument('--method',choices=['dense','saf3r','saf3r_grouped','zdrop_history_states'],required=True)
     p.add_argument('--scene',required=True);p.add_argument('--frames',type=int,default=128)
     p.add_argument('--output-dir',type=Path,required=True);p.add_argument('--baseline',type=Path)
     p.add_argument('--config',type=Path,default=ROOT/'configs/evaluation/reuse_residual_exploration.json')

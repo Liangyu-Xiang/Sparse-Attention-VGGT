@@ -274,7 +274,7 @@ class Aggregator(nn.Module):
             # clean up
             del frame_intermediates
             del global_intermediates
-            torch.cuda.empty_cache()
+            if getattr(self,'release_cuda_cache_each_block',True):torch.cuda.empty_cache()
 
         return output_list, self.patch_start_idx
 

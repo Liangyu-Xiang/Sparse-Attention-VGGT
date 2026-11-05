@@ -40,3 +40,9 @@ a user requirement, not an optional reporting preference.
 
 - By default, rerun only the method changed by the user. Reuse existing complete results for unchanged Dense, SAF3R and other controls; do not rerun them merely to obtain contemporaneous timings.
 - Rerun an unchanged control only when the user explicitly requests that rerun. Missing contemporaneous speed comparisons must be N/A with a reason; historical timing references must be labeled with their batch and never presented as paired measurements.
+
+## GPU allocation
+
+- User instruction added2026-11-05: subsequent experiments may use only GPU4,5,6.
+- Queue independent scene jobs dynamically across these GPUs to reduce idle time. Keep all paired timing methods for a scene on the same physical GPU and preserve isolation during timed GPU phases.
+- Historical runs completed before this instruction keep their actual GPU provenance; never relabel them as GPU4/5/6-only runs.

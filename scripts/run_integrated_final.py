@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from queue import Queue,Empty
 ROOT=Path(__file__).resolve().parents[1]
 
 
@@ -13,16 +14,22 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--plan',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
-    p.add_argument('--gpus',nargs='+',type=int,default=[0,1,2,3,4,5])
+    p.add_argument('--gpus',nargs='+',type=int,choices=[4,5,6],default=[4,5,6],help='This task may use only GPU4,5,6')
+    p.add_argument('--cpu-affinity-map',type=Path,help='JSON GPU index to CPU-core list; shared by all methods for each scene')
     p.add_argument('--control-timing',action='store_true',help='Only with explicit user approval for unchanged Dense/SAF3R timing')
     a=p.parse_args();plan=json.loads(a.plan.read_text())
+    affinity=json.loads(a.cpu_affinity_map.read_text()) if a.cpu_affinity_map else None
     if not plan.get('frozen_before_quality'):raise ValueError('Final methods must be frozen before geometric quality')
     if a.control_timing and not plan.get('user_approved_control_timing'):raise ValueError('Explicit control timing approval missing')
     a.output.mkdir(parents=True,exist_ok=True)
     groups=[(ds,s) for ds,scenes in plan['datasets'].items() for s in scenes]
-    def worker(index,gpu):
+    pending=Queue()
+    for group in groups:pending.put(group)
+    def worker(gpu):
         progress=[]
-        for dataset,scene in groups[index::len(a.gpus)]:
+        while True:
+            try:dataset,scene=pending.get_nowait()
+            except Empty:break
             methods=list(plan['methods'].items())
             # All methods for a scene use the same physical GPU and protocol.
             if a.control_timing and dataset=='7scenes':methods=[('dense',None),('saf3r',None)]+methods
@@ -36,10 +43,11 @@ def main():
                 for rel,digest in plan['model_source_sha256'].items():
                     if hashlib.sha256((ROOT/rel).read_bytes()).hexdigest()!=digest:raise ValueError('Frozen model source changed: '+rel)
                 prefix=a.output/(dataset+'_'+scene+'_'+name)
+                executable=(['taskset','-c',','.join(map(str,affinity[str(gpu)]))] if affinity else [])+[sys.executable]
                 command=[sys.executable,str(ROOT/'scripts/run_gpu_lease.py'),'--strict-contexts','--gpu',str(gpu),
-                         '--monitor',str(prefix)+'.monitor.json','--log',str(prefix)+'.log','--',sys.executable,
+                         '--monitor',str(prefix)+'.monitor.json','--log',str(prefix)+'.log','--']+executable+[
                          str(ROOT/'scripts/launch_local_evaluation.py'),str(ROOT/'scripts/evaluate_zdrop_history_states.py'),
-                         '--dataset',dataset,'--scene',scene,'--frames','128','--method',name if control else 'zdrop_history_states',
+                         '--dataset',dataset,'--scene',scene,'--frames','128','--method',name if control else spec.get('runner_method','zdrop_history_states'),
                          '--output-dir',str(target),'--warmup','1' if dataset=='7scenes' else '0',
                          '--repeats','3' if dataset=='7scenes' else '1']
                 if control:command.append('--timing-only')
@@ -57,7 +65,7 @@ def main():
                 if code:break
         return progress
     with ThreadPoolExecutor(max_workers=len(a.gpus)) as pool:
-        futures=[pool.submit(worker,i,g) for i,g in enumerate(a.gpus)]
+        futures=[pool.submit(worker,g) for g in a.gpus]
         rows=[r for f in futures for r in f.result()]
     (a.output/'campaign.json').write_text(json.dumps(rows,indent=2)+'\n')
     if any(r.get('returncode',0) or r.get('quality_complete') is False for r in rows):sys.exit(1)
