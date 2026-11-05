@@ -36,6 +36,7 @@ class ReuseExploreConfig:
     history_query_interval:int=32
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
+    skip_dead_exact_observation:bool=False
     rep_history_execution:str='population'
     rep_history_loss:str='legacy'
     rep_history_diagnostics:bool=False
@@ -105,6 +106,7 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.skip_dead_exact_observation and not (self.compact and self.shared_value_loss and self.window_graph and self.candidate_fraction==1. and self.history_evidence_backend=='direct_sampled' and self.history_query_interval==self.query_group_size):raise ValueError('Dead Exact observations can only be skipped in full-eligible fully sampled shared path')
         if self.rep_history_execution not in ('population','prior_residual'):raise ValueError('Invalid History A compensation')
         if self.rep_history_execution!='population' and self.rep_history_loss!='A':raise ValueError('Prior-residual compensation requires History A')
         if self.rep_history_loss not in ('legacy','A','B'):raise ValueError('Invalid Rep-based History ablation')
@@ -385,7 +387,7 @@ class ReuseExploreState:
         if self.config.history_mode=='dense_m5c':self.history_pooled_fp32=pooled.contiguous()
         pooled=pooled.to(k.dtype).contiguous()
         overlap=None
-        if self.previous_layer>=0:
+        if self.previous_layer>=0 and not self.config.skip_dead_exact_observation:
             pair=self.fine.labels*r+self.grid
             unique,count=torch.unique(pair,sorted=True,return_counts=True)
             overlap=torch.sparse_coo_tensor(torch.stack((unique//r,unique%r)),
@@ -533,24 +535,27 @@ class ReuseResidualExploration(nn.Module):
                            torch.tensor([4,12,20,28],device=x.device)).clamp_max(s.n-1)
                     pq=q[:,probe]
                 with stage(s,'coarse_observation'):
-                    if c.history_evidence_backend in ('direct_legacy','direct_probability','direct_sampled'):
-                        probability=m5c_observation['patch_probability']
-                        previous=s.previous_grid[start:start+g].float()
-                        beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
-                        demand=(probability-beta*s.previous_real_grid[start:start+g].float()).clamp_min(0)
-                        normalizer=None
-                    elif c.fused_coarse:
-                        from saf3r.triton.reuse_coarse_observation import patch
-                        dot=pq@pooled[:,None].transpose(-1,-2)
-                        probability,demand=patch(dot,s.grid_log_sizes,s.previous_grid[start:start+g],s.previous_real_grid[start:start+g],o.scale)
-                        normalizer=None
+                    if c.skip_dead_exact_observation:
+                        pass  # Fully eligible path consumes no residual demand.
                     else:
-                        z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+(s.grid_log_sizes if c.cache_probe_indices else s.grid_sizes.log())
-                        normalizer=z.logsumexp(-1,keepdim=True) if not c.compact or not c.cache_probe_indices else None
-                        probability=z.softmax(-1).mean((0,2))
-                        previous=s.previous_grid[start:start+g].float()
-                        beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
-                        demand=(probability-beta*s.previous_real_grid[start:start+g].float()).clamp_min(0)
+                        if c.history_evidence_backend in ('direct_legacy','direct_probability','direct_sampled'):
+                            probability=m5c_observation['patch_probability']
+                            previous=s.previous_grid[start:start+g].float()
+                            beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
+                            demand=(probability-beta*s.previous_real_grid[start:start+g].float()).clamp_min(0)
+                            normalizer=None
+                        elif c.fused_coarse:
+                            from saf3r.triton.reuse_coarse_observation import patch
+                            dot=pq@pooled[:,None].transpose(-1,-2)
+                            probability,demand=patch(dot,s.grid_log_sizes,s.previous_grid[start:start+g],s.previous_real_grid[start:start+g],o.scale)
+                            normalizer=None
+                        else:
+                            z=(pq@pooled[:,None].transpose(-1,-2)).float()*o.scale+(s.grid_log_sizes if c.cache_probe_indices else s.grid_sizes.log())
+                            normalizer=z.logsumexp(-1,keepdim=True) if not c.compact or not c.cache_probe_indices else None
+                            probability=z.softmax(-1).mean((0,2))
+                            previous=s.previous_grid[start:start+g].float()
+                            beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
+                            demand=(probability-beta*s.previous_real_grid[start:start+g].float()).clamp_min(0)
                 with stage(s,'residual_fine_probe'),torch.autocast(x.device.type,enabled=False):
                     if c.compact and c.candidate_fraction==1.:
                         # All clusters eligible: mathematically identical to
@@ -833,6 +838,8 @@ class ReuseResidualExploration(nn.Module):
                 sampled_compiler_resources=s.sampled_compiler_resources,coarse_observation_probes=4)
         if c.shared_value_loss:
             s.records[-1].update(shared_value_loss=True,shared_value_weighting=c.shared_value_weighting,
+                rep_history_loss=c.rep_history_loss,rep_history_execution=c.rep_history_execution,
+                skip_dead_exact_observation=c.skip_dead_exact_observation,
                 shared_value_allow_observed_rep=c.shared_value_allow_observed_rep,
                 shared_value_features=c.shared_value_features,
                 population_compensation=c.shared_value_weighting in ('rep_population','cluster_population'),

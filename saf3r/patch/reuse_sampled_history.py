@@ -43,9 +43,14 @@ def build_prior(s,start,old_ids,obs,return_uniform=False):
 
 def observe_execution(s,q,k,start,ids,actual,bias,obs,scale,evidence):
     step=stride(s);g=len(ids);regions=s.grid[ids.long().clamp_min(0)]
-    counts=torch.zeros((g,s.regions),device=q.device).scatter_add_(1,regions,(ids>=0).float())
-    # Residual-candidate summary for groups lacking actual Attention probabilities.
-    total=obs['patch_probability'].clone();unit=total*counts/s.grid_sizes
+    if getattr(s.config,'skip_dead_exact_observation',False):
+        # Every group is sampled, so both arrays are completely overwritten
+        # by actual evidence below. No coarse fallback or counts are read.
+        total=torch.empty((g,s.regions),device=q.device);unit=torch.empty_like(total)
+    else:
+        counts=torch.zeros((g,s.regions),device=q.device).scatter_add_(1,regions,(ids>=0).float())
+        # Residual-candidate summary for groups lacking actual Attention probabilities.
+        total=obs['patch_probability'].clone();unit=total*counts/s.grid_sizes
     scores=evidence['debiased_log_patch_probability'].contiguous()
     evidence['debiased_log_patch_probability']=scores
     sampled_ids=ids[::step].contiguous();sampled_regions=regions[::step,None,:].contiguous()

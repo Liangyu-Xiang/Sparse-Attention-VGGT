@@ -32,7 +32,7 @@ def main():
 
     def applications():
         raw = subprocess.check_output([
-            'nvidia-smi', '--query-compute-apps=gpu_uuid,pid',
+            'nvidia-smi', '-i', str(a.gpu), '--query-compute-apps=gpu_uuid,pid',
             '--format=csv,noheader,nounits'], text=True)
         found = set()
         for line in raw.splitlines():

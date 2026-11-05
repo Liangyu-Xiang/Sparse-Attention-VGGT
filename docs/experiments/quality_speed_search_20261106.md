@@ -65,3 +65,37 @@ of the all-eligible case. Both changes are default-off,separate factorial trials
 26 phase2 configurations are frozen:8/10/12% clusters,population/prior_residual,
 Exact25/100% eligibility,mean16/12% retention,and two10% head-sketch all-eligible
 trials motivated by phase1 RGB error. This extension uses no target GT.
+
+## Phase3 and frozen final candidates
+
+Seven trials (including current):refine10% head-sketch/all-Exact middle budget
+18/19/20/21%,and16% head-sketch/all-Exact flat14/15%. All selected using prior
+RGB evidence,never target GT. Independent24-frame chessseq03 and128-frame TUM
+walking validation uses1warmup+3medians. Require both lower local error and no
+higher latency on BOTH validation sequences. Freeze the lowest-error endpoint
+(p3_sketch10_mid21) and fastest improved endpoint(p3_sketch10_mid19),before
+any target test quality. Source seed7351,sketch4dimensions/head. Primary and
+alternative roles are fixed;do not pick a test-score winner retrospectively.
+
+Mean retention caps15.5%/14.5% vs old16%;fine count10% vs old12%. First/last
+six layers remain10%,middle12 layers21/19%. No Dense fallback or frozen layer.
+Keep original population compensation:the new prior_residual alternative was
+not selected. All original probability and A loss formulas remain for endpoints.
+
+Kernel tuning54 block/warp/stage combinations at two retention shapes,including
+history probability accuracy,keeps original64-query/128-key/4warp/2stage winner.
+Microbenchmark times are not full-model acceleration claims.
+
+Opt-in skip_dead_exact_observation removes only unread full-eligible computations:
+cluster-grid overlap sparse-coalescing,coarse residual demand,patch-only coarse
+normalization,and fallback counts/arrays that are fully overwritten by actual
+history evidence at stride1. It requires the supported full-eligible shared path.
+Real8-frame four-forward validation found identical masks,pose,depth and
+confidence bit-for-bit,including self repeat. Defaults remain false. This
+engineering change is included in both frozen endpoint configs.
+
+GPU7 was lost by NVML at the end of one validation. Exclude its validation
+entirely;retry on healthy GPU0. Other queues use independent monitored GPUs.
+The15 CPU/CUDA loss/layout/special tests pass again on GPU0. No reset of the
+faulty shared device is attempted. Monitor queries only the assigned GPU index
+so unrelated GPU7 errors do not corrupt healthy-card process monitoring.
