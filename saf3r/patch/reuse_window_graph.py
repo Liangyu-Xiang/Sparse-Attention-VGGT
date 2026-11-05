@@ -9,6 +9,10 @@ from saf3r.triton.reuse_compact import budget
 from saf3r.triton.reuse_drop_moment import drop_norm
 
 def eager(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterations,drop_multiplier,uniform=None,special_p=None):
+    if geometry.get('operator_states',False):
+        if special_p is None:raise ValueError('Operator states require coarse protected-Key probability')
+        from .operator_state_repair import select
+        return select(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterations,special_p)
     if geometry.get('state_loss_variant','legacy')!='legacy':
         if special_p is None:raise ValueError('Consistent state loss requires current coarse Special probabilities')
         from .state_loss_controller import select_window

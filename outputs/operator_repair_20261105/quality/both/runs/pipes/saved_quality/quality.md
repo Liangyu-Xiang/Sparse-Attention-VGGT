@@ -1,0 +1,7 @@
+| AUC@3 % ↑ | AUC@30 % ↑ | ACC m ↓ | Comp m ↓ | CD m ↓ | F1 % ↑ |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 13.5531 | 76.3736 | 0.2942 | 0.2737 | 0.2840 | 67.2590 |
+
+CD = (ACC + Comp) / 2, using unsquared distances.
+
+Speedup vs original VGGT Dense: N/A: Saved-prediction quality postprocessing, no paired warmed Dense timing.

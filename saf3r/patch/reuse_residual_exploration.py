@@ -40,6 +40,10 @@ class ReuseExploreConfig:
     state_loss_operator: str = 'group_history'
     state_loss_history_gate: str = 'observed'
     state_loss_sketch_dim: int = 8
+    operator_loss:str='legacy'
+    partial_key_states:bool=False
+    operator_feature_dim:int=4
+    operator_mass_penalty:float=0.
     fused_coarse:bool=False
     graph_cache_capacity:int=24
     attention_block_keys:int=128
@@ -92,6 +96,9 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.operator_loss not in ('legacy','normalized_moment') or self.operator_feature_dim not in (4,8):raise ValueError('Invalid operator repair configuration')
+        if (self.operator_loss!='legacy' or self.partial_key_states) and (not self.shared_value_loss or self.shared_value_weighting!='cluster_population' or self.state_loss_variant!='legacy'):
+            raise ValueError('Operator repair requires legacy shared cluster_population base')
         if self.sampled_split_launch and (self.query_group_size!=256 or self.history_query_interval!=256 or self.attention_block_queries not in (32,64,128) or self.history_evidence_backend!='direct_sampled'):raise ValueError('Split sampled execution requires Query-256, interval256 and supported tiles')
         if self.attention_block_queries not in (32,64,128) or self.query_group_size%self.attention_block_queries:raise ValueError('Attention tile must divide Query group size')
         if (self.static_shared_graph or self.stable_binned_graph) and not (self.shared_value_loss and self.reuse_window_graphs):raise ValueError('Static graph topology requires reusable Shared Value graphs')
@@ -408,7 +415,10 @@ class ReuseResidualExploration(nn.Module):
             if self.layer and c.compact and q.is_cuda:
                 from saf3r.triton import reuse_compact as compact
                 if c.shared_value_loss:
-                    if c.state_loss_variant!='legacy':
+                    if c.operator_loss!='legacy' or c.partial_key_states:
+                        from .operator_state_repair import prepare as prepare_operator_geometry
+                        geometry=prepare_operator_geometry(v,k,o,s.patches,s.specials,s.fine.labels,s.fine.reps,population,zvalues,c)
+                    elif c.state_loss_variant!='legacy':
                         from .state_loss_controller import prepare_geometry as prepare_consistent_geometry
                         geometry=prepare_consistent_geometry(v,o,s.patches,s.specials,s.fine.labels,s.fine.reps,population,c)
                     else:
@@ -425,7 +435,7 @@ class ReuseResidualExploration(nn.Module):
                     else:geometry['drop_bins']=prepare_drop(population)
             if self.layer and (c.state_l2 or c.direction_drop) and geometry is None:raise RuntimeError('Combined method requires compact geometry')
             if geometry is not None:geometry['fuse_state_kernel']=c.fuse_state_kernel
-            if c.shared_value_loss and self.layer and c.state_loss_variant=='legacy':
+            if c.shared_value_loss and self.layer and c.state_loss_variant=='legacy' and c.operator_loss=='legacy' and not c.partial_key_states:
                 from saf3r.triton.reuse_shared_value_states import prepare as prepare_shared_value
                 prepare_shared_value(zvalues,s.fine.labels,s.fine.reps,s.grid,s.regions,geometry)
                 if c.stable_binned_graph:
@@ -542,7 +552,7 @@ class ReuseResidualExploration(nn.Module):
                             prior,pi=m5c.build_prior(s,start,old_ids,m5c_observation)
                             uniform=None
                         extra={}
-                        if c.state_loss_variant!='legacy':
+                        if c.state_loss_variant!='legacy' or c.operator_loss!='legacy' or c.partial_key_states:
                             obs=m5c_observation
                             extra['special_p']=(obs['special_logits'][:,:,:1,:]-obs['coarse_logz'][:,:,:1,:]).exp().mean((1,2)).contiguous()
                         ids,real,pops,record=select(s,self.layer,prior,pi,old_ids,allowed,zvalues,s.fine.reps,s.fine.labels,population,geometry,uniform=uniform,**extra)
