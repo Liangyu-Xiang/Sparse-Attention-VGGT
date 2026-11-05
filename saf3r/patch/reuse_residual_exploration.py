@@ -36,6 +36,8 @@ class ReuseExploreConfig:
     shared_value_allow_observed_rep: bool = False
     shared_value_features: str = 'head_mean'
     shared_value_head_sketch_dim:int=4
+    collect_statistics:bool=True
+    native_prefix_layers:int=0
     state_loss_variant: str = 'legacy'
     state_loss_operator: str = 'group_history'
     state_loss_history_gate: str = 'observed'
@@ -92,6 +94,8 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if not 0<=self.native_prefix_layers<=9:raise ValueError('Native prefix must use zero to nine early profile layers')
+        if self.native_prefix_layers and self.layer_retentions is not None:raise ValueError('Native-prefix variant uses a uniform tail retention; prefix retention follows the explicit head profile')
         if self.sampled_split_launch and (self.query_group_size!=256 or self.history_query_interval!=256 or self.attention_block_queries not in (32,64,128) or self.history_evidence_backend!='direct_sampled'):raise ValueError('Split sampled execution requires Query-256, interval256 and supported tiles')
         if self.attention_block_queries not in (32,64,128) or self.query_group_size%self.attention_block_queries:raise ValueError('Attention tile must divide Query group size')
         if (self.static_shared_graph or self.stable_binned_graph) and not (self.shared_value_loss and self.reuse_window_graphs):raise ValueError('Static graph topology requires reusable Shared Value graphs')
@@ -147,7 +151,10 @@ class ReuseExploreConfig:
         if not 0<=self.query_shift<32:raise ValueError('Query shift must be 0..31')
         if self.allocation_objective not in ('min_error','max_error'):raise ValueError('Invalid allocation objective')
         if self.evidence_mode not in ('second_qk','saved_logits','fused_grid'):raise ValueError('Invalid evidence mode')
-        if not math.isfinite(self.retention) or not .05<=self.retention<=.2:raise ValueError('Retention must be5–20%')
+        # The explicit native-prefix variant spends25% only in its tail;
+        # its much sparser profiled prefix keeps the overall density near16%.
+        maximum_retention=.25 if self.native_prefix_layers else .2
+        if not math.isfinite(self.retention) or not .05<=self.retention<=maximum_retention:raise ValueError('Invalid base/tail retention for the declared method')
         if min(self.grid_y,self.grid_x,self.source_width,self.local_iterations,self.window_groups,self.dual_iterations)<1:
             raise ValueError('Positive grid/window/iteration sizes required')
         if not 1<=self.history_per_cluster<=8 or not 0<self.candidate_fraction<=1:
@@ -320,7 +327,7 @@ def regroup_history(state,order):
 
 
 class ReuseExploreState:
-    def __init__(self,config):self.config=config;self.profiling=False
+    def __init__(self,config):self.config=config;self.profiling=False;self.last_layer=23
 
     def reset(self,frames,height,width,device):
         self._forward_serial=getattr(self,'_forward_serial',0)+1
@@ -670,7 +677,7 @@ class ReuseResidualExploration(nn.Module):
                     if c.history_mode=='all_relative_logit':
                         reference=(pooled,token_grid)
                     execution=weighted_attention(q[:,first:end],k,v,actual,bias,s.specials,o.scale,
-                        key_grid=s.grid[ids.clamp_min(0)],regions=s.regions,emit_evidence=self.layer<23,evidence_layout=m5c_observation if c.history_evidence_backend in ('grid_local','grid_fused') else None)
+                        key_grid=s.grid[ids.clamp_min(0)],regions=s.regions,emit_evidence=self.layer<s.last_layer,evidence_layout=m5c_observation if c.history_evidence_backend in ('grid_local','grid_fused') else None)
                     if reference is None:result,mass,ready_logits=execution;del execution
                     else:
                         result,mass,delta=execution
@@ -686,7 +693,7 @@ class ReuseResidualExploration(nn.Module):
                 with stage(s,'sampled_probe_grid_summary' if c.history_evidence_backend=='direct_sampled' else 'sparse_probe_grid_summary' if c.history_evidence_backend=='direct_probability' else 'direct_independent_legacy_observation'):
                     mass=m5c.observe_execution(s,q,k,start,ids,actual,bias,m5c_observation,o.scale,direct_evidence)
             output[:,first:end]=result
-            if c.history_mode=='dense_m5c' and self.layer<23:
+            if c.history_mode=='dense_m5c' and self.layer<s.last_layer:
                 m5c_observation['ready_logits']=ready_logits
                 with stage(s,'m5c_evidence_and_host_copy'),torch.autocast(x.device.type,enabled=False):
                     m5c.save_evidence(s,q,k,start,ids,actual,m5c_observation,o.scale)
@@ -716,7 +723,7 @@ class ReuseResidualExploration(nn.Module):
             if c.history_evidence_backend=='direct_sampled':
                 from .layer_retention_schedule import finish_history_layer
                 finish_history_layer(s)
-            if self.layer==23:m5c.release(s)
+            if self.layer==s.last_layer:m5c.release(s)
             s.history_pooled_fp32=None
             m5c.trim(s)
         if self.layer==0:
@@ -725,6 +732,17 @@ class ReuseResidualExploration(nn.Module):
                     record[f'state_{state_id}_clusters']=torch.full_like(record['counts'],min(s.budget,s.fine.base_count)) if state_id==1 else torch.zeros_like(record['counts'])
         s.previous_grid=torch.cat(grids);s.previous_real_grid=torch.cat(real_grids)
         s.previous_layer=self.layer
+        if not c.collect_statistics:
+            # Routing, history and all support/mass validation above still run.
+            # Only report aggregation is omitted from production inference.
+            if order is not None:
+                restored=torch.empty_like(output);restored[:,order]=output;output=restored
+            if c.dense_special_queries or c.dense_first_frame_queries:
+                from .dense_special_queries import correct_output
+                with stage(s,'dense_special_query_correction'):
+                    output,_=correct_output(q,k,v,output,s.semantic_specials,c.dense_special_queries,o.scale,
+                        anchor_tokens=s.height*s.width+5 if c.dense_first_frame_queries else 0)
+            return o.proj_drop(o.proj(output.transpose(0,1).reshape(1,s.n,-1)))
         joined={key:torch.cat([r[key] for r in stats]) for key in stats[0]}
         rows=(s.n-torch.arange(s.groups,device=x.device)*c.query_group_size).clamp_max(c.query_group_size)
         s.records.append(dict(layer=self.layer,query_group_size=c.query_group_size,query_groups=s.groups,query_offset=(self.layer*c.query_shift)%32,patch_budget=s.budget,special_keys=len(s.specials),
@@ -764,12 +782,12 @@ class ReuseResidualExploration(nn.Module):
                 history_cache_device='gpu_prepared_conditionals',history_cache_dtype='headmean_positive_fp16_u14_edges_float32_grid_statistics',
                 history_estimator_head_aware=False,history='Previous conditional probabilities averaged over heads before caching; current grid probabilities averaged before confidence; M5c beta(1,2); no head matching',
                 history_gpu_reconstruction_bytes=0,
-                extra_previous_layer_probe_qk_per_head=s.m5c_reconstruction_qk,history_cpu_bytes=m5c.host_bytes(s),history_calibration_gpu_bytes=m5c.device_bytes(s),ready_probe_scratch_bytes=0 if c.execution_kernel=='direct_sparse' else (min(c.window_groups,s.groups)*q.shape[0]*4*s.budget*4 if self.layer<23 else 0),ready_edge_cache_bytes=0 if s.ready_edges is None else s.ready_edges.numel()*s.ready_edges.element_size(),ready_allocator_trims=s.ready_allocator_trims,
+                extra_previous_layer_probe_qk_per_head=s.m5c_reconstruction_qk,history_cpu_bytes=m5c.host_bytes(s),history_calibration_gpu_bytes=m5c.device_bytes(s),ready_probe_scratch_bytes=0 if c.execution_kernel=='direct_sparse' else (min(c.window_groups,s.groups)*q.shape[0]*4*s.budget*4 if self.layer<s.last_layer else 0),ready_edge_cache_bytes=0 if s.ready_edges is None else s.ready_edges.numel()*s.ready_edges.element_size(),ready_allocator_trims=s.ready_allocator_trims,
                 seed_normalization_max_error=torch.stack(s.m5c_seed_errors).max() if s.m5c_seed_errors else torch.tensor(0.,device=x.device),
                 prior_patch_mass_max_error=torch.stack(s.m5c_prior_errors).max() if s.m5c_prior_errors else torch.tensor(0.,device=x.device),
                 extra_known_probe_qk_per_head=s.m5c_probe_qk,extra_coarse_probe_qk_per_head=4*s.groups*(s.regions+len(s.specials)))
         if c.execution_kernel=='direct_sparse':
-            s.records[-1].update(direct_logical_main_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),direct_logical_legacy_observation_qk_per_head=(joined['counts']*rows).sum(),direct_logical_conditional_cache_qk_per_head=(joined['counts']*4).sum() if self.layer<23 else 0,extra_known_probe_qk_per_head=(joined['counts']*4).sum() if self.layer<23 else 0,grid_reordering_in_attention=False,legacy_observation_repeats_qk=True)
+            s.records[-1].update(direct_logical_main_qk_per_head=((joined['counts']+len(s.specials))*rows).sum(),direct_logical_legacy_observation_qk_per_head=(joined['counts']*rows).sum(),direct_logical_conditional_cache_qk_per_head=(joined['counts']*4).sum() if self.layer<s.last_layer else 0,extra_known_probe_qk_per_head=(joined['counts']*4).sum() if self.layer<s.last_layer else 0,grid_reordering_in_attention=False,legacy_observation_repeats_qk=True)
         if c.history_evidence_backend=='direct_probability':
             s.records[-1].update(history_estimator='Debiased log head-mean sparse P + coarse missing completion + M5c',
                 history='Compensated sparse P divided by shared assignment bias in log space; ratio of head means, coarse missing-token completion; M5c beta(1,2)',
@@ -828,6 +846,9 @@ class ReuseResidualExploration(nn.Module):
 
 
 def install_reuse_residual_exploration(model,config=None):
+    if config is not None and config.native_prefix_layers:
+        from .native_prefix_reuse import install_native_prefix
+        return install_native_prefix(model,config)
     if config is not None and config.deterministic_reductions:
         import os
         os.environ.setdefault('CUBLAS_WORKSPACE_CONFIG',':4096:8')
