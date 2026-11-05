@@ -5,6 +5,7 @@ ordinary sparse observer remains the history stream; the selected special
 queries receive a separate dense output. Both computations must be timed and
 reported, including their overlapping QK work. No NxN attention matrix is built.
 """
+import torch
 import torch.nn.functional as F
 
 
@@ -16,8 +17,10 @@ def query_ids(special_ids, per_frame):
     return special_ids.reshape(-1,5)[:,:per_frame].reshape(-1)
 
 
-def correct_output(q,k,v,output,special_ids,per_frame,scale):
+def correct_output(q,k,v,output,special_ids,per_frame,scale,anchor_tokens=0):
     ids=query_ids(special_ids,per_frame)
+    if anchor_tokens:
+        ids=torch.cat((torch.arange(anchor_tokens,device=q.device),ids)).unique(sorted=True)
     if ids.numel():
         dense=F.scaled_dot_product_attention(q[:,ids].unsqueeze(0),k.unsqueeze(0),
                                             v.unsqueeze(0),dropout_p=0.,is_causal=False,scale=scale)

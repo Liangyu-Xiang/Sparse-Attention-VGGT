@@ -26,6 +26,8 @@ class ReuseExploreConfig:
     source_layout:str="sequential"
     source_temporal_span:int=1
     dense_special_queries:int=0
+    protect_first_frame:bool=False
+    dense_first_frame_queries:bool=False
     history_query_interval:int=32
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
@@ -98,7 +100,7 @@ class ReuseExploreConfig:
         if self.query_group_size!=32 and (not self.shared_value_loss or self.history_query_interval%self.query_group_size):raise ValueError('Larger query groups require shared Value sampled history and aligned interval')
         if self.source_layout not in ('sequential','spatiotemporal') or self.source_temporal_span<1:raise ValueError('Invalid source layout')
         if self.dense_special_queries not in (0,1,5):raise ValueError('Invalid dense special-query count')
-        if self.dense_special_queries and self.query_shift:raise ValueError('Dense special queries require original query order')
+        if (self.dense_special_queries or self.dense_first_frame_queries) and self.query_shift:raise ValueError('Dense query correction requires original query order')
         if self.attention_block_keys not in (64,128,256):raise ValueError('Invalid attention key tile')
         if self.state_loss_variant!='legacy':
             from .state_loss_controller import GROUP_VARIANTS,RESIDUAL_VARIANTS
@@ -324,20 +326,22 @@ class ReuseExploreState:
         if hasattr(self,'_window_graphs'):
             self._window_graphs={};self._window_graph_layer=None
         c=self.config;self.frames,self.height,self.width=frames,height,width
-        self.patches,self.specials=token_layout(frames,height*width,5,device)
+        from .protected_frame_keys import protected_layout,check_protected_budget
+        self.patches,self.specials,self.semantic_specials,cluster_frames=protected_layout(frames,height,width,device,c.protect_first_frame)
         self.n=frames*(height*width+5);self.groups=math.ceil(self.n/c.query_group_size)
+        if c.protect_first_frame:check_protected_budget(c,self.n,len(self.specials),cluster_frames)
         self.budget=math.floor(c.retention*self.n)-len(self.specials)
-        if self.budget<frames:raise ValueError('Budget must accommodate one fine cluster per frame')
+        if self.budget<cluster_frames:raise ValueError('Budget must accommodate one fine cluster per active frame')
         cluster_count=self.budget if c.cluster_fraction is None else math.floor(c.cluster_fraction*len(self.patches))
-        if not frames<=cluster_count<=len(self.patches):raise ValueError('Cluster count must be between frames and patch count')
-        if c.clustering_mode=='source_anchored':self.fine=FullCoverageValue(frames,height*width,cluster_count,device,c.source_width,c.local_iterations)
+        if not cluster_frames<=cluster_count<=len(self.patches):raise ValueError('Cluster count must be between active frames and patch count')
+        if c.clustering_mode=='source_anchored':self.fine=FullCoverageValue(cluster_frames,height*width,cluster_count,device,c.source_width,c.local_iterations)
         elif c.clustering_mode=='source_local_unanchored':
             from .source_local_unanchored import SourceLocalUnanchoredValue
-            self.fine=SourceLocalUnanchoredValue(frames,height,width,cluster_count,device,c.source_width,c.local_iterations,c.source_layout,c.source_temporal_span)
+            self.fine=SourceLocalUnanchoredValue(cluster_frames,height,width,cluster_count,device,c.source_width,c.local_iterations,c.source_layout,c.source_temporal_span)
         else:
             from .adaptive_value_clustering import AdaptiveFullCoverageValue
-            self.fine=AdaptiveFullCoverageValue(frames,height*width,cluster_count,device,c.source_width,c.local_iterations,mode='local' if c.clustering_mode=='adaptive_local' else 'certified',neighbors=c.cluster_neighbors)
-        self.grid,self.regions=canonical_layout(frames,height,width,c.grid_y,c.grid_x,device)
+            self.fine=AdaptiveFullCoverageValue(cluster_frames,height*width,cluster_count,device,c.source_width,c.local_iterations,mode='local' if c.clustering_mode=='adaptive_local' else 'certified',neighbors=c.cluster_neighbors)
+        self.grid,self.regions=canonical_layout(cluster_frames,height,width,c.grid_y,c.grid_x,device)
         self.grid_sizes=torch.bincount(self.grid,minlength=self.regions).float()
         self.history_ids=None;self.history_weights=None;self.history_relative=None;self.previous_grid=None;self.previous_real_grid=None
         if c.cache_probe_indices:
@@ -716,6 +720,7 @@ class ReuseResidualExploration(nn.Module):
         joined={key:torch.cat([r[key] for r in stats]) for key in stats[0]}
         rows=(s.n-torch.arange(s.groups,device=x.device)*c.query_group_size).clamp_max(c.query_group_size)
         s.records.append(dict(layer=self.layer,query_group_size=c.query_group_size,query_groups=s.groups,query_offset=(self.layer*c.query_shift)%32,patch_budget=s.budget,special_keys=len(s.specials),
+            semantic_special_keys=len(s.semantic_specials),protected_patch_keys=len(s.specials)-len(s.semantic_specials),protect_first_frame=c.protect_first_frame,
             fine_clusters=s.fine.base_count,canonical_regions=s.regions,
             initial_seed_extra_members=max(0,s.budget-s.fine.base_count) if self.layer==0 else 0,
             **{key+'_mean':val.float().mean() for key,val in joined.items()},
@@ -796,15 +801,17 @@ class ReuseResidualExploration(nn.Module):
             query_order=None if order is None else order.clone(),canonical=s.grid.clone(),fine_labels=s.fine.labels.clone(),fine_reps=s.fine.reps.clone())
         if order is not None:
             restored=torch.empty_like(output);restored[:,order]=output;output=restored
-        if c.dense_special_queries:
+        if c.dense_special_queries or c.dense_first_frame_queries:
             from .dense_special_queries import correct_output
             with stage(s,'dense_special_query_correction'):
-                output,dense_ids=correct_output(q,k,v,output,s.specials,c.dense_special_queries,o.scale)
+                output,dense_ids=correct_output(q,k,v,output,s.semantic_specials,c.dense_special_queries,o.scale,
+                    anchor_tokens=s.height*s.width+5 if c.dense_first_frame_queries else 0)
             extra=(s.n-len(s.specials)-joined['counts'][dense_ids//c.query_group_size]).sum()
             record=s.records[-1]
             record['sparse_observer_unique_density']=record['actual_unique_density']
             record['actual_unique_density']=record['actual_unique_density']+extra/s.n**2
             record['dense_special_query_count']=len(dense_ids)
+            record['dense_first_frame_queries']=c.dense_first_frame_queries
             record['dense_special_query_logical_qk_per_head']=len(dense_ids)*s.n
             record['final_unique_qk_per_head']=record['final_unique_qk_per_head']+extra
             record['direct_logical_main_qk_per_head']=record['direct_logical_main_qk_per_head']+len(dense_ids)*s.n

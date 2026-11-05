@@ -21,3 +21,15 @@ def test_disabled_dense_query_path_is_exact_noop():
     actual,ids=correct_output(q,q,q,out,torch.arange(5),0,8**-.5)
     assert actual is out and ids.numel()==0
     assert query_ids(torch.arange(5),5).tolist()==list(range(5))
+
+
+def test_anchor_queries_are_dense_without_duplicate_camera_or_changed_other_rows():
+    torch.manual_seed(82)
+    q,k,v=[torch.randn(2,42,8) for _ in range(3)]
+    output=torch.randn_like(q);before=output.clone()
+    specials=torch.tensor([0,1,2,3,4,21,22,23,24,25])
+    actual,ids=correct_output(q,k,v,output,specials,1,8**-.5,anchor_tokens=21)
+    assert ids.tolist()==list(range(22))
+    expected=(q[:,ids]@k.transpose(-1,-2)*8**-.5).softmax(-1)@v
+    torch.testing.assert_close(actual[:,ids],expected)
+    assert torch.equal(actual[:,22:],before[:,22:])
