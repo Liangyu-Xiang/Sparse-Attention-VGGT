@@ -24,7 +24,11 @@ Use the actual reference tracker-fixed checkpoint,b08a43baa2db1aad9718e71e098831
 from pinned official revision4d9d9494b2211c90ab9cd3c8c6aa188fe363103d. The previous
 main checkpoint symlink to a different file SHA is not overwritten. Both current
 SAF3R timing and changed-method quality use the b08 file;do not mix checkpoint
-hashes or transplant the previous6.161s number onto this method.
+hashes or transplant the previous6.161s number onto this method. A full tensor
+comparison found that the two checkpoint files differ only in track_head keys;
+all1403 equal tensors and zero differing nontracking tensors are recorded. The
+tracking head is not called by these pose/reconstruction runs, so file-SHA
+differences alone do not explain prior geometry quality differences.
 
 17 History/layout/special/RoPE tests,18 residual cases,16 cluster trajectories
 pass. Real pipes14-frame diagnostic passes all24 layers,70 dense special Queries
@@ -38,4 +42,19 @@ only,strict same-card scene pairs. Historical quality is explicitly separate.
 7Scenes has no existing complete matched A_all_specials reference;do not use the
 legacy-main score as its2% degradation reference. Historical ETH3D reference is
 RTX4090/Torch2.8 vs current5090D/Torch2.9;reproduction drift is not a controlled
-same-hardware effect of engineering changes. All results currently pending.
+same-hardware effect of engineering changes. Results are archived under outputs/history_A_special5_cluster12_speed_20261106;
+report.md and summary.json contain completed quality, timing and audit outcomes.
+
+Completed:18 changed-method full quality evaluations plus18 authorized SAF3R
+timing-only runs. Audits pass for input/checkpoint/protocol equality, same-card
+exclusive timing, 24-layer cluster counts and frozen source/config.
+7Scenes:6.090130s vs SAF3R6.705480s (1.1010x),peak warm allocated14.847GiB.
+ETH3D:1.264160s vs SAF3R1.603858s (1.2687x),peak warm allocated10.996GiB.
+All scene pairs are faster. Dense paired speedup N/A:no authorized current run.
+
+Quality acceptance is NOT achieved:ETH3D historical-reference ACC +13.191%,
+Comp +6.010%,CD +7.937%,F1 -6.333%. These exceed2%;hardware/framework differs
+from historical reference,so this is not an isolated engineering ablation.
+7Scenes has no matched complete A_all_specials12% reference to establish a2%
+change. No quality-guided retuning or extra controls quality reruns were made.
+Cold autotuning averages20.975s/20.509s for7Scenes/ETH3D,reported separately.
