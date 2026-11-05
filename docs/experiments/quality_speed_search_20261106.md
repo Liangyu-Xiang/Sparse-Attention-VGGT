@@ -117,3 +117,45 @@ local error and same-card time,then separate RGB validation if eligible. This
 is not choosing budgets against7Scenes/ETH3D test quality. No additional control
 quality/timing reruns. The API now accepts history_query_interval128 using the
 existing generic stride and probe kernels;defaults remain unchanged.
+
+## Current-probe backend:independent information/cost experiment
+
+The frozen Query256 endpoints and Query128 trials remain separate. Their full
+results are retained even where geometry regresses. The aligned independent
+single-Key counterfactual found917 helpful candidate omissions,876 in a cluster
+already represented and799 not previous history. This motivates current evidence,
+not any7Scenes test-based budget choice.
+
+Opt-in current_probability_probes=1/4 observes full-Key Softmax for1/4 sampled
+Queries per group. A Triton online-LSE pass and a streamed head/probe-mean pass
+produce only GxPatch float32 probabilities,never HxGxKey probabilities. Aux QK is
+P*G*(N+Patch) per head;the main sparse Attention QK/AV is executed once with no
+history export. Exact sampled probabilities replace the Grid/M5c estimator;
+previous support IDs still supply History A candidates. Four-state distortions,
+support H union Rep and16-round budget solver remain. No dense layer fallback.
+
+With current p,Drop and Rep scalar weighted distortions are reduced directly
+from cluster members. History A subtracts exact current historical p times Rep
+distance. Population and predicted-residual compensation are separate trials.
+Layer0 now uses the same three available states Drop/Rep/Exact under current
+probabilities,not the old global uniform seed;this is an explicit modelling
+change. All5 special Query outputs remain dense-corrected. VV clustering updates
+with current features each layer;no frozen cross-layer partition.
+
+19 configs including current:8/10% clusters,1/4 probes,population/prior_residual,
+head_sketch,flat14% or10/18/10% budgets,plus two10% head_mean ablations. Query
+sharing256. Graph cache cap24 for these configs within existing2GiB device cap.
+This is a family comparison,not an isolated proof for only one formula change.
+
+Crucially,calibration and independent validation score HELD-OUT Query positions
+1/16,5/16,9/16,13/16 of the shared group. Observed probes are1/8,3/8,5/8,7/8.
+Both the current reference and candidates use the held-out scoring positions.
+No local exact-observation teacher is evaluated only at its own observed rows.
+No final target geometric truth participates in ranking.6 CUDA numerical tests
+pass:FP32/BF16 exact-probe probabilities versus full softmax,full weighted state
+statistics,A support/predicted-mass conservation,and no-export sparse AV.
+
+This improves information acquisition by adding small full-Key probe QK while
+removing older probability-estimation machinery. Total physical QK including
+both probe passes is reported separately;fewer main retained Keys does not by
+itself prove fewer total QK. Both passes and all preparation count in full time.

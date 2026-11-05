@@ -20,12 +20,17 @@ class Fidelity:
   import torch
   import saf3r.patch.reuse_residual_exploration as mod
   import saf3r.triton.reuse_direct_sampled_probability as direct
-  self.orig_prepare=mod.prepare_qkv;self.orig_execute=direct.direct_sparse_attention_sampled
+  self.orig_prepare=mod.prepare_qkv;self.new_backend=bool(getattr(self.s.config,'current_probability_probes',0))
+  if self.new_backend:
+   import saf3r.patch.current_probe_reuse as direct
+   self.orig_execute=direct.main_attention
+  else:self.orig_execute=direct.direct_sparse_attention_sampled
   def prepare(original,x,pos):
    q,k,v=self.orig_prepare(original,x,pos);self.q=q.to(v.dtype).contiguous();self.k=k.to(v.dtype).contiguous();self.v=v;self.module=original;self.starts=0;self.samples=[]
    # Four deterministic patch queries in each of eight evenly spaced groups.
    s=self.s;groups=torch.linspace(0,s.groups-1,8,device=q.device).long().unique()
-   ids=(groups[:,None]*s.config.query_group_size+torch.tensor([1,3,5,7],device=q.device)*(s.config.query_group_size//8)).flatten().clamp_max(s.n-1)
+   offset=s.config.query_group_size//16 if getattr(s,'_diagnostic_heldout',False) else 0
+   ids=(groups[:,None]*s.config.query_group_size+torch.tensor([1,3,5,7],device=q.device)*(s.config.query_group_size//8)-offset).flatten().clamp_max(s.n-1)
    special=torch.zeros(s.n,device=q.device,dtype=torch.bool);special[s.specials]=True
    self.ids=ids[~special[ids]].unique()
    return q,k,v
@@ -38,7 +43,9 @@ class Fidelity:
     weights=torch.cat((bias[group].exp(),torch.ones((len(ids),len(specials)),device=q.device)),1)
     self.samples.append((ids,support,weights,result[:,ids-first].clone()))
    self.starts=end;return result,evidence
-  mod.prepare_qkv=prepare;direct.direct_sparse_attention_sampled=execute
+  mod.prepare_qkv=prepare
+  if self.new_backend:direct.main_attention=execute
+  else:direct.direct_sparse_attention_sampled=execute
   for layer,b in enumerate(self.model.aggregator.global_blocks):
    def hook(module,args,layer=layer):
     with torch.autocast('cuda',enabled=False):self.measure(layer)
@@ -74,13 +81,17 @@ class Fidelity:
  def __exit__(self,*exc):
   import saf3r.patch.reuse_residual_exploration as mod
   import saf3r.triton.reuse_direct_sampled_probability as direct
-  mod.prepare_qkv=self.orig_prepare;direct.direct_sparse_attention_sampled=self.orig_execute
+  mod.prepare_qkv=self.orig_prepare
+  if self.new_backend:
+   import saf3r.patch.current_probe_reuse as backend
+   backend.main_attention=self.orig_execute
+  else:direct.direct_sparse_attention_sampled=self.orig_execute
   for h in self.handles:h.remove()
  def summary(self):
   assert len(self.rows)==24
   return dict(score=sum(r['projected_relative_mse'] for r in self.rows)/24,layers=self.rows,definition='Mean24-layer Wo-projected local exact Attention relative MSE on32 deterministic patch queries, sparse trajectory; not a full Dense model or geometric quality')
 def main():
- p=argparse.ArgumentParser();p.add_argument('--plan',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--shard',type=int,required=True);p.add_argument('--shards',type=int,default=3);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--plan',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--shard',type=int,required=True);p.add_argument('--shards',type=int,default=3);p.add_argument('--heldout-probes',action='store_true');a=p.parse_args()
  import numpy as np,torch,yaml
  from addict import Dict
  from saf3r.utils.model_utils import build_model
@@ -99,7 +110,7 @@ def main():
    out.mkdir(parents=True,exist_ok=True)
    q=quality_record({},'RGB-only hyperparameter screening; no GT loaded; local exact sampled Attention diagnostic, not geometric quality evaluation')
    save(out/'quality.json',q);(out/'quality.md').write_text(quality_markdown(q))
-   state=install_reuse_residual_exploration(model,ReuseExploreConfig(**row['config']));samples=[];raw=None
+   state=install_reuse_residual_exploration(model,ReuseExploreConfig(**row['config']));state._diagnostic_heldout=a.heldout_probes;samples=[];raw=None
    try:
     for rep in range(3):
      del raw;raw=None;torch.cuda.synchronize();torch.cuda.reset_peak_memory_stats();start=time.perf_counter()
@@ -107,8 +118,13 @@ def main():
      torch.cuda.synchronize();samples.append(dict(seconds=time.perf_counter()-start,peak_allocated_gib=torch.cuda.max_memory_allocated()/2**30));print('TIMING',row['name'],name,rep,samples[-1],flush=True)
     del raw;raw=None
     with Fidelity(model,state) as fidelity,torch.inference_mode(),torch.autocast('cuda',dtype=torch.bfloat16):raw=model(images)
-    torch.cuda.synchronize();scores=fidelity.summary();del fidelity
+    torch.cuda.synchronize();scores=fidelity.summary();scores['heldout_queries']=a.heldout_probes;del fidelity
     save(out/'result.json',dict(name=row['name'],calibration=name,config=row['config'],quality=q,input=plan['calibration'][name],timing=dict(warmup=1,repeats=2,median_seconds=float(np.median([r['seconds'] for r in samples[1:]])),samples=samples[1:],cold_samples=samples[:1]),fidelity=scores,speedup_vs_dense=None,speedup_reason='No full Dense control rerun; diagnostic only',checkpoint_sha256=plan['checkpoint_sha256'],test_gt_read=False))
+   except Exception as exc:
+    import traceback
+    reason=f'{type(exc).__name__}: {exc}'
+    save(out/'failure.json',dict(complete=False,error=reason,traceback=traceback.format_exc(),quality=quality_record({},reason),speedup_vs_dense=None))
+    raise
    finally:
     state.reset_handle.remove()
     for b in model.aggregator.global_blocks:b.attn=b.attn.original

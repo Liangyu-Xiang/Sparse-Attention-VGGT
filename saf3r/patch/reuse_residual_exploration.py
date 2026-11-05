@@ -36,6 +36,7 @@ class ReuseExploreConfig:
     history_query_interval:int=32
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
+    current_probability_probes:int=0
     skip_dead_exact_observation:bool=False
     rep_history_execution:str='population'
     rep_history_loss:str='legacy'
@@ -106,6 +107,8 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.current_probability_probes not in (0,1,4):raise ValueError('Use0/1/4 exact current probability probes')
+        if self.current_probability_probes and (self.rep_history_loss!='A' or self.candidate_fraction!=1. or not self.shared_value_loss):raise ValueError('Current probes require all-eligible shared History A')
         if self.skip_dead_exact_observation and not (self.compact and self.shared_value_loss and self.window_graph and self.candidate_fraction==1. and self.history_evidence_backend=='direct_sampled' and self.history_query_interval==self.query_group_size):raise ValueError('Dead Exact observations can only be skipped in full-eligible fully sampled shared path')
         if self.rep_history_execution not in ('population','prior_residual'):raise ValueError('Invalid History A compensation')
         if self.rep_history_execution!='population' and self.rep_history_loss!='A':raise ValueError('Prior-residual compensation requires History A')
@@ -401,6 +404,9 @@ class ReuseResidualExploration(nn.Module):
 
     def forward(self,x,pos=None):
         o,s=self.original,self.state;c=s.config
+        if c.current_probability_probes:
+            from .current_probe_reuse import forward
+            return forward(self,x,pos)
         if self.training or len(x)!=1 or self.layer!=s.previous_layer+1:raise ValueError('Batch-one ordered inference required')
         if c.capture:raise RuntimeError('Fused-grid capture exposes grid summaries, not per-edge masses; capture mode unsupported')
         if c.history_mode!='dense_m5c' or not c.state_l2 or not c.direction_drop or not c.compact or c.query_shift or c.hierarchical:raise RuntimeError('Cleanup supports only the frozen active method')
