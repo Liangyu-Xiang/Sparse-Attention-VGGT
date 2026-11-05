@@ -1,0 +1,396 @@
+{
+  "rows": [
+    {
+      "variant": "anchor_sketch4",
+      "config": {
+        "allocation_objective": "min_error",
+        "attention_backend": "indexed",
+        "attention_block_keys": 128,
+        "attention_block_queries": 64,
+        "attention_stages": 1,
+        "attention_warps": 4,
+        "budget_graph": false,
+        "cache_probe_indices": true,
+        "candidate_fraction": 0.25,
+        "capture": false,
+        "cluster_fraction": 0.12,
+        "cluster_neighbors": 32,
+        "clustering_mode": "source_local_unanchored",
+        "compact": true,
+        "dense_special_queries": 1,
+        "deterministic_reductions": false,
+        "direction_drop": true,
+        "disable_population_compensation": false,
+        "drop_multiplier": 1,
+        "dual_iterations": 16,
+        "evidence_mode": "fused_grid",
+        "execution_kernel": "direct_sparse",
+        "flash_group_chunk": 16,
+        "fuse_mask_ops": true,
+        "fuse_state_kernel": true,
+        "fused_coarse": true,
+        "graph_cache_capacity": 8,
+        "graph_cache_max_mib": 2048,
+        "grid_x": 2,
+        "grid_y": 2,
+        "guard_groups": 4,
+        "guard_rel_l2": 0.005,
+        "hierarchical": false,
+        "history_cache_format": "compact_sampled_log_fp16",
+        "history_evidence_backend": "direct_sampled",
+        "history_mode": "dense_m5c",
+        "history_per_cluster": 4,
+        "history_query_interval": 256,
+        "history_split_export": true,
+        "layer_retentions": [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "local_iterations": 1,
+        "mass_transfer": true,
+        "p0_loss_pack": false,
+        "parent_arity": 4,
+        "parent_moment_mode": "exact",
+        "parent_passes": 2,
+        "prior_floor_fraction": 1e-06,
+        "query_group_size": 256,
+        "query_shift": 0,
+        "reference_dual_iterations": 16,
+        "refresh_interval": 1,
+        "rep_gain": true,
+        "retention": 0.2,
+        "reuse_window_graphs": true,
+        "sampled_split_launch": false,
+        "shared_value_allow_observed_rep": true,
+        "shared_value_features": "head_sketch",
+        "shared_value_loss": true,
+        "shared_value_weighting": "cluster_population",
+        "source_layout": "sequential",
+        "source_temporal_span": 1,
+        "source_width": 32,
+        "stable_binned_graph": true,
+        "state_l2": true,
+        "state_loss": "cosine_distortion",
+        "state_loss_history_gate": "observed",
+        "state_loss_operator": "group_history",
+        "state_loss_sketch_dim": 8,
+        "state_loss_variant": "legacy",
+        "static_shared_graph": false,
+        "window_graph": true,
+        "window_groups": 64,
+        "protect_first_frame": true,
+        "shared_value_head_sketch_dim": 4
+      },
+      "quality": {
+        "values": {
+          "auc03": null,
+          "auc30": null,
+          "acc": null,
+          "comp": null,
+          "cd": null,
+          "f1": null
+        },
+        "complete": false,
+        "unavailable": {
+          "auc03": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "auc30": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "acc": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "comp": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "cd": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "f1": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing"
+        },
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "samples": [
+        {
+          "seconds": 10.439466518932022,
+          "peak_allocated_gib": 15.360482215881348,
+          "graph_creations": 0,
+          "graph_evictions": 0,
+          "graph_cache_bytes": 463781376
+        },
+        {
+          "seconds": 10.203993058996275,
+          "peak_allocated_gib": 15.362565517425537,
+          "graph_creations": 0,
+          "graph_evictions": 0,
+          "graph_cache_bytes": 463781376
+        },
+        {
+          "seconds": 10.252342445077375,
+          "peak_allocated_gib": 15.362735271453857,
+          "graph_creations": 0,
+          "graph_evictions": 0,
+          "graph_cache_bytes": 463781376
+        }
+      ],
+      "warmup": 1,
+      "repeats": 3,
+      "median_seconds": 10.252342445077375,
+      "equivalence_to_first": null,
+      "within_variant_repeat": {
+        "pose_enc": {
+          "exact": false,
+          "relative_l2": 0.0059170969761908054
+        },
+        "depth": {
+          "exact": false,
+          "relative_l2": 0.012551520951092243
+        },
+        "depth_conf": {
+          "exact": false,
+          "relative_l2": 0.061829544603824615
+        }
+      },
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "uuid": "8e332fc5-55f4-0d85-1a2d-40bd87342c1f"
+      },
+      "scope": "Complete uninstrumented model forward, including reset/clustering/selection/history and cache construction/eviction"
+    },
+    {
+      "variant": "anchor_sketch4_production",
+      "config": {
+        "allocation_objective": "min_error",
+        "attention_backend": "indexed",
+        "attention_block_keys": 128,
+        "attention_block_queries": 64,
+        "attention_stages": 1,
+        "attention_warps": 4,
+        "budget_graph": false,
+        "cache_probe_indices": true,
+        "candidate_fraction": 0.25,
+        "capture": false,
+        "cluster_fraction": 0.12,
+        "cluster_neighbors": 32,
+        "clustering_mode": "source_local_unanchored",
+        "compact": true,
+        "dense_special_queries": 1,
+        "deterministic_reductions": false,
+        "direction_drop": true,
+        "disable_population_compensation": false,
+        "drop_multiplier": 1,
+        "dual_iterations": 16,
+        "evidence_mode": "fused_grid",
+        "execution_kernel": "direct_sparse",
+        "flash_group_chunk": 16,
+        "fuse_mask_ops": true,
+        "fuse_state_kernel": true,
+        "fused_coarse": true,
+        "graph_cache_capacity": 8,
+        "graph_cache_max_mib": 2048,
+        "grid_x": 2,
+        "grid_y": 2,
+        "guard_groups": 4,
+        "guard_rel_l2": 0.005,
+        "hierarchical": false,
+        "history_cache_format": "compact_sampled_log_fp16",
+        "history_evidence_backend": "direct_sampled",
+        "history_mode": "dense_m5c",
+        "history_per_cluster": 4,
+        "history_query_interval": 256,
+        "history_split_export": true,
+        "layer_retentions": [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.22,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        "local_iterations": 1,
+        "mass_transfer": true,
+        "p0_loss_pack": false,
+        "parent_arity": 4,
+        "parent_moment_mode": "exact",
+        "parent_passes": 2,
+        "prior_floor_fraction": 1e-06,
+        "query_group_size": 256,
+        "query_shift": 0,
+        "reference_dual_iterations": 16,
+        "refresh_interval": 1,
+        "rep_gain": true,
+        "retention": 0.2,
+        "reuse_window_graphs": true,
+        "sampled_split_launch": false,
+        "shared_value_allow_observed_rep": true,
+        "shared_value_features": "head_sketch",
+        "shared_value_loss": true,
+        "shared_value_weighting": "cluster_population",
+        "source_layout": "sequential",
+        "source_temporal_span": 1,
+        "source_width": 32,
+        "stable_binned_graph": true,
+        "state_l2": true,
+        "state_loss": "cosine_distortion",
+        "state_loss_history_gate": "observed",
+        "state_loss_operator": "group_history",
+        "state_loss_sketch_dim": 8,
+        "state_loss_variant": "legacy",
+        "static_shared_graph": false,
+        "window_graph": true,
+        "window_groups": 64,
+        "protect_first_frame": true,
+        "shared_value_head_sketch_dim": 4,
+        "collect_statistics": false
+      },
+      "quality": {
+        "values": {
+          "auc03": null,
+          "auc30": null,
+          "acc": null,
+          "comp": null,
+          "cd": null,
+          "f1": null
+        },
+        "complete": false,
+        "unavailable": {
+          "auc03": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "auc30": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "acc": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "comp": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "cd": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing",
+          "f1": "RGB-only full-forward cache/equivalence diagnostic; pose and recon_unposed not evaluated; no paired original Dense timing"
+        },
+        "speedup_vs_vggt": null,
+        "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+        "units": {
+          "auc03": "fraction",
+          "auc30": "fraction",
+          "acc": "m",
+          "comp": "m",
+          "cd": "m",
+          "f1": "fraction"
+        },
+        "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+      },
+      "samples": [
+        {
+          "seconds": 10.134494702913798,
+          "peak_allocated_gib": 15.361781597137451,
+          "graph_creations": 0,
+          "graph_evictions": 0,
+          "graph_cache_bytes": 464110080
+        },
+        {
+          "seconds": 10.2522380000446,
+          "peak_allocated_gib": 15.364148139953613,
+          "graph_creations": 0,
+          "graph_evictions": 0,
+          "graph_cache_bytes": 464110080
+        },
+        {
+          "seconds": 10.649176876060665,
+          "peak_allocated_gib": 15.359851360321045,
+          "graph_creations": 0,
+          "graph_evictions": 0,
+          "graph_cache_bytes": 464110080
+        }
+      ],
+      "warmup": 1,
+      "repeats": 3,
+      "median_seconds": 10.2522380000446,
+      "equivalence_to_first": {
+        "pose_enc": {
+          "exact": false,
+          "relative_l2": 0.005053024739027023,
+          "max_abs": 0.01834315061569214
+        },
+        "depth": {
+          "exact": false,
+          "relative_l2": 0.013312656432390213,
+          "max_abs": 0.8835740685462952
+        },
+        "depth_conf": {
+          "exact": false,
+          "relative_l2": 0.06104571744799614,
+          "max_abs": 7.719888687133789
+        },
+        "world_points": {
+          "exact": false,
+          "relative_l2": 0.012959342449903488,
+          "max_abs": 1.0324478149414062
+        },
+        "world_points_conf": {
+          "exact": false,
+          "relative_l2": 0.05557216331362724,
+          "max_abs": 1.4093151092529297
+        },
+        "images": {
+          "exact": true,
+          "relative_l2": 0.0,
+          "max_abs": 0.0
+        }
+      },
+      "within_variant_repeat": {
+        "pose_enc": {
+          "exact": false,
+          "relative_l2": 0.005085950717329979
+        },
+        "depth": {
+          "exact": false,
+          "relative_l2": 0.0132953692227602
+        },
+        "depth_conf": {
+          "exact": false,
+          "relative_l2": 0.06095808371901512
+        }
+      },
+      "hardware": {
+        "gpu": "NVIDIA GeForce RTX 4090",
+        "uuid": "8e332fc5-55f4-0d85-1a2d-40bd87342c1f"
+      },
+      "scope": "Complete uninstrumented model forward, including reset/clustering/selection/history and cache construction/eviction"
+    }
+  ]
+}

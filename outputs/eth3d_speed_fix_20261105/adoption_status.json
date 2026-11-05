@@ -1,0 +1,102 @@
+{
+  "status": "validated_recommended_implementation",
+  "method": "grouped_saf3r",
+  "config": "configs/evaluation/grouped_saf3r.json",
+  "branch": "codex/eth3d-speed-fix-20261105",
+  "quality_runs": 18,
+  "timing_only_controls": 14,
+  "unit_tests_passed": 34,
+  "quality_macro": [
+    {
+      "dataset": "7scenes",
+      "scope": "7scenes (7/7, equal-scene)",
+      "method": "before_main",
+      "auc03": 0.22166760404949382,
+      "auc30": 0.8405564538807649,
+      "acc": 0.13785795018845803,
+      "comp": 0.12457922650854021,
+      "cd": 0.13121858834849912,
+      "f1": 0.4699302267463966
+    },
+    {
+      "dataset": "7scenes",
+      "scope": "7scenes (7/7, equal-scene)",
+      "method": "grouped_saf3r",
+      "auc03": 0.23563460817397824,
+      "auc30": 0.8441806102362206,
+      "acc": 0.12959992391344494,
+      "comp": 0.12489230533080574,
+      "cd": 0.12724611462212534,
+      "f1": 0.4920567113906692
+    },
+    {
+      "dataset": "eth3d",
+      "scope": "eth3d (11/11, equal-scene)",
+      "method": "before_main",
+      "auc03": 0.12276254178620735,
+      "auc30": 0.6700532171760795,
+      "acc": 0.4157239003901104,
+      "comp": 1.1103142547820142,
+      "cd": 0.7630190775860624,
+      "f1": 0.4264863227417193
+    },
+    {
+      "dataset": "eth3d",
+      "scope": "eth3d (11/11, equal-scene)",
+      "method": "grouped_saf3r",
+      "auc03": 0.23225734338182058,
+      "auc30": 0.8018909733448121,
+      "acc": 0.3031939341506577,
+      "comp": 0.8215167818812125,
+      "cd": 0.5623553580159351,
+      "f1": 0.635559014129161
+    }
+  ],
+  "speed": {
+    "dense": {
+      "mean_scene_median_seconds": 19.674791710002214,
+      "max_peak_allocated_gib": 14.358574867248535,
+      "speedup_vs_dense": 1.0
+    },
+    "saf3r": {
+      "mean_scene_median_seconds": 10.821222441254317,
+      "max_peak_allocated_gib": 14.614327430725098,
+      "speedup_vs_dense": 1.8181672003150926
+    },
+    "grouped_saf3r": {
+      "mean_scene_median_seconds": 7.906874679411495,
+      "max_peak_allocated_gib": 14.716034889221191,
+      "speedup_vs_dense": 2.4883146006136774
+    }
+  },
+  "speed_gates": {
+    "no_slowdown_macro": true,
+    "within_original_10percent_macro": true,
+    "within_10percent_every_scene": true
+  },
+  "gpu_policy": {
+    "allowed_gpus": [
+      4,
+      5,
+      6
+    ],
+    "received_after_this_cohort_completed": true,
+    "historical_cohort_gpus": [
+      3,
+      4,
+      5,
+      6
+    ],
+    "scheduler": "Dynamic scene queue; paired methods for a scene remain on the same GPU"
+  },
+  "residual_regressions": [
+    {
+      "dataset": "eth3d",
+      "scene": "electro",
+      "metric": "F1",
+      "before": 0.5347657948239058,
+      "after": 0.4445701596074961,
+      "note": "Per-scene quality remains mixed; do not claim every scene improves."
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+.F.                                                                      [100%]
+=================================== FAILURES ===================================
+___ test_prefix_tail_order_reset_history_cleanup_and_statistics_equivalence ____
+
+    @pytest.mark.skipif(not torch.cuda.is_available(),reason='CUDA required')
+    def test_prefix_tail_order_reset_history_cleanup_and_statistics_equivalence():
+        from saf3r.patch.reuse_residual_exploration import ReuseExploreConfig,install_reuse_residual_exploration
+        from saf3r.models.official_vggt.layers.attention import Attention
+        class Block(nn.Module):
+            def __init__(self):super().__init__();self.attn=Attention(dim=256,num_heads=16)
+        class Aggregator(nn.Module):
+            def __init__(self):
+                super().__init__();self.global_blocks=nn.ModuleList([Block() for _ in range(24)]);self.register_buffer('tokens',torch.randn(1,14*69,256))
+            def forward(self,images):
+                x=self.tokens.clone()
+                for block in self.global_blocks:x=x+.01*block.attn(x)
+                return x
+        class Model(nn.Module):
+            def __init__(self):super().__init__();self.aggregator=Aggregator()
+            def forward(self,images):return self.aggregator(images[None])
+        torch.manual_seed(714);old=torch.are_deterministic_algorithms_enabled();torch.use_deterministic_algorithms(True)
+        try:
+            c=json.loads((Path(__file__).resolve().parents[1]/'configs/evaluation/eth3d_repair_20261105/native9_sketch4.json').read_text())
+>           model=Model().cuda().eval();state=install_reuse_residual_exploration(model,ReuseExploreConfig(**c));images=torch.zeros(14,3,112,112,device='cuda')
+                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_native_prefix_reuse.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<string>:80: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = ReuseExploreConfig(attention_block_queries=64, history_split_export=True, sampled_split_launch=False, deterministic_re...'indexed', layer_retentions=None, refresh_interval=1, reference_dual_iterations=16, guard_groups=4, guard_rel_l2=0.005)
+
+    def __post_init__(self):
+        if not 0<=self.native_prefix_layers<=9:raise ValueError('Native prefix must use zero to nine early profile layers')
+        if self.native_prefix_layers and self.layer_retentions is not None:raise ValueError('Native-prefix variant uses a uniform tail retention; prefix retention follows the explicit head profile')
+        if self.sampled_split_launch and (self.query_group_size!=256 or self.history_query_interval!=256 or self.attention_block_queries not in (32,64,128) or self.history_evidence_backend!='direct_sampled'):raise ValueError('Split sampled execution requires Query-256, interval256 and supported tiles')
+        if self.attention_block_queries not in (32,64,128) or self.query_group_size%self.attention_block_queries:raise ValueError('Attention tile must divide Query group size')
+        if (self.static_shared_graph or self.stable_binned_graph) and not (self.shared_value_loss and self.reuse_window_graphs):raise ValueError('Static graph topology requires reusable Shared Value graphs')
+        if self.history_split_export and self.history_evidence_backend!='direct_sampled':raise ValueError('Split export requires sampled history')
+        if min(self.graph_cache_capacity,self.graph_cache_max_mib)<1:raise ValueError('Graph cache limits must be positive')
+        if self.query_group_size not in (32,128,256):raise ValueError('Query group must be 32/128/256')
+        if self.query_group_size!=32 and (not self.shared_value_loss or self.history_query_interval%self.query_group_size):raise ValueError('Larger query groups require shared Value sampled history and aligned interval')
+        if self.source_layout not in ('sequential','spatiotemporal') or self.source_temporal_span<1:raise ValueError('Invalid source layout')
+        if self.dense_special_queries not in (0,1,5):raise ValueError('Invalid dense special-query count')
+        if (self.dense_special_queries or self.dense_first_frame_queries) and self.query_shift:raise ValueError('Dense query correction requires original query order')
+        if self.attention_block_keys not in (64,128,256):raise ValueError('Invalid attention key tile')
+        if self.state_loss_variant!='legacy':
+            from .state_loss_controller import GROUP_VARIANTS,RESIDUAL_VARIANTS
+            allowed=GROUP_VARIANTS if self.state_loss_operator=='group_history' else RESIDUAL_VARIANTS
+            if self.state_loss_operator not in ('group_history','residual_rep') or self.state_loss_variant not in allowed:
+                raise ValueError('Invalid state-loss/operator pair')
+            if not self.shared_value_loss or not self.shared_value_allow_observed_rep or self.disable_population_compensation or self.shared_value_weighting=='unit':
+                raise ValueError('Consistent state losses require shared path, enabled Rep and explicit mass calibration')
+            if self.state_loss_history_gate not in ('native','observed') or self.state_loss_sketch_dim not in (4,8,16):
+                raise ValueError('Invalid history gate or loss sketch dimension')
+        if self.shared_value_features not in ('head_mean','head_concat','head_sketch'):
+            raise ValueError('Invalid shared Value feature space')
+        if self.shared_value_features!='head_mean' and not self.shared_value_loss:
+            raise ValueError('Full-head Value features require shared_value_loss')
+        if self.shared_value_head_sketch_dim not in (4,8,16):raise ValueError('Invalid per-head Value sketch dimension')
+        if self.shared_value_weighting not in ('unit', 'rep_population', 'cluster_population', 'cluster_prior'):
+            raise ValueError('Invalid shared Value execution weighting')
+        if (self.shared_value_weighting != 'unit' or self.shared_value_allow_observed_rep) and not self.shared_value_loss:
+            raise ValueError('Shared Value repair options require shared_value_loss')
+        if self.shared_value_weighting != 'unit' and self.disable_population_compensation:
+            raise ValueError('Shared Value weighting requires disable_population_compensation=false')
+        if self.history_query_interval not in (32,256):raise ValueError('History Query interval must be32 or256')
+        if self.shared_value_loss and (self.history_evidence_backend!='direct_sampled' or not self.window_graph or not self.fuse_state_kernel or not self.fuse_mask_ops or self.p0_loss_pack or self.hierarchical or not self.state_l2 or not self.direction_drop or not self.compact):raise ValueError('Shared Value loss requires the fused non-hierarchical sampled-history window path')
+        if self.history_evidence_backend=='direct_sampled' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices or self.window_groups%(self.history_query_interval//self.query_group_size)):raise ValueError('Sampled history requires aligned Direct Sparse windows and coarse probe cache')
+        if self.history_evidence_backend=='direct_probability' and (self.execution_kernel!='direct_sparse' or self.history_mode!='dense_m5c' or not self.cache_probe_indices):raise ValueError('Probability history requires Direct Sparse, dense_m5c consumer and cached probe indices')
+        if self.hierarchical and (not self.compact or self.history_mode!='dense_m5c' or self.history_per_cluster!=4 or not self.mass_transfer or self.disable_population_compensation or self.attention_backend!='indexed'):raise ValueError('Hierarchy requires full M5c compact transfer with History Top-4')
+        if self.parent_arity not in (2,4) or self.parent_passes not in (1,2) or self.parent_moment_mode not in ('exact','calibrated'):raise ValueError('Invalid parent operating-point configuration')
+        if self.clustering_mode not in ('source_anchored','adaptive_local','adaptive_certified','source_local_unanchored') or self.cluster_neighbors<1:raise ValueError('Invalid clustering policy')
+        if self.history_mode=='dense_m5c' and (self.attention_backend!='indexed' or not self.compact):raise ValueError('M5c requires indexed compact inference')
+        if self.cluster_fraction is not None and (not math.isfinite(self.cluster_fraction) or not 0<self.cluster_fraction<=1):raise ValueError('Invalid cluster fraction')
+        if self.attention_backend not in ('indexed','shared_grid_guarded'):raise ValueError('Invalid attention backend')
+        if self.attention_backend=='shared_grid_guarded' and (not self.compact or self.query_shift):raise ValueError('Guarded shared bank requires fixed-group compact mode')
+        if min(self.refresh_interval,self.reference_dual_iterations,self.guard_groups)<1 or not math.isfinite(self.guard_rel_l2) or self.guard_rel_l2<=0:raise ValueError('Invalid guard configuration')
+        from .layer_retention_schedule import validate_schedule
+        validate_schedule(self.retention,self.layer_retentions)
+        if self.compact and (self.state_loss!='cosine_distortion' or self.history_mode not in ('all_relative_logit','dense_m5c') or not self.mass_transfer or not self.rep_gain or self.allocation_objective!='min_error'):raise ValueError('Compact path requires the complete combined method')
+        if self.history_mode not in ('genuine_probability','all_probability','all_relative_logit','dense_m5c'):raise ValueError('Invalid history mode')
+        if self.drop_multiplier not in (1.,2.):raise ValueError('Invalid drop multiplier')
+        if self.history_mode!='genuine_probability' and self.state_loss!='cosine_distortion':raise ValueError('Revised history requires cosine states')
+        if self.history_mode in ('all_relative_logit','dense_m5c') and self.query_shift:raise ValueError('Relative history requires fixed query groups')
+        if self.state_loss not in ('output_proxy','cosine_distortion'):raise ValueError('Invalid state loss')
+        if not 0<self.prior_floor_fraction<=1e-3:raise ValueError('Invalid prior floor')
+        if not 0<=self.query_shift<32:raise ValueError('Query shift must be 0..31')
+        if self.allocation_objective not in ('min_error','max_error'):raise ValueError('Invalid allocation objective')
+        if self.evidence_mode not in ('second_qk','saved_logits','fused_grid'):raise ValueError('Invalid evidence mode')
+>       if not math.isfinite(self.retention) or not .05<=self.retention<=.2:raise ValueError('Retention must be5–20%')
+                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       ValueError: Retention must be5–20%
+
+saf3r/patch/reuse_residual_exploration.py:154: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_native_prefix_reuse.py::test_prefix_tail_order_reset_history_cleanup_and_statistics_equivalence
+1 failed, 2 passed in 6.63s
