@@ -1,0 +1,496 @@
+{
+  "complete": true,
+  "macro": [
+    {
+      "dataset": "7scenes",
+      "method": "cp_budget_outer13_mid21",
+      "scenes": 7,
+      "auc03": 0.2366364360704912,
+      "auc30": 0.8466506139857518,
+      "acc": 0.14431165072731045,
+      "comp": 0.12310546577272194,
+      "cd": 0.1337085582500162,
+      "f1": 0.47601108803142844,
+      "seconds": 6.017746812264834,
+      "reference_batch_seconds": 6.090129882762475,
+      "warm_peak_allocated_gib": 14.951903820037842,
+      "warm_peak_reserved_gib": 20.66796875,
+      "mean_cold_seconds": 19.72842746667032,
+      "including_cold_peak_allocated_gib": 28.396855354309082,
+      "speedup_vs_dense": null,
+      "reference_batch_speedup": 1.0120282678477128,
+      "relative_changes_percent": {
+        "auc03": 5.264392379661742,
+        "auc30": 0.41426684426915106,
+        "acc": -3.6970420190364006,
+        "comp": -0.6439226307332069,
+        "cd": -2.3151803726446207,
+        "f1": -1.366591881999657
+      },
+      "strict_all_six_not_worse": false,
+      "no_more_than2pct_reconstruction_degradation": true,
+      "faster_than_historical_current": true
+    },
+    {
+      "dataset": "eth3d",
+      "method": "cp_budget_outer13_mid21",
+      "scenes": 11,
+      "auc03": 0.26331713624148095,
+      "auc30": 0.8051372199253581,
+      "acc": 0.33687710323362907,
+      "comp": 0.8869262127549841,
+      "cd": 0.6119016579943065,
+      "f1": 0.5709436274306213,
+      "seconds": 1.1714295867661184,
+      "reference_batch_seconds": 1.2641602784225887,
+      "warm_peak_allocated_gib": 11.026911735534668,
+      "warm_peak_reserved_gib": 16.212890625,
+      "mean_cold_seconds": 20.9483148383654,
+      "including_cold_peak_allocated_gib": 26.212361335754395,
+      "speedup_vs_dense": null,
+      "reference_batch_speedup": 1.0791602779237166,
+      "relative_changes_percent": {
+        "auc03": 16.28285016270301,
+        "auc30": 2.52298406894631,
+        "acc": -6.145994527114384,
+        "comp": -3.244496894964899,
+        "cd": -4.060937781897856,
+        "f1": 9.620956200864317
+      },
+      "strict_all_six_not_worse": true,
+      "no_more_than2pct_reconstruction_degradation": true,
+      "faster_than_historical_current": true
+    }
+  ],
+  "strict_validation_supplement": {
+    "passed": true,
+    "rows": [
+      {
+        "sequence": "chess_seq03",
+        "seconds": 0.8860539523884654,
+        "reference_seconds": 0.970055571757257,
+        "time_ratio": 0.913405353451429,
+        "score": 0.013272470694573713,
+        "reference_score": 0.02067875533005766,
+        "error_ratio": 0.6418408885220224
+      },
+      {
+        "sequence": "tum_walking128",
+        "seconds": 6.047656557522714,
+        "reference_seconds": 6.076604315079749,
+        "time_ratio": 0.9952361950760563,
+        "score": 0.007166731258621439,
+        "reference_score": 0.01526873218244873,
+        "error_ratio": 0.46937304112646183
+      }
+    ]
+  },
+  "key_coverage_and_probability_audit": {
+    "old_helpful_candidate_edges": 917,
+    "retained_by_new": 709,
+    "fraction": 0.7731733914940022,
+    "single_edge_gain_weighted_coverage": 0.9756823499550741,
+    "maximum_relative_probability_error": 2.18847672172023e-06,
+    "mean_relative_probability_error": 1.9116736293835964e-07,
+    "probability_target": "Exact same observed4 clamped Probe IDs including repeated tail and special queries,head mean",
+    "interpretation": "Finite8-per-group candidate pool,support overlap across trajectories;individual counterfactual gains are not additive final geometry effects.",
+    "quality": {
+      "values": {
+        "auc03": null,
+        "auc30": null,
+        "acc": null,
+        "comp": null,
+        "cd": null,
+        "f1": null
+      },
+      "complete": false,
+      "unavailable": {
+        "auc03": "Offline same-budget single-Key sampled Attention counterfactual on independent ScanNet RGB; no geometric truth or complete Dense model",
+        "auc30": "Offline same-budget single-Key sampled Attention counterfactual on independent ScanNet RGB; no geometric truth or complete Dense model",
+        "acc": "Offline same-budget single-Key sampled Attention counterfactual on independent ScanNet RGB; no geometric truth or complete Dense model",
+        "comp": "Offline same-budget single-Key sampled Attention counterfactual on independent ScanNet RGB; no geometric truth or complete Dense model",
+        "cd": "Offline same-budget single-Key sampled Attention counterfactual on independent ScanNet RGB; no geometric truth or complete Dense model",
+        "f1": "Offline same-budget single-Key sampled Attention counterfactual on independent ScanNet RGB; no geometric truth or complete Dense model"
+      },
+      "speedup_vs_vggt": null,
+      "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+      "units": {
+        "auc03": "fraction",
+        "auc30": "fraction",
+        "acc": "m",
+        "comp": "m",
+        "cd": "m",
+        "f1": "fraction"
+      },
+      "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+    }
+  },
+  "independent_validation": [
+    {
+      "name": "cp_budget_outer12_mid21",
+      "gpu_uuid": "GPU-6b17ca29-673c-cee6-2a37-354c34fc04f7",
+      "per_sequence": {
+        "chess_seq03": {
+          "seconds": 0.9079660605639219,
+          "reference_seconds": 0.9672189466655254,
+          "time_ratio": 0.9387389108682402,
+          "score": 0.013593135322177355,
+          "reference_score": 0.021046860694089748,
+          "error_ratio": 0.6458509665526744
+        },
+        "tum_walking128": {
+          "seconds": 6.024929857812822,
+          "reference_seconds": 6.093085671775043,
+          "time_ratio": 0.9888142367211512,
+          "score": 0.007195636397227645,
+          "reference_score": 0.0156438737467397,
+          "error_ratio": 0.4599651284405992
+        }
+      },
+      "score": 0.0103943858597025,
+      "speed_pass": true,
+      "fidelity_pass": true
+    },
+    {
+      "name": "cp_budget_outer13_mid21",
+      "gpu_uuid": "GPU-16798a3b-cb61-7a51-36c6-507cea22dba2",
+      "per_sequence": {
+        "chess_seq03": {
+          "seconds": 0.8860539523884654,
+          "reference_seconds": 0.970055571757257,
+          "time_ratio": 0.913405353451429,
+          "score": 0.013272470694573713,
+          "reference_score": 0.02067875533005766,
+          "error_ratio": 0.6418408885220224
+        },
+        "tum_walking128": {
+          "seconds": 6.047656557522714,
+          "reference_seconds": 6.076604315079749,
+          "time_ratio": 0.9952361950760563,
+          "score": 0.007166731258621439,
+          "reference_score": 0.01526873218244873,
+          "error_ratio": 0.46937304112646183
+        }
+      },
+      "score": 0.010219600976597576,
+      "speed_pass": true,
+      "fidelity_pass": true
+    },
+    {
+      "name": "cp_budget_mid21",
+      "gpu_uuid": "GPU-d9852a0e-306f-d548-6e99-f428281ef10e",
+      "per_sequence": {
+        "chess_seq03": {
+          "seconds": 0.8847675183787942,
+          "reference_seconds": 0.9696359904482961,
+          "time_ratio": 0.9124738841116404,
+          "score": 0.014438274036365328,
+          "reference_score": 0.021046860694089748,
+          "error_ratio": 0.6860060626723203
+        },
+        "tum_walking128": {
+          "seconds": 5.8988665118813515,
+          "reference_seconds": 6.067498023621738,
+          "time_ratio": 0.9722074055757617,
+          "score": 0.007775406011205632,
+          "reference_score": 0.015310948627302423,
+          "error_ratio": 0.5078330677264868
+        }
+      },
+      "score": 0.01110684002378548,
+      "speed_pass": true,
+      "fidelity_pass": true
+    }
+  ],
+  "frozen_selection": {
+    "frozen_before_target_quality": true,
+    "family": "current exact sampled Dense probabilities+History A",
+    "candidates": [
+      {
+        "name": "cp_budget_outer13_mid21",
+        "config": "configs/evaluation/current_probe_budget_final_20261106/cp_budget_outer13_mid21.json",
+        "config_sha256": "66f975edd4dd16912ef287a59a721c204511e13dc4d30e8403ffd3f78ffe7217",
+        "role": "Primary:lowest independent held-out-query error under both validation latency limits",
+        "validation": {
+          "name": "cp_budget_outer13_mid21",
+          "gpu_uuid": "GPU-16798a3b-cb61-7a51-36c6-507cea22dba2",
+          "per_sequence": {
+            "chess_seq03": {
+              "seconds": 0.8860539523884654,
+              "reference_seconds": 0.970055571757257,
+              "time_ratio": 0.913405353451429,
+              "score": 0.013272470694573713,
+              "reference_score": 0.02067875533005766,
+              "error_ratio": 0.6418408885220224
+            },
+            "tum_walking128": {
+              "seconds": 6.047656557522714,
+              "reference_seconds": 6.076604315079749,
+              "time_ratio": 0.9952361950760563,
+              "score": 0.007166731258621439,
+              "reference_score": 0.01526873218244873,
+              "error_ratio": 0.46937304112646183
+            }
+          },
+          "score": 0.010219600976597576,
+          "speed_pass": true,
+          "fidelity_pass": true
+        }
+      }
+    ],
+    "validation_rows": [
+      {
+        "name": "cp_budget_outer12_mid21",
+        "gpu_uuid": "GPU-6b17ca29-673c-cee6-2a37-354c34fc04f7",
+        "per_sequence": {
+          "chess_seq03": {
+            "seconds": 0.9079660605639219,
+            "reference_seconds": 0.9672189466655254,
+            "time_ratio": 0.9387389108682402,
+            "score": 0.013593135322177355,
+            "reference_score": 0.021046860694089748,
+            "error_ratio": 0.6458509665526744
+          },
+          "tum_walking128": {
+            "seconds": 6.024929857812822,
+            "reference_seconds": 6.093085671775043,
+            "time_ratio": 0.9888142367211512,
+            "score": 0.007195636397227645,
+            "reference_score": 0.0156438737467397,
+            "error_ratio": 0.4599651284405992
+          }
+        },
+        "score": 0.0103943858597025,
+        "speed_pass": true,
+        "fidelity_pass": true
+      },
+      {
+        "name": "cp_budget_outer13_mid21",
+        "gpu_uuid": "GPU-16798a3b-cb61-7a51-36c6-507cea22dba2",
+        "per_sequence": {
+          "chess_seq03": {
+            "seconds": 0.8860539523884654,
+            "reference_seconds": 0.970055571757257,
+            "time_ratio": 0.913405353451429,
+            "score": 0.013272470694573713,
+            "reference_score": 0.02067875533005766,
+            "error_ratio": 0.6418408885220224
+          },
+          "tum_walking128": {
+            "seconds": 6.047656557522714,
+            "reference_seconds": 6.076604315079749,
+            "time_ratio": 0.9952361950760563,
+            "score": 0.007166731258621439,
+            "reference_score": 0.01526873218244873,
+            "error_ratio": 0.46937304112646183
+          }
+        },
+        "score": 0.010219600976597576,
+        "speed_pass": true,
+        "fidelity_pass": true
+      },
+      {
+        "name": "cp_budget_mid21",
+        "gpu_uuid": "GPU-d9852a0e-306f-d548-6e99-f428281ef10e",
+        "per_sequence": {
+          "chess_seq03": {
+            "seconds": 0.8847675183787942,
+            "reference_seconds": 0.9696359904482961,
+            "time_ratio": 0.9124738841116404,
+            "score": 0.014438274036365328,
+            "reference_score": 0.021046860694089748,
+            "error_ratio": 0.6860060626723203
+          },
+          "tum_walking128": {
+            "seconds": 5.8988665118813515,
+            "reference_seconds": 6.067498023621738,
+            "time_ratio": 0.9722074055757617,
+            "score": 0.007775406011205632,
+            "reference_score": 0.015310948627302423,
+            "error_ratio": 0.5078330677264868
+          }
+        },
+        "score": 0.01110684002378548,
+        "speed_pass": true,
+        "fidelity_pass": true
+      }
+    ],
+    "selection": "No target test quality used;no slower on each independent sequence,lower held-out-query local error on both,lowest equal-sequence mean error",
+    "global_optimum_claim": false,
+    "dense_rerun": false,
+    "saf3r_rerun": false
+  },
+  "source_unchanged": true,
+  "dense_speedup": null,
+  "dense_speedup_reason": "No contemporaneous paired Dense run authorized;baseline definition1.00x only",
+  "current_reference_batch": "history_A_special5_cluster12_speed_20261106",
+  "other_changed_family_macro": [
+    {
+      "method": "p3_sketch10_mid21",
+      "dataset": "7scenes",
+      "scenes": 7,
+      "auc03": 0.23237134420697414,
+      "auc30": 0.8445274418822648,
+      "acc": 0.1508382108367936,
+      "comp": 0.12152188074154485,
+      "cd": 0.13618004578916923,
+      "f1": 0.477246186897119,
+      "seconds": 5.9943824563441535,
+      "reference_batch_seconds": 6.090129882762475,
+      "warm_peak_allocated_gib": 14.817347526550293,
+      "warm_peak_reserved_gib": 19.607421875,
+      "mean_cold_seconds": 19.56024202318596,
+      "including_cold_peak_allocated_gib": 28.454216480255127,
+      "speedup_vs_dense": null,
+      "reference_batch_time_ratio": 0.9842782619974452,
+      "auc03_change_percent": 3.367126215110372,
+      "auc30_change_percent": 0.16245486110388896,
+      "acc_change_percent": 0.6583031025535924,
+      "comp_change_percent": -1.9220039562928948,
+      "cd_change_percent": -0.5095606155159471,
+      "f1_change_percent": -1.1106692500510218
+    },
+    {
+      "method": "p3_sketch10_mid21",
+      "dataset": "eth3d",
+      "scenes": 11,
+      "auc03": 0.22010804378707813,
+      "auc30": 0.7680261756137672,
+      "acc": 0.3455912060411256,
+      "comp": 0.8979214891497777,
+      "cd": 0.6217563475954516,
+      "f1": 0.5335156227090451,
+      "seconds": 1.2449705229056152,
+      "reference_batch_seconds": 1.2641602784225887,
+      "warm_peak_allocated_gib": 10.9793119430542,
+      "warm_peak_reserved_gib": 14.97265625,
+      "mean_cold_seconds": 24.650915086354043,
+      "including_cold_peak_allocated_gib": 26.161827087402344,
+      "speedup_vs_dense": null,
+      "reference_batch_time_ratio": 0.9848201562376897,
+      "auc03_change_percent": -2.7986137148848678,
+      "auc30_change_percent": -2.2025892998912777,
+      "acc_change_percent": -3.718244333540466,
+      "comp_change_percent": -2.0450132354926986,
+      "cd_change_percent": -2.5158370840449695,
+      "f1_change_percent": 2.4347937337681813
+    },
+    {
+      "method": "p3_sketch10_mid19",
+      "dataset": "7scenes",
+      "scenes": 7,
+      "auc03": 0.22551087364079492,
+      "auc30": 0.8412132077240345,
+      "acc": 0.1505596081287622,
+      "comp": 0.12539983141691355,
+      "cd": 0.13797971977283788,
+      "f1": 0.46359676319942816,
+      "seconds": 5.890366138225155,
+      "reference_batch_seconds": 6.090129882762475,
+      "warm_peak_allocated_gib": 14.812839031219482,
+      "warm_peak_reserved_gib": 19.375,
+      "mean_cold_seconds": 19.693900174727396,
+      "including_cold_peak_allocated_gib": 28.449440002441406,
+      "speedup_vs_dense": null,
+      "reference_batch_time_ratio": 0.9671987710635316,
+      "auc03_change_percent": 0.3153423158114288,
+      "auc30_change_percent": -0.2306191976063965,
+      "acc_change_percent": 0.47238419198947224,
+      "comp_change_percent": 1.2078161935895837,
+      "cd_change_percent": 0.8052454880244975,
+      "f1_change_percent": -3.9389419773051326
+    },
+    {
+      "method": "p3_sketch10_mid19",
+      "dataset": "eth3d",
+      "scenes": 11,
+      "auc03": 0.20362496972460117,
+      "auc30": 0.7542039248560118,
+      "acc": 0.3477532428644861,
+      "comp": 0.9280724561936914,
+      "cd": 0.6379128495290888,
+      "f1": 0.5593631378777372,
+      "seconds": 1.2379182023419575,
+      "reference_batch_seconds": 1.2641602784225887,
+      "warm_peak_allocated_gib": 10.976169109344482,
+      "warm_peak_reserved_gib": 14.837890625,
+      "mean_cold_seconds": 22.666382599791344,
+      "including_cold_peak_allocated_gib": 26.162409782409668,
+      "speedup_vs_dense": null,
+      "reference_batch_time_ratio": 0.9792414960914798,
+      "auc03_change_percent": -10.077664591657243,
+      "auc30_change_percent": -3.962659955133996,
+      "acc_change_percent": -3.115900588879572,
+      "comp_change_percent": 1.2441803225323067,
+      "cd_change_percent": 0.017314483673991354,
+      "f1_change_percent": 7.3975066743775075
+    }
+  ],
+  "historical_controls": [
+    {
+      "dataset": "7scenes",
+      "method": "dense_historical",
+      "scenes": 7,
+      "auc03": 0.2366891638545182,
+      "auc30": 0.8463887326584177,
+      "acc": 0.15374080240940666,
+      "comp": 0.1256160255234417,
+      "cd": 0.1396784139664242,
+      "f1": 0.4801276551669396,
+      "batch": "combined_reuse_20261031; historical quality, not rerun",
+      "checkpoint_note": "Old control records lack file SHA; original checkpoint path plus current active-tensor identity audit available, no retrospective byte-hash assertion"
+    },
+    {
+      "dataset": "7scenes",
+      "method": "saf3r_historical",
+      "scenes": 7,
+      "auc03": 0.2393489876265467,
+      "auc30": 0.8471310226846644,
+      "acc": 0.1432626693903912,
+      "comp": 0.12788284608493933,
+      "cd": 0.13557275773766525,
+      "f1": 0.4731542111605921,
+      "batch": "combined_reuse_20261031; historical quality, not rerun",
+      "checkpoint_note": "Old control records lack file SHA; original checkpoint path plus current active-tensor identity audit available, no retrospective byte-hash assertion"
+    },
+    {
+      "dataset": "eth3d",
+      "method": "dense_historical",
+      "scenes": 11,
+      "auc03": 0.2918346459281902,
+      "auc30": 0.8181621198339696,
+      "acc": 0.3131932065080847,
+      "comp": 0.8488543023579402,
+      "cd": 0.5810237544330125,
+      "f1": 0.6257313582034151,
+      "batch": "combined_reuse_20261031; historical quality, not rerun",
+      "checkpoint_note": "Old control records lack file SHA; original checkpoint path plus current active-tensor identity audit available, no retrospective byte-hash assertion"
+    },
+    {
+      "dataset": "eth3d",
+      "method": "saf3r_historical",
+      "scenes": 11,
+      "auc03": 0.23332202363746113,
+      "auc30": 0.8017474050031402,
+      "acc": 0.3031057650914992,
+      "comp": 0.8577196742854597,
+      "cd": 0.5804127196884794,
+      "f1": 0.6283039038215265,
+      "batch": "combined_reuse_20261031; historical quality, not rerun",
+      "checkpoint_note": "Old control records lack file SHA; original checkpoint path plus current active-tensor identity audit available, no retrospective byte-hash assertion"
+    },
+    {
+      "dataset": "eth3d",
+      "method": "A_all_specials_cluster12_historical",
+      "scenes": 11,
+      "auc03": 0.22429048382234848,
+      "auc30": 0.7886871256177852,
+      "acc": 0.31710663334494127,
+      "comp": 0.8646979444341393,
+      "cd": 0.5909022888895403,
+      "f1": 0.5560461597140517,
+      "batch": "rep_history_A_all_specials_20261105; RTX4090/Torch2.8"
+    }
+  ],
+  "all_logical_qk_including_both_probe_passes_below25pct": true
+}

@@ -21,12 +21,13 @@ def main():
    timings.append(dict(dataset=ds,method=label,seconds=r['seconds'],reference_batch_seconds=ref['seconds'],reference_batch_speedup=ref['seconds']/r['seconds'],warm_peak_allocated_gib=r.get('warm_peak_allocated_gib',r.get('peak_warm_allocated_gib')),speedup_vs_dense=None,reason='No paired Dense run authorized; original reference target timings are from the preceding batch'))
  recommended={r['dataset']:next(v['method'] for v in timings if v['dataset']==r['dataset'] and v['method']=='快速14%') for r in fast['macro']}
  save(root/'delivery_summary.json',dict(complete=True,methods=rows,timing=timings,default_recommendation=recommended,selection='Frozen independent RGB criteria;no target-truth retuning;fast14 retains primary low-latency role;budget17 is predeclared quality-oriented alternative',global_optimum=False))
- csvwrite(root/'delivery_macro.csv',[{k:v for k,v in r.items() if not isinstance(v,dict)} for r in rows]);csvwrite(root/'delivery_timing.csv',timings)
+ flat=[{k:v for k,v in r.items() if not isinstance(v,dict)} for r in rows];columns=list(dict.fromkeys(k for r in flat for k in r));csvwrite(root/'delivery_macro.csv',[{k:r.get(k) for k in columns} for r in flat]);csvwrite(root/'delivery_timing.csv',timings)
  lines=['# 最终交付：簇数、预算和概率证据的有限搜索','',
  '完成7Scenes全七场景128帧及ETH3D既有11场景（14–76帧）评测。下面是等场景宏平均，AUC/F1为%，距离m，CD为(ACC+Comp)/2。当前A12与两个新端点逐场景checkpoint SHA、RGB帧表、预处理、位姿、融合/对齐、阈值均通过审计。','',
  table(['数据集','方案','AUC3 %','AUC30 %','ACC m','Comp m','CD m','F1 %'],[[r['dataset'],r['label'],*[fmt(k,r[k]) for k in FIELDS]] for r in rows]),'',
  '两个新端点在评测前确定角色，默认推荐快速14%版；预算17%是独立RGB选择的质量优先替代项。不能按目标分数反复搜索预算，也不宣称全局最优。前期两个有退化的端点也完整保留，见report.md。','',
  table(['数据集','新方案','六项均不差于A12','重建退化不超过2%','不慢于上一批A12（仅历史参考）'],[[r['dataset'],r['label'],r['strict_all_six_not_worse'],r['no_more_than2pct_reconstruction_degradation'],r['faster_than_historical_current']] for r in rows if r['label']!='原A12']),'',
+ '预算扩展17%并未实现全面无损：7Scenes F1相对A12下降约1.37%，虽然在原2%重建退化范围内，也不能说性能完全不变。它的相机AUC更好，但比快速14%慢，点云指标并未全面更优。因此保留预先确定的快速14%默认角色，不把加预算当作必然改善。','',
  '## 完整前向时间与显存','',
  table(['数据集','方案','完整前向 s','相对上一批A12参考','热allocated峰值 GiB','正式Dense配对加速'],[[r['dataset'],r['method'],f"{r['seconds']:.6f}",f"{r['reference_batch_speedup']:.4f}x",f"{r['warm_peak_allocated_gib']:.3f}",'N/A'] for r in timings]),'',
  '各场景1次预热、3次完整前向中位数，再等场景平均；逐卡监控禁止同卡重叠。全部初始化/聚类/观测/预算/打包/特殊Query/预测头开销包含。A12目标时间来自上一批，不能当作同期配对。独立RGB验证另外在同卡同进程进行，与目标数据集时间分别记录。Dense仅定义基准1.00x，未重跑；无法给出本轮正式Dense配对加速。首次前向、reserved显存和完整采样见两个详细报告。','',

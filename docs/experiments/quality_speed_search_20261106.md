@@ -214,3 +214,20 @@ the familiar output path linked to the new destination. Resume checks identical
 frozen source/config/input,never reruns a completed quality scene,and archives
 incomplete infrastructure attempts with six unavailable fields. Source archives
 now gzip outside inference timing. This is I/O recovery,not a model change.
+
+## Final audited outcome
+
+Fast14:7Scenes AUC3/30=23.04321/84.58849%,ACC/Comp/CD=.14487/.12204/.13346m,
+F1=48.28839%;5.74509s,14.853GiB warm allocated peak. ETH3D=25.85807/80.17078%,
+.31923/.88150/.60036m,57.38140%;1.15039s,11.047GiB. Both datasets improve or
+hold all six macro metrics against current A12. Timings vs A12 preceding batch
+are historical;strict same-process independent RGB timing also passes.
+
+Budget17:7Scenes=23.66364/84.66506%,.14431/.12311/.13371m,47.60111%;6.01775s.
+ETH3D=26.33171/80.51372%,.33688/.88693/.61190m,57.09436%;1.17143s. Better
+camera AUC,but7Scenes F1 drops1.37% relative to A12 and it is slower thanfast14.
+Do not describe it as universally better or fully lossless. Preserve the
+predeclared fast14 default. Both18-scene source/input/config/protocol/isolation
+audits pass;no new tuning follows target truth. See FINAL_REPORT.md and the
+per-scene/layer CSVs.21 combined CPU/CUDA regressions pass. Formal paired
+Dense speedup N/A;unchanged Dense/SAF3R are not rerun.
