@@ -1,0 +1,31 @@
+START cp_budget_outer13_mid21 7scenes stairs 6
+START cp_budget_outer13_mid21 7scenes heads 4
+START cp_budget_outer13_mid21 7scenes chess 5
+END cp_budget_outer13_mid21 7scenes chess 1 False
+END cp_budget_outer13_mid21 7scenes heads 1 False
+END cp_budget_outer13_mid21 7scenes stairs 1 False
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-quality-search-query128-20261106/scripts/run_quality_speed_final.py", line 39, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/tmp/sparse-vggt-quality-search-query128-20261106/scripts/run_quality_speed_final.py", line 37, in main
+    with ThreadPoolExecutor(max_workers=3) as pool:list(pool.map(worker,[4,5,6]))
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-quality-search-query128-20261106/scripts/run_quality_speed_final.py", line 36, in worker
+    if code or not complete:raise RuntimeError('Incomplete changed-method run: '+key)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Incomplete changed-method run: cp_budget_outer13_mid21_7scenes_heads

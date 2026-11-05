@@ -16,7 +16,7 @@ def main():
    for key,value in cfg.items():assert r['config'][key]==value,key
    t=r['timing'];assert t['warmup']==1 and t['repeats']==3 and t['median_seconds']==statistics.median(s['seconds'] for s in t['samples'])
    m=json.loads((out/'monitors'/f'{name}_{ds}_{scene}.json').read_text());assert m['returncode']==0 and not m['same_gpu_overlap_detected'] and m['max_simultaneous_gpu_applications']==1
-   q=r['quality']['values'];assert abs(q['cd']-(q['acc']+q['comp'])/2)<1e-9
+   q=r['quality']['values'];assert all(math.isfinite(q[k]) for k in FIELDS);assert abs(q['cd']-(q['acc']+q['comp'])/2)<1e-9
    row=dict(dataset=ds,scene=scene,method=name,frames=r['frames'],**q,seconds=t['median_seconds'],reference_batch_seconds=ref['timing']['median_seconds'],reference_batch_speedup=ref['timing']['median_seconds']/t['median_seconds'],warm_peak_allocated_gib=max(s['peak_allocated_gib'] for s in t['samples']),warm_peak_reserved_gib=max(s['peak_reserved_gib'] for s in t['samples']),cold_seconds=t['cold_samples'][0]['seconds'],including_cold_peak_allocated_gib=max(s['peak_allocated_gib'] for s in t['samples']+t['cold_samples']),speedup_vs_dense=None,speedup_reason='No paired Dense forward;unchanged controls not rerun');rows.append(row)
    lr=json.loads((folder/'layers.json').read_text());assert len(lr)==24
    shape=r['input']['shape'];np=r['frames']*(shape[-2]//14)*(shape[-1]//14);n=np+r['frames']*5

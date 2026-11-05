@@ -1,0 +1,4323 @@
+{
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "auc30": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "acc": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "comp": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "cd": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "f1": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately."
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "config": {
+    "allocation_objective": "min_error",
+    "attention_backend": "indexed",
+    "attention_block_keys": 128,
+    "attention_block_queries": 64,
+    "attention_stages": 2,
+    "attention_warps": 4,
+    "budget_graph": false,
+    "cache_probe_indices": true,
+    "candidate_fraction": 1.0,
+    "capture": false,
+    "cluster_fraction": 0.1,
+    "cluster_neighbors": 32,
+    "clustering_mode": "source_local_unanchored",
+    "compact": true,
+    "dense_special_queries": 5,
+    "deterministic_reductions": false,
+    "direction_drop": true,
+    "disable_population_compensation": false,
+    "drop_multiplier": 1,
+    "dual_iterations": 16,
+    "evidence_mode": "fused_grid",
+    "execution_kernel": "direct_sparse",
+    "flash_group_chunk": 16,
+    "fuse_mask_ops": true,
+    "fuse_state_kernel": true,
+    "fused_coarse": true,
+    "graph_cache_capacity": 24,
+    "graph_cache_max_mib": 2048,
+    "grid_x": 2,
+    "grid_y": 2,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "hierarchical": false,
+    "history_cache_format": "compact_sampled_log_fp16",
+    "history_evidence_backend": "direct_sampled",
+    "history_mode": "dense_m5c",
+    "history_per_cluster": 4,
+    "history_query_interval": 256,
+    "history_split_export": true,
+    "layer_retentions": [
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1
+    ],
+    "local_iterations": 1,
+    "mass_transfer": true,
+    "p0_loss_pack": false,
+    "parent_arity": 4,
+    "parent_moment_mode": "exact",
+    "parent_passes": 2,
+    "prior_floor_fraction": 1e-06,
+    "query_group_size": 256,
+    "query_shift": 0,
+    "reference_dual_iterations": 16,
+    "refresh_interval": 1,
+    "rep_gain": true,
+    "retention": 0.2,
+    "reuse_window_graphs": true,
+    "sampled_split_launch": false,
+    "shared_value_allow_observed_rep": true,
+    "shared_value_features": "head_sketch",
+    "shared_value_loss": true,
+    "shared_value_weighting": "cluster_population",
+    "source_layout": "sequential",
+    "source_temporal_span": 1,
+    "source_width": 32,
+    "stable_binned_graph": true,
+    "state_l2": true,
+    "state_loss": "cosine_distortion",
+    "state_loss_history_gate": "observed",
+    "state_loss_operator": "group_history",
+    "state_loss_sketch_dim": 8,
+    "state_loss_variant": "legacy",
+    "static_shared_graph": false,
+    "window_graph": true,
+    "window_groups": 64,
+    "rep_history_loss": "A",
+    "fused_rope": true,
+    "autotune_dense_convolutions": true,
+    "fused_residual_add": true,
+    "reuse_cuda_allocations": true,
+    "efficient_source_scatter": true,
+    "current_probability_probes": 4,
+    "rep_history_execution": "prior_residual",
+    "skip_dead_exact_observation": false
+  },
+  "input": {
+    "image_paths": [
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000007.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000015.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000023.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000031.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000039.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000047.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000055.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000062.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000070.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000078.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000086.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000094.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000102.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000110.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000117.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000125.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000133.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000141.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000149.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000157.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000165.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000173.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000180.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000188.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000196.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000204.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000212.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000220.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000228.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000235.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000243.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000251.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000259.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000267.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000275.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000283.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000291.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000298.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000306.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000314.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000322.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000330.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000338.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000346.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000353.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000361.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000369.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000377.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000385.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000393.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000401.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000409.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000416.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000424.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000432.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000440.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000448.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000456.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000464.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000471.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000479.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000487.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000495.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000503.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000511.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000519.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000527.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000534.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000542.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000550.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000558.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000566.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000574.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000582.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000589.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000597.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000605.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000613.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000621.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000629.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000637.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000645.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000652.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000660.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000668.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000676.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000684.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000692.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000700.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000707.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000715.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000723.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000731.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000739.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000747.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000755.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000763.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000770.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000778.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000786.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000794.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000802.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000810.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000818.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000825.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000833.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000841.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000849.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000857.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000865.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000873.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000881.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000888.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000896.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000904.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000912.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000920.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000928.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000936.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000943.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000951.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000959.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000967.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000975.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000983.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000991.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000999.color.png"
+    ],
+    "frame_indices": [
+      0,
+      7,
+      15,
+      23,
+      31,
+      39,
+      47,
+      55,
+      62,
+      70,
+      78,
+      86,
+      94,
+      102,
+      110,
+      117,
+      125,
+      133,
+      141,
+      149,
+      157,
+      165,
+      173,
+      180,
+      188,
+      196,
+      204,
+      212,
+      220,
+      228,
+      235,
+      243,
+      251,
+      259,
+      267,
+      275,
+      283,
+      291,
+      298,
+      306,
+      314,
+      322,
+      330,
+      338,
+      346,
+      353,
+      361,
+      369,
+      377,
+      385,
+      393,
+      401,
+      409,
+      416,
+      424,
+      432,
+      440,
+      448,
+      456,
+      464,
+      471,
+      479,
+      487,
+      495,
+      503,
+      511,
+      519,
+      527,
+      534,
+      542,
+      550,
+      558,
+      566,
+      574,
+      582,
+      589,
+      597,
+      605,
+      613,
+      621,
+      629,
+      637,
+      645,
+      652,
+      660,
+      668,
+      676,
+      684,
+      692,
+      700,
+      707,
+      715,
+      723,
+      731,
+      739,
+      747,
+      755,
+      763,
+      770,
+      778,
+      786,
+      794,
+      802,
+      810,
+      818,
+      825,
+      833,
+      841,
+      849,
+      857,
+      865,
+      873,
+      881,
+      888,
+      896,
+      904,
+      912,
+      920,
+      928,
+      936,
+      943,
+      951,
+      959,
+      967,
+      975,
+      983,
+      991,
+      999
+    ],
+    "shape": [
+      128,
+      3,
+      392,
+      518
+    ],
+    "checkpoint": "/mnt/rfs/users/xiangliangyu/checkpoints/vggt-tracker-fixed/model_tracker_fixed_e20.pt",
+    "checkpoint_sha256": "b08a43baa2db1aad9718e71e098831b8ad32f6f6826c802e9eb714aa34420969",
+    "frame_reference": "/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/outputs/integrated_main_reeval_20261105/runs/7scenes/heads/integrated_main/input.json",
+    "frame_reference_checkpoint_sha256": "d15bf50a8615c8225ed48b51ea5cac673d82442ec0309036df555a053253afe0"
+  },
+  "full_gpu_event_seconds": 5.72121875,
+  "wall_seconds": 5.721302917227149,
+  "stages": [
+    {
+      "operation": "frame_MLP_heads_and_other_model",
+      "seconds": 3.533108825683594,
+      "percent": 61.75447889811229,
+      "times_sparse_core": 2.863934526752371
+    },
+    {
+      "operation": "sparse_attention_only",
+      "seconds": 1.2336555855870244,
+      "percent": 21.562810993497223,
+      "times_sparse_core": 1.0
+    },
+    {
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.32476735973358156,
+      "percent": 5.676541553905478,
+      "times_sparse_core": 0.26325610123918325
+    },
+    {
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.23412172698974615,
+      "percent": 4.092165274920595,
+      "times_sparse_core": 0.18977884080858867
+    },
+    {
+      "operation": "current_prior_state_selection",
+      "seconds": 0.17781104013323773,
+      "percent": 3.10792241833504,
+      "times_sparse_core": 0.14413345362403387
+    },
+    {
+      "operation": "current_value_geometry",
+      "seconds": 0.10229427146911621,
+      "percent": 1.7879804275813822,
+      "times_sparse_core": 0.08291963548354572
+    },
+    {
+      "operation": "unattributed_global_prepare_finalize",
+      "seconds": 0.04741821234021382,
+      "percent": 0.8288131325203011,
+      "times_sparse_core": 0.038437156118942446
+    },
+    {
+      "operation": "dense_special_query_correction",
+      "seconds": 0.04560899209976197,
+      "percent": 0.7971901458891423,
+      "times_sparse_core": 0.036970603977818754
+    },
+    {
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.014997919917106627,
+      "percent": 0.2621455422781488,
+      "times_sparse_core": 0.01215729908114508
+    },
+    {
+      "operation": "output_and_history_store",
+      "seconds": 0.007434816046617933,
+      "percent": 0.1299516129604017,
+      "times_sparse_core": 0.006026654548870818
+    }
+  ],
+  "per_layer": [
+    {
+      "layer": 0,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013519007682800293
+    },
+    {
+      "layer": 0,
+      "operation": "current_value_geometry",
+      "seconds": 0.0048453760147094726
+    },
+    {
+      "layer": 0,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009795007705688476
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0009056640267372132
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0044869441986083985
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008938879966735839
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004498464107513428
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 3.4304000437259674e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008971520066261291
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004527040004730224
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0009003520011901855
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004524960041046143
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 3.459199890494346e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0009010559916496276
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004527167797088623
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0009003520011901855
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0045270719528198245
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0009004160165786743
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0045289602279663084
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008994560241699219
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004526080131530762
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 3.2384000718593594e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004132480025291443
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0007823359966278076
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 7.872000336647033e-06
+    },
+    {
+      "layer": 0,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006946880221366883
+    },
+    {
+      "layer": 0,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019170559644699097
+    },
+    {
+      "layer": 1,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013554304122924805
+    },
+    {
+      "layer": 1,
+      "operation": "current_value_geometry",
+      "seconds": 0.004272319793701172
+    },
+    {
+      "layer": 1,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009717727661132812
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000872864007949829
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004468575954437256
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 3.455999866127968e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008613119721412658
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004471712112426758
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008602880239486694
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004466207981109619
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 3.651199862360954e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008613439798355102
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004467584133148193
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 3.455999866127968e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008623039722442627
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004476352214813233
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 3.452799841761589e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008644480109214783
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004499904155731201
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008664320111274719
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004510623931884766
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008706880211830139
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004512383937835694
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 3.459199890494346e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040400001406669617
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00077811199426651
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 7.4880002066493035e-06
+    },
+    {
+      "layer": 1,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005831999778747558
+    },
+    {
+      "layer": 1,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018923200368881226
+    },
+    {
+      "layer": 2,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013552063941955567
+    },
+    {
+      "layer": 2,
+      "operation": "current_value_geometry",
+      "seconds": 0.0041723837852478025
+    },
+    {
+      "layer": 2,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.00971225643157959
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008709120154380798
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004460959911346435
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008633599877357483
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004464191913604736
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 3.4304000437259674e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008623039722442627
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004457312107086182
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008603839874267578
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004459424018859863
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 3.4495998173952105e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008622080087661744
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004494847774505616
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008653759956359863
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004498303890228272
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 3.4495998173952105e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008685759902000427
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004506432056427002
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008696640133857727
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00451091194152832
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 3.392000123858452e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004031679928302765
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0007787520289421081
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 7.776000071316957e-06
+    },
+    {
+      "layer": 2,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005847679972648621
+    },
+    {
+      "layer": 2,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001892896056175232
+    },
+    {
+      "layer": 3,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013560576438903809
+    },
+    {
+      "layer": 3,
+      "operation": "current_value_geometry",
+      "seconds": 0.004066656112670899
+    },
+    {
+      "layer": 3,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009741888046264649
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008708480000495911
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004477407932281494
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 3.4495998173952105e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008613119721412658
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004472224235534668
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 3.462399914860725e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00086217600107193
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004463520050048828
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 3.462399914860725e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008612160086631775
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004478367805480957
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 3.462399914860725e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008663679957389832
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004502463817596436
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 3.452799841761589e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008674560189247131
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004506624221801757
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 3.5424001514911655e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008674560189247131
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004509183883666992
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008665279746055603
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004509312152862549
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 3.455999866127968e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040095999836921694
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0007802240252494812
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 8.031999692320824e-06
+    },
+    {
+      "layer": 3,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006192319989204406
+    },
+    {
+      "layer": 3,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001894144058227539
+    },
+    {
+      "layer": 4,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013483743667602539
+    },
+    {
+      "layer": 4,
+      "operation": "current_value_geometry",
+      "seconds": 0.004090720176696777
+    },
+    {
+      "layer": 4,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009714079856872558
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008708159923553467
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004478911876678467
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 3.455999866127968e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008633599877357483
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004467711925506592
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 3.436800092458725e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008644480109214783
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004467616081237793
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008655679821968079
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0045034241676330565
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008664960265159607
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004505055904388428
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 3.6416001617908476e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008673920035362244
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004513216018676758
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 3.5487998276948926e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008673920035362244
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0045090880393981935
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008687040209770202
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0045066561698913574
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 3.395200148224831e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040300801396369934
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.000778656005859375
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 8.031999692320824e-06
+    },
+    {
+      "layer": 4,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006520959734916687
+    },
+    {
+      "layer": 4,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018966079950332641
+    },
+    {
+      "layer": 5,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.01355344009399414
+    },
+    {
+      "layer": 5,
+      "operation": "current_value_geometry",
+      "seconds": 0.004042431831359863
+    },
+    {
+      "layer": 5,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.00970464038848877
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008694400191307068
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004467840194702148
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008628159761428833
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004456448078155518
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 3.452799841761589e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008628159761428833
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004489791870117187
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 3.603199869394302e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008669760227203369
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004499519824981689
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008670079708099365
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004506847858428955
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 3.4304000437259674e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008685119748115539
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004505727767944336
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008669440150260925
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004508736133575439
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 3.392000123858452e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008686079978942871
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004506591796875
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 3.392000123858452e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040220800042152407
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0007782719731330871
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 7.648000027984382e-06
+    },
+    {
+      "layer": 5,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006340799927711487
+    },
+    {
+      "layer": 5,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019029760360717773
+    },
+    {
+      "layer": 6,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013552831649780274
+    },
+    {
+      "layer": 6,
+      "operation": "current_value_geometry",
+      "seconds": 0.004089087963104248
+    },
+    {
+      "layer": 6,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009714655876159668
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008765760064125061
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.007949183940887452
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.057599976658821e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008701440095901489
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00801529598236084
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.057599976658821e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008733440041542054
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0080250883102417
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.057599976658821e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008736960291862488
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00803116798400879
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.0608000010252e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008720960021018982
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008034815788269043
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.047999903559685e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008727359771728516
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008052160263061523
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.057599976658821e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008711040019989014
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008062399864196778
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.057599976658821e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008736640214920044
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008087648391723632
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 3.945599868893623e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040723198652267456
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013756480216979981
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 8.031999692320824e-06
+    },
+    {
+      "layer": 6,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.000587552011013031
+    },
+    {
+      "layer": 6,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001892575979232788
+    },
+    {
+      "layer": 7,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013509280204772949
+    },
+    {
+      "layer": 7,
+      "operation": "current_value_geometry",
+      "seconds": 0.004115424156188965
+    },
+    {
+      "layer": 7,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009735360145568847
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008882880210876465
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008028160095214844
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.0511999279260635e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008803520202636719
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008021535873413086
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.0511999279260635e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008814399838447571
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008072192192077637
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.255999997258186e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008854399919509888
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008094719886779785
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.057599976658821e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008849279880523682
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008090144157409667
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.067200049757958e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008859840035438537
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008093279838562012
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.249599948525429e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000885919988155365
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00809875202178955
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.047999903559685e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008850240111351013
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008108256340026855
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.211200028657913e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000406143993139267
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013807679414749145
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 7.840000092983246e-06
+    },
+    {
+      "layer": 7,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005917119979858399
+    },
+    {
+      "layer": 7,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019018880128860473
+    },
+    {
+      "layer": 8,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013517439842224121
+    },
+    {
+      "layer": 8,
+      "operation": "current_value_geometry",
+      "seconds": 0.0041279358863830565
+    },
+    {
+      "layer": 8,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009756223678588867
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008924160003662109
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008017408370971679
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.047999903559685e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008849920034408569
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0080196475982666
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.0320001542568204e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008835200071334839
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008029184341430663
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.041599854826927e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008860480189323425
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008089280128479004
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.0288001298904416e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008886719942092895
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008091551780700684
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.156799986958504e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008901439905166626
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008092160224914552
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.057599976658821e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008895679712295532
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008113216400146485
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.047999903559685e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008891839981079101
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008111231803894043
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.012800008058548e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004061119854450226
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013807679414749145
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 7.935999892652035e-06
+    },
+    {
+      "layer": 8,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005792959928512573
+    },
+    {
+      "layer": 8,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001899135947227478
+    },
+    {
+      "layer": 9,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013518431663513183
+    },
+    {
+      "layer": 9,
+      "operation": "current_value_geometry",
+      "seconds": 0.00410368013381958
+    },
+    {
+      "layer": 9,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009753120422363282
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000889952003955841
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008033823966979981
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.067200049757958e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008829119801521301
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008077823638916015
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.064000025391579e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008875200152397156
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008094719886779785
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.0608000010252e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008881279826164246
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00809932804107666
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.0543999522924424e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008863679766654968
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008105504035949706
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.0511999279260635e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008880959749221802
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00811731243133545
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.044799879193306e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008875200152397156
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008112640380859374
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.057599976658821e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008849279880523682
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008130687713623047
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.016000032424927e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004071039855480194
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013843200206756592
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 7.935999892652035e-06
+    },
+    {
+      "layer": 9,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005522879958152771
+    },
+    {
+      "layer": 9,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018953919410705567
+    },
+    {
+      "layer": 10,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013513152122497558
+    },
+    {
+      "layer": 10,
+      "operation": "current_value_geometry",
+      "seconds": 0.004063744068145752
+    },
+    {
+      "layer": 10,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009777088165283204
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008872960209846497
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008062944412231446
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 3.9744000881910326e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008814079761505127
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008064959526062012
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.179200157523155e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008813440203666687
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00811728000640869
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.163200035691261e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000887615978717804
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008131679534912109
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.2176000773906706e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008874559998512268
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008134655952453614
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.227200150489807e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008874559998512268
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00813366413116455
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.1728001087903975e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008854719996452331
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008140831947326661
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.0063999593257904e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008869760036468505
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008142335891723633
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.0511999279260635e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040627199411392214
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013936320543289184
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 7.74399982765317e-06
+    },
+    {
+      "layer": 10,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006026880145072937
+    },
+    {
+      "layer": 10,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001904960036277771
+    },
+    {
+      "layer": 11,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013522111892700195
+    },
+    {
+      "layer": 11,
+      "operation": "current_value_geometry",
+      "seconds": 0.004114687919616699
+    },
+    {
+      "layer": 11,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009795392036437988
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008872640132904053
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008079360008239746
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.208000004291534e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008791679739952087
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008091679573059082
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.230400174856186e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008772159814834595
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008086527824401855
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.163200035691261e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008792960047721862
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008151583671569824
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.252799972891807e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008828799724578857
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008157695770263672
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.064000025391579e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008819199800491333
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008154720306396484
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.24639992415905e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008835520148277283
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008182687759399414
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.047999903559685e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008850560188293457
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008171648025512694
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.208000004291534e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040716800093650816
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013960959911346435
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 7.935999892652035e-06
+    },
+    {
+      "layer": 11,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005950719714164734
+    },
+    {
+      "layer": 11,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019005759954452515
+    },
+    {
+      "layer": 12,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013518464088439942
+    },
+    {
+      "layer": 12,
+      "operation": "current_value_geometry",
+      "seconds": 0.00410316801071167
+    },
+    {
+      "layer": 12,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009802847862243653
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008850240111351013
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008064959526062012
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.1728001087903975e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008751999735832214
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008132736206054687
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.204799979925156e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008832960128784179
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008141632080078126
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.2176000773906706e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008833600282669067
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008143808364868164
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.233599826693535e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008792319893836975
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008137696266174317
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.2208001017570495e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008833280205726623
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00815011215209961
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.2208001017570495e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008813120126724243
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008165375709533691
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.169600084424019e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008808959722518921
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008164223670959472
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.0608000010252e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004068799912929535
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013936320543289184
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 7.67999980598688e-06
+    },
+    {
+      "layer": 12,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007415040135383606
+    },
+    {
+      "layer": 12,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001922976016998291
+    },
+    {
+      "layer": 13,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013515968322753907
+    },
+    {
+      "layer": 13,
+      "operation": "current_value_geometry",
+      "seconds": 0.004137663841247558
+    },
+    {
+      "layer": 13,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009770848274230958
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008812800049781799
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008087648391723632
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.160000011324883e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008731840252876282
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008086496353149415
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.227200150489807e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00088019198179245
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008138879776000977
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.204799979925156e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008813440203666687
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008158176422119141
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.230400174856186e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008770560026168824
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00814793586730957
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.163200035691261e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008793280124664306
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008152031898498535
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.2399998754262926e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008771520256996155
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008168448448181152
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.16640006005764e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008809599876403809
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00815664005279541
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.0543999522924424e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004063040018081665
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013952000141143799
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 7.807999849319458e-06
+    },
+    {
+      "layer": 13,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006710720062255859
+    },
+    {
+      "layer": 13,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.00190828800201416
+    },
+    {
+      "layer": 14,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013522144317626952
+    },
+    {
+      "layer": 14,
+      "operation": "current_value_geometry",
+      "seconds": 0.0040984640121459965
+    },
+    {
+      "layer": 14,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009779423713684081
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00088019198179245
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008021535873413086
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.057599976658821e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000874239981174469
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008010656356811523
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.0511999279260635e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008738560080528259
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008042880058288574
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.073600098490715e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008776640295982361
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008068096160888672
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.041599854826927e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008783360123634338
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008097824096679687
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.16640006005764e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008794879913330078
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00809267234802246
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.0543999522924424e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008773120045661926
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00811728000640869
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.0608000010252e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008789439797401428
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008121439933776856
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.211200028657913e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040620800852775573
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013844159841537476
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 7.840000092983246e-06
+    },
+    {
+      "layer": 14,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006069440245628357
+    },
+    {
+      "layer": 14,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001909279942512512
+    },
+    {
+      "layer": 15,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013576767921447753
+    },
+    {
+      "layer": 15,
+      "operation": "current_value_geometry",
+      "seconds": 0.004061567783355713
+    },
+    {
+      "layer": 15,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009796095848083495
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008770560026168824
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008046624183654785
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.227200150489807e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008750399947166443
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00809779167175293
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.224000126123428e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008773760199546814
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008117119789123535
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.0256001055240634e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008771520256996155
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008113216400146485
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.233599826693535e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008750720024108887
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008122367858886719
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.1760001331567763e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008793920278549194
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008121343612670898
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.019200056791306e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008792960047721862
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008144895553588867
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.233599826693535e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008767039775848389
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008152064323425292
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.262400045990944e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004047999978065491
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013931519985198974
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 7.935999892652035e-06
+    },
+    {
+      "layer": 15,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005911679863929749
+    },
+    {
+      "layer": 15,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019077440500259398
+    },
+    {
+      "layer": 16,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.01352620792388916
+    },
+    {
+      "layer": 16,
+      "operation": "current_value_geometry",
+      "seconds": 0.00542848014831543
+    },
+    {
+      "layer": 16,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009854528427124023
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008816959857940674
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008049280166625976
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.044799879193306e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008725759983062745
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008031231880187988
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.0543999522924424e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000877888023853302
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008086560249328613
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.0511999279260635e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008773120045661926
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008102432250976562
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.0511999279260635e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008769279718399048
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008103455543518066
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.0608000010252e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008792639970779419
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008100895881652833
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.2688000947237015e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008773120045661926
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008105504035949706
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.0511999279260635e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008787840008735657
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008110112190246582
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.095999896526337e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040515199303627015
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013828480243682861
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 7.872000336647033e-06
+    },
+    {
+      "layer": 16,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006648319959640503
+    },
+    {
+      "layer": 16,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019008959531784057
+    },
+    {
+      "layer": 17,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013515392303466796
+    },
+    {
+      "layer": 17,
+      "operation": "current_value_geometry",
+      "seconds": 0.004050015926361084
+    },
+    {
+      "layer": 17,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009771519660949708
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000885312020778656
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008013824462890624
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.233599826693535e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008751680254936218
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008026111602783203
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.0224000811576846e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008752319812774658
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008034272193908691
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.2176000773906706e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008792319893836975
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008082528114318848
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.019200056791306e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008854399919509888
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008094783782958984
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.11520004272461e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008833600282669067
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008092639923095703
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 3.964800015091896e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008813120126724243
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008121376037597655
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.0224000811576846e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008828480243682861
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.008112640380859374
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.0511999279260635e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004052160084247589
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0013823679685592651
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 7.776000071316957e-06
+    },
+    {
+      "layer": 17,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007523840069770813
+    },
+    {
+      "layer": 17,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001920896053314209
+    },
+    {
+      "layer": 18,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013515007972717286
+    },
+    {
+      "layer": 18,
+      "operation": "current_value_geometry",
+      "seconds": 0.00479801607131958
+    },
+    {
+      "layer": 18,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009771967887878418
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008890560269355774
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004470335960388184
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 3.200000151991844e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008788480162620544
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004485151767730713
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008833280205726623
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00450870418548584
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 3.1840000301599505e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008835200071334839
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0045112638473510745
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 3.392000123858452e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008828160166740417
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0045
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 3.254399821162224e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008828480243682861
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004506815910339355
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 3.4304000437259674e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008828480243682861
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004501567840576172
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 3.385600075125694e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008829119801521301
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004513216018676758
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 3.395200148224831e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004052160084247589
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0007807999849319458
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 7.67999980598688e-06
+    },
+    {
+      "layer": 18,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007184320092201233
+    },
+    {
+      "layer": 18,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019058239459991454
+    },
+    {
+      "layer": 19,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013558976173400879
+    },
+    {
+      "layer": 19,
+      "operation": "current_value_geometry",
+      "seconds": 0.005101856231689453
+    },
+    {
+      "layer": 19,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009783103942871093
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000872767984867096
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004452832221984863
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 3.452799841761589e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008634240031242371
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0044496960639953615
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008642879724502563
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004451776027679443
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008613439798355102
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004455264091491699
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000862559974193573
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00446560001373291
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008643839955329895
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004487008094787598
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008644480109214783
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004492127895355224
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008660159707069397
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004494463920593262
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 3.395200148224831e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004031679928302765
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0007765759825706482
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 7.903999648988247e-06
+    },
+    {
+      "layer": 19,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007101759910583496
+    },
+    {
+      "layer": 19,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018960319757461547
+    },
+    {
+      "layer": 20,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013555359840393067
+    },
+    {
+      "layer": 20,
+      "operation": "current_value_geometry",
+      "seconds": 0.004097439765930176
+    },
+    {
+      "layer": 20,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009710399627685547
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008686720132827758
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004450751781463623
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008655359745025635
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0044542717933654784
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 3.452799841761589e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008601920008659363
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004445087909698486
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008601599931716919
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004450240135192871
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 3.436800092458725e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008624320030212403
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00448412799835205
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008695359826087952
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004484064102172851
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008665279746055603
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004494815826416016
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 3.443200141191483e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008684800267219543
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004495903968811035
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 3.392000123858452e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040323200821876525
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.000778656005859375
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 7.3600001633167265e-06
+    },
+    {
+      "layer": 20,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005740799903869629
+    },
+    {
+      "layer": 20,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018898880481719971
+    },
+    {
+      "layer": 21,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013556991577148438
+    },
+    {
+      "layer": 21,
+      "operation": "current_value_geometry",
+      "seconds": 0.004071775913238525
+    },
+    {
+      "layer": 21,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.00972815990447998
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000869920015335083
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004465792179107666
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 3.452799841761589e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008629119992256165
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004466271877288818
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 3.455999866127968e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000860319972038269
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004455584049224854
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 3.385600075125694e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008609600067138672
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004475103855133057
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 3.433600068092346e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008628479838371277
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004498655796051025
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 3.3824000507593154e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000864512026309967
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004497536182403564
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008669760227203369
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004502143859863281
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 3.465599939227104e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008684160113334655
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004499008178710937
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 3.392000123858452e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004031679928302765
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0007782719731330871
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 7.71200004965067e-06
+    },
+    {
+      "layer": 21,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.000566815972328186
+    },
+    {
+      "layer": 21,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018871359825134277
+    },
+    {
+      "layer": 22,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013496576309204101
+    },
+    {
+      "layer": 22,
+      "operation": "current_value_geometry",
+      "seconds": 0.004113952159881592
+    },
+    {
+      "layer": 22,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.009710975646972656
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008749439716339111
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004458943843841553
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008624320030212403
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004448703765869141
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008643839955329895
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004448192119598389
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008624640107154847
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004448800086975097
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 3.4495998173952105e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008642879724502563
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004451263904571534
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008644160032272339
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004452383995056152
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 3.433600068092346e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008644800186157226
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004465663909912109
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 3.433600068092346e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008685439825057983
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004488319873809815
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040300801396369934
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.000778656005859375
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 7.872000336647033e-06
+    },
+    {
+      "layer": 22,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005626879930496216
+    },
+    {
+      "layer": 22,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001886944055557251
+    },
+    {
+      "layer": 23,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013553119659423829
+    },
+    {
+      "layer": 23,
+      "operation": "current_value_geometry",
+      "seconds": 0.004127423763275146
+    },
+    {
+      "layer": 23,
+      "operation": "exact_current_probe_probability",
+      "seconds": 0.00972441577911377
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008709120154380798
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004455872058868408
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 3.452799841761589e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008611840009689331
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004445695877075195
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008603519797325134
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00446611213684082
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008623679876327515
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004478911876678467
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 3.4464001655578615e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000864512026309967
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004488096237182617
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 3.455999866127968e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000864512026309967
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.004487071990966797
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 3.241600096225738e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008643519878387451
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0044882879257202146
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 3.4272000193595885e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008686400055885315
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00448576021194458
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 3.459199890494346e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00040300801396369934
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0007786239981651306
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 7.199999876320362e-06
+    },
+    {
+      "layer": 23,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0005611519813537597
+    },
+    {
+      "layer": 23,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018825600147247316
+    }
+  ],
+  "global_attention_wrappers_seconds": 2.1881099243164064,
+  "peak_allocated_gib": 14.726861000061035,
+  "peak_reserved_gib": 18.62109375,
+  "speedup_vs_dense": null,
+  "definition": "Mutually exclusive stage events;outer global Attention times only derive remainder,never added again. Other-model remainder=full event time-global wrappers. Includes CPU launch/sync gaps inside event intervals."
+}

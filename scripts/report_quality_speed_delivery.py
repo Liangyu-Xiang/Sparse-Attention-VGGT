@@ -26,6 +26,7 @@ def main():
  '完成7Scenes全七场景128帧及ETH3D既有11场景（14–76帧）评测。下面是等场景宏平均，AUC/F1为%，距离m，CD为(ACC+Comp)/2。当前A12与两个新端点逐场景checkpoint SHA、RGB帧表、预处理、位姿、融合/对齐、阈值均通过审计。','',
  table(['数据集','方案','AUC3 %','AUC30 %','ACC m','Comp m','CD m','F1 %'],[[r['dataset'],r['label'],*[fmt(k,r[k]) for k in FIELDS]] for r in rows]),'',
  '两个新端点在评测前确定角色，默认推荐快速14%版；预算17%是独立RGB选择的质量优先替代项。不能按目标分数反复搜索预算，也不宣称全局最优。前期两个有退化的端点也完整保留，见report.md。','',
+ table(['数据集','新方案','六项均不差于A12','重建退化不超过2%','不慢于上一批A12（仅历史参考）'],[[r['dataset'],r['label'],r['strict_all_six_not_worse'],r['no_more_than2pct_reconstruction_degradation'],r['faster_than_historical_current']] for r in rows if r['label']!='原A12']),'',
  '## 完整前向时间与显存','',
  table(['数据集','方案','完整前向 s','相对上一批A12参考','热allocated峰值 GiB','正式Dense配对加速'],[[r['dataset'],r['method'],f"{r['seconds']:.6f}",f"{r['reference_batch_speedup']:.4f}x",f"{r['warm_peak_allocated_gib']:.3f}",'N/A'] for r in timings]),'',
  '各场景1次预热、3次完整前向中位数，再等场景平均；逐卡监控禁止同卡重叠。全部初始化/聚类/观测/预算/打包/特殊Query/预测头开销包含。A12目标时间来自上一批，不能当作同期配对。独立RGB验证另外在同卡同进程进行，与目标数据集时间分别记录。Dense仅定义基准1.00x，未重跑；无法给出本轮正式Dense配对加速。首次前向、reserved显存和完整采样见两个详细报告。','',
