@@ -1,3 +1,5 @@
+> Scope correction: this is a user-method research candidate, not a completed accuracy-and-speed repair. Grouped SAF3R results belong to a separate baseline-execution experiment and do not establish repair of this method.
+
 # ETH3D regression repair
 
 REJECTED as final method: quality improves, but the measured 7Scenes cost violates the user requirement not to sacrifice speed. This is a retained research candidate.
