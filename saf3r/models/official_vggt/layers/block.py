@@ -79,6 +79,10 @@ class Block(nn.Module):
         self.sample_drop_ratio = drop_path
 
     def forward(self, x: Tensor, pos=None) -> Tensor:
+        if not self.training and getattr(self, "fuse_inference_residual", False):
+            from saf3r.triton.reuse_residual_add import scaled_add
+            x = scaled_add(x, self.attn(self.norm1(x), pos=pos), self.ls1.gamma)
+            return scaled_add(x, self.mlp(self.norm2(x)), self.ls2.gamma)
         def attn_residual_func(x: Tensor, pos=None) -> Tensor:
             return self.ls1(self.attn(self.norm1(x), pos=pos))
 

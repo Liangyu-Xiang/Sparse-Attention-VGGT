@@ -201,7 +201,7 @@ def run(args):
             raise ValueError('Paired Dense timing mismatch')
         q.update(speedup_vs_vggt=bt['median_seconds']/timing['median_seconds'],speedup_unavailable=None)
     elif dataset_name!='7scenes':
-        q.update(speedup_unavailable='Speed evaluation requested only for7Scenes; no paired Dense ETH3D timing')
+        q.update(speedup_unavailable='No paired Dense timing; Dense rerun not authorized')
     result=dict(common,quality=q,metrics=metrics,quality_errors=errors)
     save(out/'result.json',result);write_quality(out,q)
     save(out/'status.json',dict(stage='complete' if q['complete'] else 'quality_incomplete'))
