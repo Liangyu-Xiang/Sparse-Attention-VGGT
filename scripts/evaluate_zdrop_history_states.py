@@ -85,7 +85,7 @@ def run(args):
     with tarfile.open(fileobj=buffer,mode='w') as archive:
         for name in sorted(names):
             data=(ROOT/name).read_bytes();hashes[name]=hashlib.sha256(data).hexdigest();entry=tarfile.TarInfo(name);entry.size=len(data);archive.addfile(entry,io.BytesIO(data))
-    (out/'source_snapshot.tar').write_bytes(buffer.getvalue())
+    __import__('gzip').open(out/'source_snapshot.tar.gz','wb').write(buffer.getvalue())
     save(out/'source_sha256.json',hashes)
     samples=[];cold=[];raw=None
     for iteration in range(args.warmup+args.repeats):

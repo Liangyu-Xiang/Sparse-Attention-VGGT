@@ -159,3 +159,40 @@ This improves information acquisition by adding small full-Key probe QK while
 removing older probability-estimation machinery. Total physical QK including
 both probe passes is reported separately;fewer main retained Keys does not by
 itself prove fewer total QK. Both passes and all preparation count in full time.
+
+## Diagnostic tail correction (frozen model unchanged)
+
+Initial nominal held-out Query positions could clamp to the final token and
+coincide with an observed tail Probe. Correct the diagnostic to exclude EVERY
+observed clamped row,for both candidate and reference. Supplement the ALREADY
+FROZEN current-probe candidate only;do not reselect parameters or rerun target
+quality. Strict RGB validation still passes (chessseq03 time/error ratios
+.89215/.89519,TUM128 .94485/.55265). Preserve original diagnostic files and
+record the correction separately in current_probe_strict_validation.json.
+
+Probability accuracy must likewise use the actual four clamped observed Query
+IDs,including duplicate tails and any special Queries,not a deduplicated
+Patch-only diagnostic set. Corrected real64-frame/24-layer candidate-pool max
+relative probability difference is2.19e-6. Old derived2.1% discrepancy was a
+mismatched diagnostic target;raw old/corrected records are both retained.
+The new method retains709/917 old helpful candidate edges (77.32%),covering
+97.57% of the sum of their individual gains. This is finite-pool support overlap
+across different trajectories,not a proof of additive/joint final geometry gain.
+Coordinates and original RGB paths are in critical_keys_current_probe.csv.
+
+21 CUDA tests now pass across new probability kernels,A/history compensation,
+old shared layout/special paths and sparse AV. Full new backend assessment is
+18 complete quality runs;previous two changed endpoints have36 runs. All six
+fields are present for quality and explicitly N/A for diagnostic/test records.
+
+## Last bounded budget-only sweep
+
+With strict independent RGB validation5.746s vs6.081s,measure whether spare time
+can buy better fidelity under the SAME original latency ceiling. Keep all
+current-probe probability/state/cluster settings fixed. Six schedules:10/20/10,
+10/21/10,flat16,flat17,12/21/12,13/21/13. Every layer cap <=21%,even with both
+probe scans plus dense-special work total logical QK <25%. Also retain original
+A12 and frozen14% references (8 rows including references). Rank only independent
+RGB held-out errors/time;validate before any further changed-method quality.
+The14% version and its complete quality are reused,never rerun for selection.
+This is the final planned parameter expansion;no7Scenes test-score tuning.

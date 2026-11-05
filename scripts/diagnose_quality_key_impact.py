@@ -19,10 +19,25 @@ class Impact(Fidelity):
    for group in (self.ids//s.config.query_group_size).unique().tolist():
     if start<=group<start+len(old):self.priors[group]=r[0][group-start].clone();self.histories[group]=old[group-start].clone()
    return r
-  history.build_prior=prior;return self
+  history.build_prior=prior
+  if self.new_backend:
+   import saf3r.triton.current_probe_probability as probe
+   self.current_probability_original=probe.probability;self.observed_positions=None
+   def observed(q,k,patches,group_size,probes,scale):
+    result=self.current_probability_original(q,k,patches,group_size,probes,scale);self.observed_positions=result[1]
+    for group in (self.ids//group_size).unique().tolist():
+     self.priors[group]=result[0][group].clone()
+     if self.s.history_ids is not None:self.histories[group]=self.s.history_ids[group].clone()
+    return result
+   probe.probability=observed
+  return self
  def __exit__(self,*args):
   import saf3r.patch.reuse_sampled_history as history
-  history.build_prior=self.prior_original;super().__exit__(*args)
+  history.build_prior=self.prior_original
+  if self.new_backend:
+   import saf3r.triton.current_probe_probability as probe
+   probe.probability=self.current_probability_original
+  super().__exit__(*args)
  def measure(self,layer):
   super().measure(layer)
   import torch
@@ -45,6 +60,10 @@ class Impact(Fidelity):
    slot=(query_ids==probe_id).nonzero().flatten()
    if len(slot):probe_probability=prob[:,slot[0],top].mean(0)
    else:probe_probability=(torch.bmm(q[:,probe_id:probe_id+1].float(),k.float().transpose(1,2))*module.scale).softmax(-1)[:,0,top].mean(0)
+   if self.new_backend:
+    qpos=self.observed_positions[group]
+    observed_mean=(torch.bmm(q[:,qpos].float(),k.float().transpose(1,2))*module.scale).softmax(-1)[:,:,top].mean((0,1))
+   else:observed_mean=probe_probability
    import numpy as np
    self.traces[f'L{layer}_G{group}']=np.packbits((rbank>0).cpu().numpy())
    pe=prob[:,:,top];ve=vf[:,top]
@@ -58,14 +77,14 @@ class Impact(Fidelity):
    distance=(ve-vr).square().sum(-1).mean(0);mean_distance=(ve.mean(0)-vr.mean(0)).square().sum(-1)
    estimated=self.priors[group][patch] if group in self.priors else torch.full((len(top),),torch.nan,device=q.device)
    observed=torch.isin(patch,self.histories[group]) if group in self.histories else torch.zeros(len(top),device=q.device,dtype=torch.bool)
-   arrays=torch.stack((top.float(),score[top],labels.float(),rep.float(),present.float(),estimated,observed.float(),swap_error,own_error,mean_distance,distance,(prob[:,:,top].clamp_min(1e-30).log()-prob[:,:,rep].clamp_min(1e-30).log()).abs().mean((0,1)),probe_probability)).cpu().T.tolist()
+   arrays=torch.stack((top.float(),score[top],labels.float(),rep.float(),present.float(),estimated,observed.float(),swap_error,own_error,mean_distance,distance,(prob[:,:,top].clamp_min(1e-30).log()-prob[:,:,rep].clamp_min(1e-30).log()).abs().mean((0,1)),probe_probability,observed_mean)).cpu().T.tolist()
    for x in arrays:
-    key,probability,cluster,rep_id,has_rep,prior,history,swap,replace,md,fd,logitdiff,probe_probability=x;key=int(key);frame=key//(s.height*s.width+5);pixel=key%(s.height*s.width+5)-5
-    self.keys.append(dict(layer=layer,query_group=group,key_id=key,key_frame=frame,key_y=pixel//s.width,key_x=pixel%s.width,cluster=int(cluster),rep_id=int(rep_id),omitted_reason='approximate_cluster' if has_rep else 'dropped_cluster',true_dense_probability_group_mean=probability,true_dense_probability_probe0=probe_probability,prior_target='Probe0 head-mean, compare against true_dense_probability_probe0',estimated_prior_probability=prior if prior==prior else None,was_history=bool(history),base_relative_mse=float(base),fixed_budget_weakest_swap_relative_mse=swap,fixed_budget_weakest_swap_gain=float(base)-swap,weakest_key=int(weak),weakest_weight=float(weak_w),own_rep_swap_relative_mse=replace if has_rep else None,own_rep_swap_gain=float(base)-replace if has_rep else None,head_mean_value_distance_sq=md,per_head_value_distance_sq=fd,mean_abs_per_head_logit_difference=logitdiff))
+    key,probability,cluster,rep_id,has_rep,prior,history,swap,replace,md,fd,logitdiff,probe_probability,observed_mean=x;key=int(key);frame=key//(s.height*s.width+5);pixel=key%(s.height*s.width+5)-5
+    self.keys.append(dict(layer=layer,query_group=group,key_id=key,key_frame=frame,key_y=pixel//s.width,key_x=pixel%s.width,cluster=int(cluster),rep_id=int(rep_id),omitted_reason='approximate_cluster' if has_rep else 'dropped_cluster',true_dense_probability_group_mean=probability,true_dense_probability_probe0=probe_probability,true_dense_probability_observed_mean=observed_mean,prior_target=('Current observed4-clamped-probe/head-mean,compare observed_mean;includes duplicate tail probes' if self.new_backend and self.s.config.current_probability_probes==4 else 'Probe0 head-mean,compare probe0'),estimated_prior_probability=prior if prior==prior else None,was_history=bool(history),base_relative_mse=float(base),fixed_budget_weakest_swap_relative_mse=swap,fixed_budget_weakest_swap_gain=float(base)-swap,weakest_key=int(weak),weakest_weight=float(weak_w),own_rep_swap_relative_mse=replace if has_rep else None,own_rep_swap_gain=float(base)-replace if has_rep else None,head_mean_value_distance_sq=md,per_head_value_distance_sq=fd,mean_abs_per_head_logit_difference=logitdiff))
   self.priors={};self.histories={}
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--plan',type=Path,required=True);p.add_argument('--selection',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--plan',type=Path,required=True);p.add_argument('--selection',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--only-selected',action='store_true');a=p.parse_args()
  import torch,yaml
  from addict import Dict
  from saf3r.utils.model_utils import build_model
@@ -73,6 +92,7 @@ def main():
  from saf3r.patch.reuse_residual_exploration import ReuseExploreConfig,install_reuse_residual_exploration
  from scripts.quality_metrics import quality_record,quality_markdown
  plan=json.loads(a.plan.read_text());selected=json.loads(a.selection.read_text());rows=[plan['candidates'][0]]+[dict(name=r['name'],config=json.loads((ROOT/r['config']).read_text())) for r in selected['candidates'][:1]]
+ if a.only_selected:rows=rows[1:]
  torch.set_num_threads(2);torch.manual_seed(0);torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
  cfg=Dict(yaml.safe_load((ROOT/'configs/evaluation/eval_saf3r_vggt.yaml').read_text())['model']);cfg.pop('patch_module');cfg.pop('sparse_config_path');cfg.ckpt_path=plan['checkpoint'];model=build_model(cfg,'cuda').eval();images=load_images(model,'vggt',plan['calibration']['scannet']['image_paths']).cuda()
  for row in rows:

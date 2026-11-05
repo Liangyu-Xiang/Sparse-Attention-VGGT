@@ -33,6 +33,10 @@ class Fidelity:
    ids=(groups[:,None]*s.config.query_group_size+torch.tensor([1,3,5,7],device=q.device)*(s.config.query_group_size//8)-offset).flatten().clamp_max(s.n-1)
    special=torch.zeros(s.n,device=q.device,dtype=torch.bool);special[s.specials]=True
    self.ids=ids[~special[ids]].unique()
+   if getattr(s,'_diagnostic_heldout',False):
+    observed=(groups[:,None]*s.config.query_group_size+torch.tensor([1,3,5,7],device=q.device)*(s.config.query_group_size//8)).flatten().clamp_max(s.n-1)
+    self.ids=self.ids[~torch.isin(self.ids,observed)]
+    assert not torch.isin(self.ids,observed).any()
    return q,k,v
   def execute(q,k,v,actual,specials,scale,bias,**kwargs):
    result,evidence=self.orig_execute(q,k,v,actual,specials,scale,bias,**kwargs)
