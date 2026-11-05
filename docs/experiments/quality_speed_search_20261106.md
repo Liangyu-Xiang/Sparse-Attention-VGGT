@@ -43,3 +43,25 @@ Cost of all diagnostics/search is separate from frozen-candidate inference.
 No extra Dense timing authorized. Formal relative Dense speedup is N/A.
 Comparison to previous6.090130s7Scenes/1.264160sETH3D batch is historical unless
 the changed algorithm's reference is paired inside the current experiment.
+
+## Independent modelling phase2 (before target quality)
+
+A's loss uses estimated p(h), but population-hcount compensation assumes
+uniform member probabilities. Add opt-in rep_history_execution=prior_residual.
+Rep-state weight=pi_cluster/prior_rep. History-state non-Rep weights1;
+Rep weight=(pi_cluster-sum(nonrep historical prior))/prior_rep. Exact weights1.
+The old A support/loss/budget/selector stay unchanged, with a different causal
+trajectory due to these weights. Uniform prior recovers original population
+weights;single Rep history equals Rep. Predicted cluster mass is conserved,
+not necessarily true Dense mass. Positive numerical guard clamps ratio >=1.
+Historical mass is reduced in the existing correction kernel, no extra QK or
+per-member nearest-neighbor ownership.15 CPU/CUDA loss/layout/special tests pass.
+
+Also test candidate_fraction=1 against.25. All clusters can compete for Exact
+within identical edge budgets. Top-F eligibility is implemented as an all-true
+mask, mathematically avoiding sparse-mm,full sort and mask scatter for this case.
+This is a modelling change in eligibility, with an equivalent faster execution
+of the all-eligible case. Both changes are default-off,separate factorial trials.
+26 phase2 configurations are frozen:8/10/12% clusters,population/prior_residual,
+Exact25/100% eligibility,mean16/12% retention,and two10% head-sketch all-eligible
+trials motivated by phase1 RGB error. This extension uses no target GT.

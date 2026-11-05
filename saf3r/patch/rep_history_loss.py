@@ -67,6 +67,7 @@ def select(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterat
     from saf3r.triton import reuse_shared_value_states as shared
     from saf3r.triton.reuse_compact import budget
     mode={'legacy':0,'A':1,'B':2}[geometry['rep_history_loss']];diag=geometry.get('rep_history_diagnostics',False)
+    calibrated=geometry.get('rep_history_execution','population')=='prior_residual'
     context=rule.gate(prior,pi,population,old_ids,labels,reps)
     context['remove_rep']=torch.zeros_like(context['remove_rep'])
     original_amount=context['eligible_count'];g,n=prior.shape;f=len(reps)
@@ -74,7 +75,7 @@ def select(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterat
     kr=torch.zeros_like(d);dh=torch.zeros_like(d);ph=torch.zeros_like(d)
     _corrections[(g,triton.cdiv(old_ids.shape[1],256))](old_ids,prior,uniform,geometry['shared_grid'],labels,
         geometry['shared_token_drop'],geometry['shared_token_rep'],context['qualified'],original_amount,
-        d,r,kd,kr,dh,ph,n,f,uniform.shape[1],old_ids.shape[1],256,mode,diag,num_warps=4,enable_fp_fusion=False)
+        d,r,kd,kr,dh,ph,n,f,uniform.shape[1],old_ids.shape[1],256,mode,diag or calibrated,num_warps=4,enable_fp_fusion=False)
     errors,costs=shared.states(uniform,allowed,population,geometry,context,(d,r,kd))
     amount=original_amount
     if mode:
@@ -87,7 +88,11 @@ def select(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterat
     ids,real,record=rule.pack(selected,None,reps,labels,population,cap,context)
     if mode==1:
         weights=torch.empty(ids.shape,device=ids.device)
-        _weights_A[(g,triton.cdiv(ids.shape[1],256))](ids,labels,reps,selected,population,amount,weights,n,f,ids.shape[1],256,num_warps=4)
+        if calibrated:
+            from .rep_history_prior_weights import weights_A
+            weights_A(ids,labels,reps,selected,prior,pi,ph,context['observed_rep'],weights)
+        else:
+            _weights_A[(g,triton.cdiv(ids.shape[1],256))](ids,labels,reps,selected,population,amount,weights,n,f,ids.shape[1],256,num_warps=4)
     else:weights=execution_weights('cluster_population',selected,ids,reps,labels,population,prior,pi,amount)
     context['mass_error']=torch.zeros(g,device=prior.device)
     record.update(rule.diagnostics(errors,selected,None,old_ids,labels,reps,context))

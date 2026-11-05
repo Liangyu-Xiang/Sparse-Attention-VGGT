@@ -36,6 +36,7 @@ class ReuseExploreConfig:
     history_query_interval:int=32
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
+    rep_history_execution:str='population'
     rep_history_loss:str='legacy'
     rep_history_diagnostics:bool=False
     shared_value_loss: bool = False
@@ -104,6 +105,8 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.rep_history_execution not in ('population','prior_residual'):raise ValueError('Invalid History A compensation')
+        if self.rep_history_execution!='population' and self.rep_history_loss!='A':raise ValueError('Prior-residual compensation requires History A')
         if self.rep_history_loss not in ('legacy','A','B'):raise ValueError('Invalid Rep-based History ablation')
         if (self.rep_history_loss!='legacy' or self.rep_history_diagnostics) and (not self.shared_value_loss or not self.window_graph or self.shared_value_weighting!='cluster_population' or not self.shared_value_allow_observed_rep or self.state_loss_variant!='legacy' or self.operator_loss!='legacy' or self.partial_key_states):raise ValueError('Rep-History ablation requires the frozen shared four-state base')
         if self.operator_loss not in ('legacy','normalized_moment') or self.operator_feature_dim not in (4,8):raise ValueError('Invalid operator repair configuration')
@@ -461,6 +464,7 @@ class ReuseResidualExploration(nn.Module):
                     geometry['drop_bins']=[(size,bins.get(size,torch.empty(0,device=x.device,dtype=torch.int32)))
                         for size in (1,2,4,8,16,32,64,128,256,512) if size<=geometry['width']]
                     geometry['bounded_bins']=True
+                geometry['rep_history_execution']=c.rep_history_execution
                 geometry['rep_history_loss']=c.rep_history_loss
                 geometry['rep_history_diagnostics']=c.rep_history_diagnostics
                 geometry['shared_value_weighting']=c.shared_value_weighting
@@ -548,18 +552,23 @@ class ReuseResidualExploration(nn.Module):
                         beta=torch.where(previous>1e-12,(probability/previous.clamp_min(1e-12)).clamp_max(1),0)
                         demand=(probability-beta*s.previous_real_grid[start:start+g].float()).clamp_min(0)
                 with stage(s,'residual_fine_probe'),torch.autocast(x.device.type,enabled=False):
-                    residual=torch.sparse.mm(overlap,demand.T).T
-                    candidate=residual.topk(candidates,dim=1).indices
-                    # sparse.mm(...).T is column-major. Production state kernels
-                    # consume Query-group x cluster masks; allocate row-major
-                    # directly, without an extra per-window transpose/copy.
-                    allowed=torch.zeros(residual.shape,device=residual.device,dtype=torch.bool).scatter_(1,candidate,True)
-                    if not c.compact:
-                        ck=k[:,s.patches[s.fine.reps[candidate]]]
-                        logits=(pq@ck.transpose(-1,-2)).float()*o.scale+population[candidate].log()[None,:,None]
-                        fine_mass=(logits-normalizer).exp().mean((0,2))
-                        pi_hat=pi.clone().scatter_(1,candidate,fine_mass)
-                        pi_hat/=pi_hat.sum(1,keepdim=True).clamp_min(1e-30)
+                    if c.compact and c.candidate_fraction==1.:
+                        # All clusters eligible: mathematically identical to
+                        # Top-F, without sparse-mm/sort/row scatter.
+                        allowed=torch.ones((g,s.fine.base_count),device=x.device,dtype=torch.bool)
+                    else:
+                        residual=torch.sparse.mm(overlap,demand.T).T
+                        candidate=residual.topk(candidates,dim=1).indices
+                        # sparse.mm(...).T is column-major. Production state kernels
+                        # consume Query-group x cluster masks; allocate row-major
+                        # directly, without an extra per-window transpose/copy.
+                        allowed=torch.zeros(residual.shape,device=residual.device,dtype=torch.bool).scatter_(1,candidate,True)
+                        if not c.compact:
+                            ck=k[:,s.patches[s.fine.reps[candidate]]]
+                            logits=(pq@ck.transpose(-1,-2)).float()*o.scale+population[candidate].log()[None,:,None]
+                            fine_mass=(logits-normalizer).exp().mean((0,2))
+                            pi_hat=pi.clone().scatter_(1,candidate,fine_mass)
+                            pi_hat/=pi_hat.sum(1,keepdim=True).clamp_min(1e-30)
                 with stage(s,'reuse_and_budget'),torch.autocast(x.device.type,enabled=False):
                     if c.window_graph:
                         from .reuse_window_graph import select
