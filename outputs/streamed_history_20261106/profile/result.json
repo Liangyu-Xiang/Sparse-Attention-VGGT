@@ -1,0 +1,7588 @@
+{
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "auc30": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "acc": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "comp": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "cd": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately.",
+      "f1": "Separate128-frame CUDA-event implementation profile; no pose/recon_unposed quality evaluated. Normal uninstrumented timings reported separately."
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "config": {
+    "allocation_objective": "min_error",
+    "attention_backend": "indexed",
+    "attention_block_keys": 128,
+    "attention_block_queries": 64,
+    "attention_stages": 2,
+    "attention_warps": 4,
+    "budget_graph": false,
+    "cache_probe_indices": true,
+    "candidate_fraction": 1.0,
+    "capture": false,
+    "cluster_fraction": 0.1,
+    "cluster_neighbors": 32,
+    "clustering_mode": "source_local_unanchored",
+    "compact": true,
+    "dense_special_queries": 5,
+    "deterministic_reductions": false,
+    "direction_drop": true,
+    "disable_population_compensation": false,
+    "drop_multiplier": 1,
+    "dual_iterations": 16,
+    "evidence_mode": "fused_grid",
+    "execution_kernel": "direct_sparse",
+    "flash_group_chunk": 16,
+    "fuse_mask_ops": true,
+    "fuse_state_kernel": true,
+    "fused_coarse": true,
+    "graph_cache_capacity": 24,
+    "graph_cache_max_mib": 2048,
+    "grid_x": 2,
+    "grid_y": 2,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "hierarchical": false,
+    "history_cache_format": "compact_sampled_log_fp16",
+    "history_evidence_backend": "direct_sampled",
+    "history_mode": "dense_m5c",
+    "history_per_cluster": 4,
+    "history_query_interval": 256,
+    "history_split_export": true,
+    "layer_retentions": [
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.18,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1,
+      0.1
+    ],
+    "local_iterations": 1,
+    "mass_transfer": true,
+    "p0_loss_pack": false,
+    "parent_arity": 4,
+    "parent_moment_mode": "exact",
+    "parent_passes": 2,
+    "prior_floor_fraction": 1e-06,
+    "query_group_size": 256,
+    "query_shift": 0,
+    "reference_dual_iterations": 16,
+    "refresh_interval": 1,
+    "rep_gain": true,
+    "retention": 0.2,
+    "reuse_window_graphs": true,
+    "sampled_split_launch": false,
+    "shared_value_allow_observed_rep": true,
+    "shared_value_features": "head_sketch",
+    "shared_value_loss": true,
+    "shared_value_weighting": "cluster_population",
+    "source_layout": "sequential",
+    "source_temporal_span": 1,
+    "source_width": 32,
+    "stable_binned_graph": true,
+    "state_l2": true,
+    "state_loss": "cosine_distortion",
+    "state_loss_history_gate": "observed",
+    "state_loss_operator": "group_history",
+    "state_loss_sketch_dim": 8,
+    "state_loss_variant": "legacy",
+    "static_shared_graph": false,
+    "window_graph": true,
+    "window_groups": 64,
+    "rep_history_loss": "A",
+    "fused_rope": true,
+    "autotune_dense_convolutions": true,
+    "fused_residual_add": true,
+    "reuse_cuda_allocations": true,
+    "efficient_source_scatter": true,
+    "current_probability_probes": 0,
+    "rep_history_execution": "prior_residual",
+    "skip_dead_exact_observation": false,
+    "streamed_probability_history": true,
+    "streamed_history_normalizer": "selected_d2",
+    "streamed_history_bits": 16,
+    "streamed_history_region_transport": true,
+    "history_key_block_size": 64,
+    "streamed_history_prior_weight": 0.25
+  },
+  "input": {
+    "image_paths": [
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000007.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000015.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000023.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000031.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000039.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000047.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000055.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000062.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000070.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000078.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000086.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000094.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000102.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000110.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000117.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000125.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000133.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000141.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000149.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000157.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000165.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000173.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000180.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000188.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000196.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000204.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000212.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000220.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000228.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000235.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000243.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000251.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000259.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000267.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000275.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000283.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000291.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000298.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000306.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000314.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000322.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000330.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000338.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000346.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000353.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000361.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000369.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000377.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000385.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000393.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000401.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000409.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000416.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000424.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000432.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000440.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000448.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000456.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000464.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000471.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000479.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000487.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000495.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000503.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000511.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000519.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000527.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000534.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000542.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000550.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000558.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000566.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000574.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000582.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000589.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000597.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000605.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000613.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000621.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000629.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000637.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000645.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000652.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000660.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000668.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000676.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000684.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000692.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000700.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000707.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000715.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000723.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000731.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000739.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000747.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000755.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000763.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000770.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000778.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000786.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000794.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000802.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000810.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000818.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000825.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000833.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000841.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000849.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000857.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000865.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000873.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000881.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000888.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000896.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000904.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000912.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000920.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000928.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000936.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000943.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000951.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000959.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000967.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000975.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000983.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000991.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000999.color.png"
+    ],
+    "frame_indices": [
+      0,
+      7,
+      15,
+      23,
+      31,
+      39,
+      47,
+      55,
+      62,
+      70,
+      78,
+      86,
+      94,
+      102,
+      110,
+      117,
+      125,
+      133,
+      141,
+      149,
+      157,
+      165,
+      173,
+      180,
+      188,
+      196,
+      204,
+      212,
+      220,
+      228,
+      235,
+      243,
+      251,
+      259,
+      267,
+      275,
+      283,
+      291,
+      298,
+      306,
+      314,
+      322,
+      330,
+      338,
+      346,
+      353,
+      361,
+      369,
+      377,
+      385,
+      393,
+      401,
+      409,
+      416,
+      424,
+      432,
+      440,
+      448,
+      456,
+      464,
+      471,
+      479,
+      487,
+      495,
+      503,
+      511,
+      519,
+      527,
+      534,
+      542,
+      550,
+      558,
+      566,
+      574,
+      582,
+      589,
+      597,
+      605,
+      613,
+      621,
+      629,
+      637,
+      645,
+      652,
+      660,
+      668,
+      676,
+      684,
+      692,
+      700,
+      707,
+      715,
+      723,
+      731,
+      739,
+      747,
+      755,
+      763,
+      770,
+      778,
+      786,
+      794,
+      802,
+      810,
+      818,
+      825,
+      833,
+      841,
+      849,
+      857,
+      865,
+      873,
+      881,
+      888,
+      896,
+      904,
+      912,
+      920,
+      928,
+      936,
+      943,
+      951,
+      959,
+      967,
+      975,
+      983,
+      991,
+      999
+    ],
+    "shape": [
+      128,
+      3,
+      392,
+      518
+    ],
+    "checkpoint": "/mnt/rfs/users/xiangliangyu/checkpoints/vggt-tracker-fixed/model_tracker_fixed_e20.pt",
+    "checkpoint_sha256": "b08a43baa2db1aad9718e71e098831b8ad32f6f6826c802e9eb714aa34420969",
+    "frame_reference": "/mnt/rfs/users/xiangliangyu/projects/Sparse-Attention-VGGT/outputs/integrated_main_reeval_20261105/runs/7scenes/chess/integrated_main/input.json",
+    "frame_reference_checkpoint_sha256": "d15bf50a8615c8225ed48b51ea5cac673d82442ec0309036df555a053253afe0"
+  },
+  "full_gpu_event_seconds": 5.84053857421875,
+  "wall_seconds": 5.840618969872594,
+  "stages": [
+    {
+      "operation": "frame_MLP_heads_and_other_model",
+      "seconds": 3.5247151718139653,
+      "percent": 60.34914635052201,
+      "times_attention_with_inline_history": 2.3936409903617175
+    },
+    {
+      "operation": "sparse_attention_with_inline_history",
+      "seconds": 1.4725329262018212,
+      "percent": 25.21227978361211,
+      "times_attention_with_inline_history": 1.0
+    },
+    {
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.32441443443298335,
+      "percent": 5.55452943783319,
+      "times_attention_with_inline_history": 0.22031047908026202
+    },
+    {
+      "operation": "current_prior_state_selection",
+      "seconds": 0.19040835195779784,
+      "percent": 3.2601163323926423,
+      "times_attention_with_inline_history": 0.12930668548711352
+    },
+    {
+      "operation": "current_value_geometry",
+      "seconds": 0.10842723083496095,
+      "percent": 1.8564594592967745,
+      "times_attention_with_inline_history": 0.07363314524628851
+    },
+    {
+      "operation": "current_coarse_observation",
+      "seconds": 0.04858649563789368,
+      "percent": 0.8318838240768366,
+      "times_attention_with_inline_history": 0.032995184537717125
+    },
+    {
+      "operation": "unattributed_global_prepare_finalize",
+      "seconds": 0.04826797889638623,
+      "percent": 0.8264302732191562,
+      "times_attention_with_inline_history": 0.0327788791934767
+    },
+    {
+      "operation": "dense_special_query_correction",
+      "seconds": 0.04551875197887421,
+      "percent": 0.7793588108432782,
+      "times_attention_with_inline_history": 0.030911873798491578
+    },
+    {
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.019063136160373688,
+      "percent": 0.32639346385831614,
+      "times_attention_with_inline_history": 0.012945813177532269
+    },
+    {
+      "operation": "history_probability_transfer",
+      "seconds": 0.018506720182951544,
+      "percent": 0.3168666715881945,
+      "times_attention_with_inline_history": 0.01256794999530969
+    },
+    {
+      "operation": "headmean_history_finalize",
+      "seconds": 0.01677939214184881,
+      "percent": 0.2872918640742524,
+      "times_attention_with_inline_history": 0.011394918132750178
+    },
+    {
+      "operation": "missing_key_normalizer",
+      "seconds": 0.013718208033591516,
+      "percent": 0.23487916155791347,
+      "times_attention_with_inline_history": 0.009316061997320213
+    },
+    {
+      "operation": "output_and_history_store",
+      "seconds": 0.009599775945302095,
+      "percent": 0.16436456712532188,
+      "times_attention_with_inline_history": 0.006519226683822469
+    }
+  ],
+  "per_layer": [
+    {
+      "layer": 0,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.01351689624786377
+    },
+    {
+      "layer": 0,
+      "operation": "current_value_geometry",
+      "seconds": 0.00506009578704834
+    },
+    {
+      "layer": 0,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020403199195861816
+    },
+    {
+      "layer": 0,
+      "operation": "history_probability_transfer",
+      "seconds": 2.9632000252604483e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008095359802246094
+    },
+    {
+      "layer": 0,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.060799956321716e-05
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00537443208694458
+    },
+    {
+      "layer": 0,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.017599791288375e-05
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 5.040000006556511e-05
+    },
+    {
+      "layer": 0,
+      "operation": "history_probability_transfer",
+      "seconds": 2.97279991209507e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0007904000282287597
+    },
+    {
+      "layer": 0,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.993599817156792e-05
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005382207870483399
+    },
+    {
+      "layer": 0,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.049600034952164e-05
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 5.0655998289585113e-05
+    },
+    {
+      "layer": 0,
+      "operation": "history_probability_transfer",
+      "seconds": 2.8319999575614928e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0007922559976577759
+    },
+    {
+      "layer": 0,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.958399921655655e-05
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005371840000152588
+    },
+    {
+      "layer": 0,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.043199986219406e-05
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 5.0175998359918594e-05
+    },
+    {
+      "layer": 0,
+      "operation": "history_probability_transfer",
+      "seconds": 3.033600002527237e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0007913920283317566
+    },
+    {
+      "layer": 0,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.932800099253654e-05
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005370816230773926
+    },
+    {
+      "layer": 0,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.13919997215271e-05
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 5.06879985332489e-05
+    },
+    {
+      "layer": 0,
+      "operation": "history_probability_transfer",
+      "seconds": 2.8351999819278716e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0007954239845275879
+    },
+    {
+      "layer": 0,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9487998485565186e-05
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005358655929565429
+    },
+    {
+      "layer": 0,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.014399766921997e-05
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 5.0335999578237536e-05
+    },
+    {
+      "layer": 0,
+      "operation": "history_probability_transfer",
+      "seconds": 3.049599938094616e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0007932800054550171
+    },
+    {
+      "layer": 0,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.913599953055382e-05
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005391488075256348
+    },
+    {
+      "layer": 0,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.046400010585785e-05
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 5.06879985332489e-05
+    },
+    {
+      "layer": 0,
+      "operation": "history_probability_transfer",
+      "seconds": 2.8319999575614928e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0007921599745750427
+    },
+    {
+      "layer": 0,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.8752000331878665e-05
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005370912075042725
+    },
+    {
+      "layer": 0,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.036799937486648e-05
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 0,
+      "operation": "history_probability_transfer",
+      "seconds": 3.0400000512599945e-05
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0007967680096626282
+    },
+    {
+      "layer": 0,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005430335998535156
+    },
+    {
+      "layer": 0,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.039999961853027e-05
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 5.030399933457375e-05
+    },
+    {
+      "layer": 0,
+      "operation": "history_probability_transfer",
+      "seconds": 6.6559999249875545e-06
+    },
+    {
+      "layer": 0,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003949120044708252
+    },
+    {
+      "layer": 0,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.478400036692619e-05
+    },
+    {
+      "layer": 0,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009901440143585205
+    },
+    {
+      "layer": 0,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.4944001585245135e-05
+    },
+    {
+      "layer": 0,
+      "operation": "output_and_history_store",
+      "seconds": 7.648000027984382e-06
+    },
+    {
+      "layer": 0,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0015857599973678588
+    },
+    {
+      "layer": 0,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019093120098114013
+    },
+    {
+      "layer": 1,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.01355072021484375
+    },
+    {
+      "layer": 1,
+      "operation": "current_value_geometry",
+      "seconds": 0.0050553278923034664
+    },
+    {
+      "layer": 1,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020438721179962156
+    },
+    {
+      "layer": 1,
+      "operation": "history_probability_transfer",
+      "seconds": 9.164799749851227e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000859935998916626
+    },
+    {
+      "layer": 1,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.0479998588562014e-05
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005422656059265137
+    },
+    {
+      "layer": 1,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 5.0815999507904055e-05
+    },
+    {
+      "layer": 1,
+      "operation": "history_probability_transfer",
+      "seconds": 9.177599847316742e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008475199937820434
+    },
+    {
+      "layer": 1,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.134400144219398e-05
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0054041919708251954
+    },
+    {
+      "layer": 1,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.072000205516816e-05
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 5.0112001597881316e-05
+    },
+    {
+      "layer": 1,
+      "operation": "history_probability_transfer",
+      "seconds": 9.436800330877304e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008445119857788086
+    },
+    {
+      "layer": 1,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.939200147986412e-05
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005316256046295166
+    },
+    {
+      "layer": 1,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 5.0879999995231625e-05
+    },
+    {
+      "layer": 1,
+      "operation": "history_probability_transfer",
+      "seconds": 9.174399822950363e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008387200236320496
+    },
+    {
+      "layer": 1,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00530076789855957
+    },
+    {
+      "layer": 1,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.075200229883194e-05
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 5.0144001841545105e-05
+    },
+    {
+      "layer": 1,
+      "operation": "history_probability_transfer",
+      "seconds": 9.219200164079666e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008402559757232667
+    },
+    {
+      "layer": 1,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.140799820423126e-05
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0053153281211853025
+    },
+    {
+      "layer": 1,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.03359991312027e-05
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 5.075199902057648e-05
+    },
+    {
+      "layer": 1,
+      "operation": "history_probability_transfer",
+      "seconds": 9.113600105047225e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008414720296859742
+    },
+    {
+      "layer": 1,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005360288143157959
+    },
+    {
+      "layer": 1,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.988800317049027e-05
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 5.040000006556511e-05
+    },
+    {
+      "layer": 1,
+      "operation": "history_probability_transfer",
+      "seconds": 9.212800115346908e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008464000225067139
+    },
+    {
+      "layer": 1,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9487998485565186e-05
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00534991979598999
+    },
+    {
+      "layer": 1,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.03359991312027e-05
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 1,
+      "operation": "history_probability_transfer",
+      "seconds": 9.174399822950363e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008475840091705322
+    },
+    {
+      "layer": 1,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005372447967529297
+    },
+    {
+      "layer": 1,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.1103997528553e-05
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 5.008000135421753e-05
+    },
+    {
+      "layer": 1,
+      "operation": "history_probability_transfer",
+      "seconds": 5.558399856090546e-05
+    },
+    {
+      "layer": 1,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00039983999729156495
+    },
+    {
+      "layer": 1,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.491200134158135e-05
+    },
+    {
+      "layer": 1,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009869760274887084
+    },
+    {
+      "layer": 1,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.5519998520612714e-05
+    },
+    {
+      "layer": 1,
+      "operation": "output_and_history_store",
+      "seconds": 7.71200004965067e-06
+    },
+    {
+      "layer": 1,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007114239931106567
+    },
+    {
+      "layer": 1,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018979519605636596
+    },
+    {
+      "layer": 2,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013504639625549316
+    },
+    {
+      "layer": 2,
+      "operation": "current_value_geometry",
+      "seconds": 0.004401247978210449
+    },
+    {
+      "layer": 2,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020218560695648194
+    },
+    {
+      "layer": 2,
+      "operation": "history_probability_transfer",
+      "seconds": 9.353599697351456e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000856607973575592
+    },
+    {
+      "layer": 2,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.94559982419014e-05
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005404319763183594
+    },
+    {
+      "layer": 2,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.039999961853027e-05
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 5.06879985332489e-05
+    },
+    {
+      "layer": 2,
+      "operation": "history_probability_transfer",
+      "seconds": 9.180799871683121e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008418239951133728
+    },
+    {
+      "layer": 2,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.0896001756191256e-05
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005331552028656006
+    },
+    {
+      "layer": 2,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.883200258016587e-05
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 5.0175998359918594e-05
+    },
+    {
+      "layer": 2,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000838271975517273
+    },
+    {
+      "layer": 2,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.916799977421761e-05
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005290751934051514
+    },
+    {
+      "layer": 2,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.03359991312027e-05
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 5.2799999713897704e-05
+    },
+    {
+      "layer": 2,
+      "operation": "history_probability_transfer",
+      "seconds": 9.120000153779983e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008367679715156556
+    },
+    {
+      "layer": 2,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.201599910855294e-05
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005305024147033691
+    },
+    {
+      "layer": 2,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.956800073385239e-05
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 5.0175998359918594e-05
+    },
+    {
+      "layer": 2,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008382400274276734
+    },
+    {
+      "layer": 2,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.131200119853019e-05
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005345983982086182
+    },
+    {
+      "layer": 2,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.036799937486648e-05
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 5.075199902057648e-05
+    },
+    {
+      "layer": 2,
+      "operation": "history_probability_transfer",
+      "seconds": 9.123200178146362e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008449280261993409
+    },
+    {
+      "layer": 2,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.143999844789505e-05
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005372447967529297
+    },
+    {
+      "layer": 2,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.98240026831627e-05
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 2,
+      "operation": "history_probability_transfer",
+      "seconds": 9.232000261545181e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008444160223007203
+    },
+    {
+      "layer": 2,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005363423824310303
+    },
+    {
+      "layer": 2,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.937599927186966e-05
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 5.075199902057648e-05
+    },
+    {
+      "layer": 2,
+      "operation": "history_probability_transfer",
+      "seconds": 9.180799871683121e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008449280261993409
+    },
+    {
+      "layer": 2,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005375552177429199
+    },
+    {
+      "layer": 2,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.177600264549255e-05
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 2,
+      "operation": "history_probability_transfer",
+      "seconds": 5.539200082421303e-05
+    },
+    {
+      "layer": 2,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00039795199036598205
+    },
+    {
+      "layer": 2,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.4719999879598617e-05
+    },
+    {
+      "layer": 2,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009841279983520508
+    },
+    {
+      "layer": 2,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.558399900794029e-05
+    },
+    {
+      "layer": 2,
+      "operation": "output_and_history_store",
+      "seconds": 7.807999849319458e-06
+    },
+    {
+      "layer": 2,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007093440294265747
+    },
+    {
+      "layer": 2,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018871999979019165
+    },
+    {
+      "layer": 3,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013488191604614258
+    },
+    {
+      "layer": 3,
+      "operation": "current_value_geometry",
+      "seconds": 0.004326111793518066
+    },
+    {
+      "layer": 3,
+      "operation": "current_coarse_observation",
+      "seconds": 0.002019423961639404
+    },
+    {
+      "layer": 3,
+      "operation": "history_probability_transfer",
+      "seconds": 9.167999774217606e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008521919846534729
+    },
+    {
+      "layer": 3,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.936000123620033e-05
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00535206413269043
+    },
+    {
+      "layer": 3,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.976000219583512e-05
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 5.0175998359918594e-05
+    },
+    {
+      "layer": 3,
+      "operation": "history_probability_transfer",
+      "seconds": 9.12640020251274e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008402879834175109
+    },
+    {
+      "layer": 3,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005341856002807617
+    },
+    {
+      "layer": 3,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.03359991312027e-05
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 3,
+      "operation": "history_probability_transfer",
+      "seconds": 9.132800251245498e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008388479948043823
+    },
+    {
+      "layer": 3,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005307007789611817
+    },
+    {
+      "layer": 3,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.075200229883194e-05
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 5.027199909090996e-05
+    },
+    {
+      "layer": 3,
+      "operation": "history_probability_transfer",
+      "seconds": 9.241600334644318e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008381760120391846
+    },
+    {
+      "layer": 3,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9487998485565186e-05
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005322336196899414
+    },
+    {
+      "layer": 3,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 5.075199902057648e-05
+    },
+    {
+      "layer": 3,
+      "operation": "history_probability_transfer",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008403840065002441
+    },
+    {
+      "layer": 3,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.003199890255928e-05
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00533462381362915
+    },
+    {
+      "layer": 3,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.072000205516816e-05
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 5.027199909090996e-05
+    },
+    {
+      "layer": 3,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008424000144004822
+    },
+    {
+      "layer": 3,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.923200026154518e-05
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005317344188690186
+    },
+    {
+      "layer": 3,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.039999961853027e-05
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 5.0144001841545105e-05
+    },
+    {
+      "layer": 3,
+      "operation": "history_probability_transfer",
+      "seconds": 9.200000017881394e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008402879834175109
+    },
+    {
+      "layer": 3,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.012799963355064e-05
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005326272010803223
+    },
+    {
+      "layer": 3,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.049600034952164e-05
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 5.0335999578237536e-05
+    },
+    {
+      "layer": 3,
+      "operation": "history_probability_transfer",
+      "seconds": 9.209600090980529e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008444160223007203
+    },
+    {
+      "layer": 3,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0053705921173095705
+    },
+    {
+      "layer": 3,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.027199864387512e-05
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 5.0815999507904055e-05
+    },
+    {
+      "layer": 3,
+      "operation": "history_probability_transfer",
+      "seconds": 5.491200089454651e-05
+    },
+    {
+      "layer": 3,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00039705601334571837
+    },
+    {
+      "layer": 3,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.4719999879598617e-05
+    },
+    {
+      "layer": 3,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009866880178451538
+    },
+    {
+      "layer": 3,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.6416001617908476e-05
+    },
+    {
+      "layer": 3,
+      "operation": "output_and_history_store",
+      "seconds": 7.872000336647033e-06
+    },
+    {
+      "layer": 3,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006595199704170227
+    },
+    {
+      "layer": 3,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018836480379104614
+    },
+    {
+      "layer": 4,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013553248405456544
+    },
+    {
+      "layer": 4,
+      "operation": "current_value_geometry",
+      "seconds": 0.004503071784973145
+    },
+    {
+      "layer": 4,
+      "operation": "current_coarse_observation",
+      "seconds": 0.002012063980102539
+    },
+    {
+      "layer": 4,
+      "operation": "history_probability_transfer",
+      "seconds": 9.379199892282487e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008536000251770019
+    },
+    {
+      "layer": 4,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.939200147986412e-05
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00533568000793457
+    },
+    {
+      "layer": 4,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.950400024652481e-05
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 5.030399933457375e-05
+    },
+    {
+      "layer": 4,
+      "operation": "history_probability_transfer",
+      "seconds": 9.107200056314469e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008403519988059997
+    },
+    {
+      "layer": 4,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0053285760879516605
+    },
+    {
+      "layer": 4,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 5.078399926424027e-05
+    },
+    {
+      "layer": 4,
+      "operation": "history_probability_transfer",
+      "seconds": 9.1839998960495e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008403199911117553
+    },
+    {
+      "layer": 4,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005301792144775391
+    },
+    {
+      "layer": 4,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.972800195217133e-05
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 4,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008383039832115173
+    },
+    {
+      "layer": 4,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.035200133919716e-05
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005332704067230225
+    },
+    {
+      "layer": 4,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 5.097600072622299e-05
+    },
+    {
+      "layer": 4,
+      "operation": "history_probability_transfer",
+      "seconds": 9.107200056314469e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008394240140914917
+    },
+    {
+      "layer": 4,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.936000123620033e-05
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005323328018188476
+    },
+    {
+      "layer": 4,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.097599655389785e-05
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 4.998400062322616e-05
+    },
+    {
+      "layer": 4,
+      "operation": "history_probability_transfer",
+      "seconds": 9.219200164079666e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008402879834175109
+    },
+    {
+      "layer": 4,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.140799820423126e-05
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005330719947814941
+    },
+    {
+      "layer": 4,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.020799815654754e-05
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 5.075199902057648e-05
+    },
+    {
+      "layer": 4,
+      "operation": "history_probability_transfer",
+      "seconds": 9.123200178146362e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008408640027046204
+    },
+    {
+      "layer": 4,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.872000008821488e-05
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005382719993591308
+    },
+    {
+      "layer": 4,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.068800181150437e-05
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 5.0335999578237536e-05
+    },
+    {
+      "layer": 4,
+      "operation": "history_probability_transfer",
+      "seconds": 9.228800237178802e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008464319705963135
+    },
+    {
+      "layer": 4,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.12800009548664e-05
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005362400054931641
+    },
+    {
+      "layer": 4,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 5.078399926424027e-05
+    },
+    {
+      "layer": 4,
+      "operation": "history_probability_transfer",
+      "seconds": 5.4944001138210295e-05
+    },
+    {
+      "layer": 4,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003964160084724426
+    },
+    {
+      "layer": 4,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.5392001271247867e-05
+    },
+    {
+      "layer": 4,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009847360253334046
+    },
+    {
+      "layer": 4,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.440000116825104e-05
+    },
+    {
+      "layer": 4,
+      "operation": "output_and_history_store",
+      "seconds": 7.935999892652035e-06
+    },
+    {
+      "layer": 4,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007355520129203796
+    },
+    {
+      "layer": 4,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018870719671249389
+    },
+    {
+      "layer": 5,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013553248405456544
+    },
+    {
+      "layer": 5,
+      "operation": "current_value_geometry",
+      "seconds": 0.004382719993591308
+    },
+    {
+      "layer": 5,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020169599056243897
+    },
+    {
+      "layer": 5,
+      "operation": "history_probability_transfer",
+      "seconds": 9.391999989748e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008592000007629395
+    },
+    {
+      "layer": 5,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.939200147986412e-05
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005372576236724854
+    },
+    {
+      "layer": 5,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.052800059318543e-05
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 5.116799846291542e-05
+    },
+    {
+      "layer": 5,
+      "operation": "history_probability_transfer",
+      "seconds": 9.212800115346908e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008466879725456237
+    },
+    {
+      "layer": 5,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005370528221130371
+    },
+    {
+      "layer": 5,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.03359991312027e-05
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 5.06879985332489e-05
+    },
+    {
+      "layer": 5,
+      "operation": "history_probability_transfer",
+      "seconds": 9.331200271844864e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008449599742889404
+    },
+    {
+      "layer": 5,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00531935977935791
+    },
+    {
+      "layer": 5,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.966400146484375e-05
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 5,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008383039832115173
+    },
+    {
+      "layer": 5,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.035200133919716e-05
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005316287994384766
+    },
+    {
+      "layer": 5,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.039999961853027e-05
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 5.071999877691269e-05
+    },
+    {
+      "layer": 5,
+      "operation": "history_probability_transfer",
+      "seconds": 9.123200178146362e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008408960103988648
+    },
+    {
+      "layer": 5,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005298783779144287
+    },
+    {
+      "layer": 5,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.078400254249573e-05
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 5.027199909090996e-05
+    },
+    {
+      "layer": 5,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008424000144004822
+    },
+    {
+      "layer": 5,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.932800099253654e-05
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005362400054931641
+    },
+    {
+      "layer": 5,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.023999840021133e-05
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 5,
+      "operation": "history_probability_transfer",
+      "seconds": 9.1839998960495e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000845471978187561
+    },
+    {
+      "layer": 5,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005403232097625732
+    },
+    {
+      "layer": 5,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.072000205516816e-05
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 5.027199909090996e-05
+    },
+    {
+      "layer": 5,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008455039858818054
+    },
+    {
+      "layer": 5,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.23680017888546e-05
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00537769603729248
+    },
+    {
+      "layer": 5,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.027199864387512e-05
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 5,
+      "operation": "history_probability_transfer",
+      "seconds": 5.4944001138210295e-05
+    },
+    {
+      "layer": 5,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003969919979572296
+    },
+    {
+      "layer": 5,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.484800085425377e-05
+    },
+    {
+      "layer": 5,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009846720099449158
+    },
+    {
+      "layer": 5,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.6479998379945754e-05
+    },
+    {
+      "layer": 5,
+      "operation": "output_and_history_store",
+      "seconds": 7.872000336647033e-06
+    },
+    {
+      "layer": 5,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0009498239755630493
+    },
+    {
+      "layer": 5,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001910240054130554
+    },
+    {
+      "layer": 6,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013504608154296875
+    },
+    {
+      "layer": 6,
+      "operation": "current_value_geometry",
+      "seconds": 0.00552396821975708
+    },
+    {
+      "layer": 6,
+      "operation": "current_coarse_observation",
+      "seconds": 0.002023967981338501
+    },
+    {
+      "layer": 6,
+      "operation": "history_probability_transfer",
+      "seconds": 9.436800330877304e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000860863983631134
+    },
+    {
+      "layer": 6,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.771200150251388e-05
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009582143783569336
+    },
+    {
+      "layer": 6,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.572800174355507e-05
+    },
+    {
+      "layer": 6,
+      "operation": "history_probability_transfer",
+      "seconds": 9.20640006661415e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008398399949073791
+    },
+    {
+      "layer": 6,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.854400038719177e-05
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009488160133361817
+    },
+    {
+      "layer": 6,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.324800223112106e-05
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.681599885225296e-05
+    },
+    {
+      "layer": 6,
+      "operation": "history_probability_transfer",
+      "seconds": 9.216000139713287e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008423680067062378
+    },
+    {
+      "layer": 6,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.748799979686737e-05
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009517760276794433
+    },
+    {
+      "layer": 6,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.876799881458282e-05
+    },
+    {
+      "layer": 6,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000846560001373291
+    },
+    {
+      "layer": 6,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.76800012588501e-05
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009594559669494629
+    },
+    {
+      "layer": 6,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.318400174379349e-05
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.886399954557419e-05
+    },
+    {
+      "layer": 6,
+      "operation": "history_probability_transfer",
+      "seconds": 9.228800237178802e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008485119938850403
+    },
+    {
+      "layer": 6,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.956800073385239e-05
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009629471778869629
+    },
+    {
+      "layer": 6,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.36959981918335e-05
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.665600135922432e-05
+    },
+    {
+      "layer": 6,
+      "operation": "history_probability_transfer",
+      "seconds": 9.430400282144547e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008484159708023072
+    },
+    {
+      "layer": 6,
+      "operation": "missing_key_normalizer",
+      "seconds": 7.052800059318543e-05
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009584383964538574
+    },
+    {
+      "layer": 6,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.583999961614609e-05
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.668800160288811e-05
+    },
+    {
+      "layer": 6,
+      "operation": "history_probability_transfer",
+      "seconds": 9.241600334644318e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008474239706993104
+    },
+    {
+      "layer": 6,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.752000004053115e-05
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009628576278686523
+    },
+    {
+      "layer": 6,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.375999867916108e-05
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.88319993019104e-05
+    },
+    {
+      "layer": 6,
+      "operation": "history_probability_transfer",
+      "seconds": 9.203200042247772e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008474239706993104
+    },
+    {
+      "layer": 6,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.960000097751617e-05
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00959654426574707
+    },
+    {
+      "layer": 6,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.590400010347366e-05
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 4.662400111556053e-05
+    },
+    {
+      "layer": 6,
+      "operation": "history_probability_transfer",
+      "seconds": 5.555199831724167e-05
+    },
+    {
+      "layer": 6,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003967680037021637
+    },
+    {
+      "layer": 6,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.7888001650571824e-05
+    },
+    {
+      "layer": 6,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00174399995803833
+    },
+    {
+      "layer": 6,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.156799986958504e-05
+    },
+    {
+      "layer": 6,
+      "operation": "output_and_history_store",
+      "seconds": 7.648000027984382e-06
+    },
+    {
+      "layer": 6,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0008243200182914734
+    },
+    {
+      "layer": 6,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019054399728775024
+    },
+    {
+      "layer": 7,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013506655693054198
+    },
+    {
+      "layer": 7,
+      "operation": "current_value_geometry",
+      "seconds": 0.004491007804870605
+    },
+    {
+      "layer": 7,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020159358978271485
+    },
+    {
+      "layer": 7,
+      "operation": "history_probability_transfer",
+      "seconds": 9.334400296211243e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008730239868164063
+    },
+    {
+      "layer": 7,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.748799979686737e-05
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009629440307617188
+    },
+    {
+      "layer": 7,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.487999975681305e-05
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.864000156521797e-05
+    },
+    {
+      "layer": 7,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008560320138931275
+    },
+    {
+      "layer": 7,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.553599983453751e-05
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00951574420928955
+    },
+    {
+      "layer": 7,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.321600198745727e-05
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.867200180888176e-05
+    },
+    {
+      "layer": 7,
+      "operation": "history_probability_transfer",
+      "seconds": 9.228800237178802e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008547199964523315
+    },
+    {
+      "layer": 7,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.755200028419494e-05
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009543359756469727
+    },
+    {
+      "layer": 7,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.590400010347366e-05
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.8703998327255246e-05
+    },
+    {
+      "layer": 7,
+      "operation": "history_probability_transfer",
+      "seconds": 9.430400282144547e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00086080002784729
+    },
+    {
+      "layer": 7,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.543999910354615e-05
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009620160102844237
+    },
+    {
+      "layer": 7,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.52960029244423e-05
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.867200180888176e-05
+    },
+    {
+      "layer": 7,
+      "operation": "history_probability_transfer",
+      "seconds": 9.232000261545181e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008627840280532837
+    },
+    {
+      "layer": 7,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.656000018119811e-05
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009606911659240722
+    },
+    {
+      "layer": 7,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.321600198745727e-05
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.662400111556053e-05
+    },
+    {
+      "layer": 7,
+      "operation": "history_probability_transfer",
+      "seconds": 9.424000233411789e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008617280125617981
+    },
+    {
+      "layer": 7,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.65920004248619e-05
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009634528160095215
+    },
+    {
+      "layer": 7,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.375999867916108e-05
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.665600135922432e-05
+    },
+    {
+      "layer": 7,
+      "operation": "history_probability_transfer",
+      "seconds": 9.440000355243683e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008617280125617981
+    },
+    {
+      "layer": 7,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.95360004901886e-05
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009701248168945312
+    },
+    {
+      "layer": 7,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.308800101280212e-05
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.6783998608589174e-05
+    },
+    {
+      "layer": 7,
+      "operation": "history_probability_transfer",
+      "seconds": 9.430400282144547e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008628799915313721
+    },
+    {
+      "layer": 7,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.857600063085556e-05
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00967750358581543
+    },
+    {
+      "layer": 7,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.590400010347366e-05
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 4.864000156521797e-05
+    },
+    {
+      "layer": 7,
+      "operation": "history_probability_transfer",
+      "seconds": 5.500800162553787e-05
+    },
+    {
+      "layer": 7,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0004010879993438721
+    },
+    {
+      "layer": 7,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.686400130391121e-05
+    },
+    {
+      "layer": 7,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0017490240335464478
+    },
+    {
+      "layer": 7,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.160000011324883e-05
+    },
+    {
+      "layer": 7,
+      "operation": "output_and_history_store",
+      "seconds": 7.71200004965067e-06
+    },
+    {
+      "layer": 7,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006984320282936097
+    },
+    {
+      "layer": 7,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018973759412765504
+    },
+    {
+      "layer": 8,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013514752388000489
+    },
+    {
+      "layer": 8,
+      "operation": "current_value_geometry",
+      "seconds": 0.004370368003845214
+    },
+    {
+      "layer": 8,
+      "operation": "current_coarse_observation",
+      "seconds": 0.002019423961639404
+    },
+    {
+      "layer": 8,
+      "operation": "history_probability_transfer",
+      "seconds": 9.379199892282487e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008746560215950012
+    },
+    {
+      "layer": 8,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.825599819421769e-05
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009659903526306152
+    },
+    {
+      "layer": 8,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.52640026807785e-05
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.8928000032901765e-05
+    },
+    {
+      "layer": 8,
+      "operation": "history_probability_transfer",
+      "seconds": 9.31520015001297e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008558080196380615
+    },
+    {
+      "layer": 8,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.55680000782013e-05
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009563872337341309
+    },
+    {
+      "layer": 8,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.520000219345093e-05
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.8895999789237976e-05
+    },
+    {
+      "layer": 8,
+      "operation": "history_probability_transfer",
+      "seconds": 9.180799871683121e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000855135977268219
+    },
+    {
+      "layer": 8,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.761600077152252e-05
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009539232254028321
+    },
+    {
+      "layer": 8,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.5551997423172e-05
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.879999905824661e-05
+    },
+    {
+      "layer": 8,
+      "operation": "history_probability_transfer",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008613759875297546
+    },
+    {
+      "layer": 8,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.50240033864975e-05
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009606783866882324
+    },
+    {
+      "layer": 8,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.334400296211243e-05
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.8895999789237976e-05
+    },
+    {
+      "layer": 8,
+      "operation": "history_probability_transfer",
+      "seconds": 9.391999989748e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008617280125617981
+    },
+    {
+      "layer": 8,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.819199770689011e-05
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009606719970703125
+    },
+    {
+      "layer": 8,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.536000341176987e-05
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.6720001846551896e-05
+    },
+    {
+      "layer": 8,
+      "operation": "history_probability_transfer",
+      "seconds": 9.331200271844864e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008623679876327515
+    },
+    {
+      "layer": 8,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.614399701356888e-05
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009685759544372558
+    },
+    {
+      "layer": 8,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.516800194978714e-05
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 5.09440004825592e-05
+    },
+    {
+      "layer": 8,
+      "operation": "history_probability_transfer",
+      "seconds": 9.39520001411438e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008606719970703125
+    },
+    {
+      "layer": 8,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.761600077152252e-05
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009689855575561523
+    },
+    {
+      "layer": 8,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.430400282144547e-05
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.88319993019104e-05
+    },
+    {
+      "layer": 8,
+      "operation": "history_probability_transfer",
+      "seconds": 9.39520001411438e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008616639971733093
+    },
+    {
+      "layer": 8,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.550399959087372e-05
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009696736335754394
+    },
+    {
+      "layer": 8,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.523200243711472e-05
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 4.88319993019104e-05
+    },
+    {
+      "layer": 8,
+      "operation": "history_probability_transfer",
+      "seconds": 5.478399991989136e-05
+    },
+    {
+      "layer": 8,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003990080058574676
+    },
+    {
+      "layer": 8,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.747199848294258e-05
+    },
+    {
+      "layer": 8,
+      "operation": "sparse_attention_only",
+      "seconds": 0.001755776047706604
+    },
+    {
+      "layer": 8,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.150399938225746e-05
+    },
+    {
+      "layer": 8,
+      "operation": "output_and_history_store",
+      "seconds": 7.903999648988247e-06
+    },
+    {
+      "layer": 8,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006998400092124939
+    },
+    {
+      "layer": 8,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001903231978416443
+    },
+    {
+      "layer": 9,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013522432327270508
+    },
+    {
+      "layer": 9,
+      "operation": "current_value_geometry",
+      "seconds": 0.004429344177246094
+    },
+    {
+      "layer": 9,
+      "operation": "current_coarse_observation",
+      "seconds": 0.002027359962463379
+    },
+    {
+      "layer": 9,
+      "operation": "history_probability_transfer",
+      "seconds": 9.26399976015091e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008761919736862183
+    },
+    {
+      "layer": 9,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.540799885988236e-05
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009663264274597167
+    },
+    {
+      "layer": 9,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.375999867916108e-05
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.6560000628232954e-05
+    },
+    {
+      "layer": 9,
+      "operation": "history_probability_transfer",
+      "seconds": 9.408000111579895e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000858784019947052
+    },
+    {
+      "layer": 9,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.745599955320358e-05
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00954851245880127
+    },
+    {
+      "layer": 9,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.886399954557419e-05
+    },
+    {
+      "layer": 9,
+      "operation": "history_probability_transfer",
+      "seconds": 9.417600184679031e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008567360043525696
+    },
+    {
+      "layer": 9,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.742399930953979e-05
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009583359718322753
+    },
+    {
+      "layer": 9,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.583999961614609e-05
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.867200180888176e-05
+    },
+    {
+      "layer": 9,
+      "operation": "history_probability_transfer",
+      "seconds": 9.212800115346908e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008649280071258545
+    },
+    {
+      "layer": 9,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.752000004053115e-05
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009637503623962403
+    },
+    {
+      "layer": 9,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.379199892282487e-05
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.4576000422239305e-05
+    },
+    {
+      "layer": 9,
+      "operation": "history_probability_transfer",
+      "seconds": 9.446399658918381e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008647680282592773
+    },
+    {
+      "layer": 9,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.55680000782013e-05
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009701055526733398
+    },
+    {
+      "layer": 9,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.382399916648864e-05
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.876799881458282e-05
+    },
+    {
+      "layer": 9,
+      "operation": "history_probability_transfer",
+      "seconds": 9.424000233411789e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008638079762458801
+    },
+    {
+      "layer": 9,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.76800012588501e-05
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00964355182647705
+    },
+    {
+      "layer": 9,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.398400038480758e-05
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.6528000384569166e-05
+    },
+    {
+      "layer": 9,
+      "operation": "history_probability_transfer",
+      "seconds": 9.440000355243683e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008617280125617981
+    },
+    {
+      "layer": 9,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.752000004053115e-05
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009650752067565918
+    },
+    {
+      "layer": 9,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.385599941015243e-05
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.8703998327255246e-05
+    },
+    {
+      "layer": 9,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008629440069198609
+    },
+    {
+      "layer": 9,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.748799979686737e-05
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00973686408996582
+    },
+    {
+      "layer": 9,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.532800316810608e-05
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 4.6751998364925385e-05
+    },
+    {
+      "layer": 9,
+      "operation": "history_probability_transfer",
+      "seconds": 5.491200089454651e-05
+    },
+    {
+      "layer": 9,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003989439904689789
+    },
+    {
+      "layer": 9,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.6639999598264696e-05
+    },
+    {
+      "layer": 9,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0017480640411376954
+    },
+    {
+      "layer": 9,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.163200035691261e-05
+    },
+    {
+      "layer": 9,
+      "operation": "output_and_history_store",
+      "seconds": 7.71200004965067e-06
+    },
+    {
+      "layer": 9,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0008007040023803711
+    },
+    {
+      "layer": 9,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001910431981086731
+    },
+    {
+      "layer": 10,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013514816284179687
+    },
+    {
+      "layer": 10,
+      "operation": "current_value_geometry",
+      "seconds": 0.004474527835845947
+    },
+    {
+      "layer": 10,
+      "operation": "current_coarse_observation",
+      "seconds": 0.00203603196144104
+    },
+    {
+      "layer": 10,
+      "operation": "history_probability_transfer",
+      "seconds": 9.375999867916108e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008735679984092713
+    },
+    {
+      "layer": 10,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.761600077152252e-05
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009633536338806153
+    },
+    {
+      "layer": 10,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.516800194978714e-05
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.8928000032901765e-05
+    },
+    {
+      "layer": 10,
+      "operation": "history_probability_transfer",
+      "seconds": 9.318400174379349e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008558400273323059
+    },
+    {
+      "layer": 10,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.703999638557434e-05
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009612832069396973
+    },
+    {
+      "layer": 10,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.536000341176987e-05
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.8735998570919034e-05
+    },
+    {
+      "layer": 10,
+      "operation": "history_probability_transfer",
+      "seconds": 9.1839998960495e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008557440042495728
+    },
+    {
+      "layer": 10,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.815999746322632e-05
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009623135566711426
+    },
+    {
+      "layer": 10,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.536000341176987e-05
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.8928000032901765e-05
+    },
+    {
+      "layer": 10,
+      "operation": "history_probability_transfer",
+      "seconds": 9.312000125646591e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008599039912223816
+    },
+    {
+      "layer": 10,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.703999638557434e-05
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009656000137329101
+    },
+    {
+      "layer": 10,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.548799693584443e-05
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.867200180888176e-05
+    },
+    {
+      "layer": 10,
+      "operation": "history_probability_transfer",
+      "seconds": 9.331200271844864e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000862272024154663
+    },
+    {
+      "layer": 10,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.761600077152252e-05
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009716320037841796
+    },
+    {
+      "layer": 10,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.523200243711472e-05
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.879999905824661e-05
+    },
+    {
+      "layer": 10,
+      "operation": "history_probability_transfer",
+      "seconds": 9.31520015001297e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008629440069198609
+    },
+    {
+      "layer": 10,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.553599983453751e-05
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009732671737670898
+    },
+    {
+      "layer": 10,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.52640026807785e-05
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.879999905824661e-05
+    },
+    {
+      "layer": 10,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008600000143051148
+    },
+    {
+      "layer": 10,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.899199634790421e-05
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00970307159423828
+    },
+    {
+      "layer": 10,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.516800194978714e-05
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.681599885225296e-05
+    },
+    {
+      "layer": 10,
+      "operation": "history_probability_transfer",
+      "seconds": 9.123200178146362e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008619840145111083
+    },
+    {
+      "layer": 10,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.828799843788146e-05
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009707039833068847
+    },
+    {
+      "layer": 10,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.551999717950821e-05
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 4.6720001846551896e-05
+    },
+    {
+      "layer": 10,
+      "operation": "history_probability_transfer",
+      "seconds": 5.433600023388863e-05
+    },
+    {
+      "layer": 10,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00039910399913787843
+    },
+    {
+      "layer": 10,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.776000067591667e-05
+    },
+    {
+      "layer": 10,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0017583359479904175
+    },
+    {
+      "layer": 10,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.2656000703573226e-05
+    },
+    {
+      "layer": 10,
+      "operation": "output_and_history_store",
+      "seconds": 7.71200004965067e-06
+    },
+    {
+      "layer": 10,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0013698240518569946
+    },
+    {
+      "layer": 10,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019005759954452515
+    },
+    {
+      "layer": 11,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013514880180358887
+    },
+    {
+      "layer": 11,
+      "operation": "current_value_geometry",
+      "seconds": 0.004337408065795898
+    },
+    {
+      "layer": 11,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020248959064483644
+    },
+    {
+      "layer": 11,
+      "operation": "history_probability_transfer",
+      "seconds": 9.391999989748e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008730239868164063
+    },
+    {
+      "layer": 11,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.780800223350525e-05
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009657695770263671
+    },
+    {
+      "layer": 11,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.318400174379349e-05
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.6720001846551896e-05
+    },
+    {
+      "layer": 11,
+      "operation": "history_probability_transfer",
+      "seconds": 9.398400038480758e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008549759984016419
+    },
+    {
+      "layer": 11,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.95360004901886e-05
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009600704193115234
+    },
+    {
+      "layer": 11,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.31520015001297e-05
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.879999905824661e-05
+    },
+    {
+      "layer": 11,
+      "operation": "history_probability_transfer",
+      "seconds": 9.180799871683121e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008578559756278991
+    },
+    {
+      "layer": 11,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.815999746322632e-05
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00965999984741211
+    },
+    {
+      "layer": 11,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.507200121879578e-05
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.879999905824661e-05
+    },
+    {
+      "layer": 11,
+      "operation": "history_probability_transfer",
+      "seconds": 9.116800129413604e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008600000143051148
+    },
+    {
+      "layer": 11,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.896000355482102e-05
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009656000137329101
+    },
+    {
+      "layer": 11,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.545599669218064e-05
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.6720001846551896e-05
+    },
+    {
+      "layer": 11,
+      "operation": "history_probability_transfer",
+      "seconds": 9.180799871683121e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000860256016254425
+    },
+    {
+      "layer": 11,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.966400146484375e-05
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00973087978363037
+    },
+    {
+      "layer": 11,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.532800316810608e-05
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.886399954557419e-05
+    },
+    {
+      "layer": 11,
+      "operation": "history_probability_transfer",
+      "seconds": 9.382399916648864e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00086080002784729
+    },
+    {
+      "layer": 11,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.755200028419494e-05
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009736831665039063
+    },
+    {
+      "layer": 11,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.507200121879578e-05
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.59199994802475e-05
+    },
+    {
+      "layer": 11,
+      "operation": "history_probability_transfer",
+      "seconds": 9.31520015001297e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008612480163574218
+    },
+    {
+      "layer": 11,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.908799707889557e-05
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009758367538452148
+    },
+    {
+      "layer": 11,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.539200365543366e-05
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.876799881458282e-05
+    },
+    {
+      "layer": 11,
+      "operation": "history_probability_transfer",
+      "seconds": 9.177599847316742e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008620479702949524
+    },
+    {
+      "layer": 11,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.825599819421769e-05
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009799136161804198
+    },
+    {
+      "layer": 11,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.536000341176987e-05
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 4.88319993019104e-05
+    },
+    {
+      "layer": 11,
+      "operation": "history_probability_transfer",
+      "seconds": 5.484800040721893e-05
+    },
+    {
+      "layer": 11,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00039961600303649905
+    },
+    {
+      "layer": 11,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.7408001720905304e-05
+    },
+    {
+      "layer": 11,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0017629760503768922
+    },
+    {
+      "layer": 11,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.255999997258186e-05
+    },
+    {
+      "layer": 11,
+      "operation": "output_and_history_store",
+      "seconds": 7.935999892652035e-06
+    },
+    {
+      "layer": 11,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.000679647982120514
+    },
+    {
+      "layer": 11,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018989440202713012
+    },
+    {
+      "layer": 12,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013497856140136719
+    },
+    {
+      "layer": 12,
+      "operation": "current_value_geometry",
+      "seconds": 0.004304351806640625
+    },
+    {
+      "layer": 12,
+      "operation": "current_coarse_observation",
+      "seconds": 0.002023423910140991
+    },
+    {
+      "layer": 12,
+      "operation": "history_probability_transfer",
+      "seconds": 9.334400296211243e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.015111871719360351
+    },
+    {
+      "layer": 12,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.966400146484375e-05
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009482912063598633
+    },
+    {
+      "layer": 12,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.487999975681305e-05
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.4576000422239305e-05
+    },
+    {
+      "layer": 12,
+      "operation": "history_probability_transfer",
+      "seconds": 9.23520028591156e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008193600177764893
+    },
+    {
+      "layer": 12,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.748799979686737e-05
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009519904136657716
+    },
+    {
+      "layer": 12,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.318400174379349e-05
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.88319993019104e-05
+    },
+    {
+      "layer": 12,
+      "operation": "history_probability_transfer",
+      "seconds": 9.004800021648407e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008198720216751099
+    },
+    {
+      "layer": 12,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.947200000286102e-05
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009493184089660645
+    },
+    {
+      "layer": 12,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.398400038480758e-05
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.6560000628232954e-05
+    },
+    {
+      "layer": 12,
+      "operation": "history_probability_transfer",
+      "seconds": 9.209600090980529e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008197439908981324
+    },
+    {
+      "layer": 12,
+      "operation": "missing_key_normalizer",
+      "seconds": 7.161600142717362e-05
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009603199958801269
+    },
+    {
+      "layer": 12,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.404800087213516e-05
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.879999905824661e-05
+    },
+    {
+      "layer": 12,
+      "operation": "history_probability_transfer",
+      "seconds": 9.011200070381165e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008217920064926147
+    },
+    {
+      "layer": 12,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.960000097751617e-05
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009643808364868164
+    },
+    {
+      "layer": 12,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.52640026807785e-05
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.6560000628232954e-05
+    },
+    {
+      "layer": 12,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008218240141868591
+    },
+    {
+      "layer": 12,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.947200000286102e-05
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009631551742553712
+    },
+    {
+      "layer": 12,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.375999867916108e-05
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.662400111556053e-05
+    },
+    {
+      "layer": 12,
+      "operation": "history_probability_transfer",
+      "seconds": 9.228800237178802e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008228800296783448
+    },
+    {
+      "layer": 12,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.761600077152252e-05
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009616415977478027
+    },
+    {
+      "layer": 12,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.334400296211243e-05
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.668800160288811e-05
+    },
+    {
+      "layer": 12,
+      "operation": "history_probability_transfer",
+      "seconds": 9.219200164079666e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008229119777679444
+    },
+    {
+      "layer": 12,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.95360004901886e-05
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009657440185546875
+    },
+    {
+      "layer": 12,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 4.681599885225296e-05
+    },
+    {
+      "layer": 12,
+      "operation": "history_probability_transfer",
+      "seconds": 5.5167999118566515e-05
+    },
+    {
+      "layer": 12,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0040655040740966795
+    },
+    {
+      "layer": 12,
+      "operation": "missing_key_normalizer",
+      "seconds": 0.0005916479825973511
+    },
+    {
+      "layer": 12,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0018869119882583619
+    },
+    {
+      "layer": 12,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.2431998997926714e-05
+    },
+    {
+      "layer": 12,
+      "operation": "output_and_history_store",
+      "seconds": 7.807999849319458e-06
+    },
+    {
+      "layer": 12,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006331200003623962
+    },
+    {
+      "layer": 12,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018831679821014404
+    },
+    {
+      "layer": 13,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013512031555175781
+    },
+    {
+      "layer": 13,
+      "operation": "current_value_geometry",
+      "seconds": 0.004303999900817871
+    },
+    {
+      "layer": 13,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020128960609436036
+    },
+    {
+      "layer": 13,
+      "operation": "history_probability_transfer",
+      "seconds": 9.385599941015243e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008674240112304687
+    },
+    {
+      "layer": 13,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.966400146484375e-05
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009558591842651367
+    },
+    {
+      "layer": 13,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.417600184679031e-05
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.681599885225296e-05
+    },
+    {
+      "layer": 13,
+      "operation": "history_probability_transfer",
+      "seconds": 9.123200178146362e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008475199937820434
+    },
+    {
+      "layer": 13,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.835199892520904e-05
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009487872123718261
+    },
+    {
+      "layer": 13,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.523200243711472e-05
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.822399839758873e-05
+    },
+    {
+      "layer": 13,
+      "operation": "history_probability_transfer",
+      "seconds": 8.915200084447861e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008496000170707703
+    },
+    {
+      "layer": 13,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.761600077152252e-05
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009557600021362305
+    },
+    {
+      "layer": 13,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.52640026807785e-05
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.82879988849163e-05
+    },
+    {
+      "layer": 13,
+      "operation": "history_probability_transfer",
+      "seconds": 9.123200178146362e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008557440042495728
+    },
+    {
+      "layer": 13,
+      "operation": "missing_key_normalizer",
+      "seconds": 7.039999961853027e-05
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009676192283630371
+    },
+    {
+      "layer": 13,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.340800344944e-05
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.419200122356415e-05
+    },
+    {
+      "layer": 13,
+      "operation": "history_probability_transfer",
+      "seconds": 8.924800157546998e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008557760119438172
+    },
+    {
+      "layer": 13,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.966400146484375e-05
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00961520004272461
+    },
+    {
+      "layer": 13,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.516800194978714e-05
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.473600164055824e-05
+    },
+    {
+      "layer": 13,
+      "operation": "history_probability_transfer",
+      "seconds": 9.187199920415879e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008546239733695983
+    },
+    {
+      "layer": 13,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.966400146484375e-05
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009638560295104981
+    },
+    {
+      "layer": 13,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.545599669218064e-05
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.4096000492572786e-05
+    },
+    {
+      "layer": 13,
+      "operation": "history_probability_transfer",
+      "seconds": 8.972799777984619e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000858240008354187
+    },
+    {
+      "layer": 13,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.761600077152252e-05
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009665280342102052
+    },
+    {
+      "layer": 13,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.52640026807785e-05
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.4863998889923095e-05
+    },
+    {
+      "layer": 13,
+      "operation": "history_probability_transfer",
+      "seconds": 9.113600105047225e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008562880158424378
+    },
+    {
+      "layer": 13,
+      "operation": "missing_key_normalizer",
+      "seconds": 7.171200215816498e-05
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009651904106140136
+    },
+    {
+      "layer": 13,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.523200243711472e-05
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 4.687999933958054e-05
+    },
+    {
+      "layer": 13,
+      "operation": "history_probability_transfer",
+      "seconds": 5.4944001138210295e-05
+    },
+    {
+      "layer": 13,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00039958399534225465
+    },
+    {
+      "layer": 13,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.753599897027016e-05
+    },
+    {
+      "layer": 13,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0017608319520950317
+    },
+    {
+      "layer": 13,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.2688000947237015e-05
+    },
+    {
+      "layer": 13,
+      "operation": "output_and_history_store",
+      "seconds": 9.824000298976899e-06
+    },
+    {
+      "layer": 13,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007804480195045472
+    },
+    {
+      "layer": 13,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018945920467376709
+    },
+    {
+      "layer": 14,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013512160301208496
+    },
+    {
+      "layer": 14,
+      "operation": "current_value_geometry",
+      "seconds": 0.004401887893676758
+    },
+    {
+      "layer": 14,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020245120525360107
+    },
+    {
+      "layer": 14,
+      "operation": "history_probability_transfer",
+      "seconds": 9.379199892282487e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008700159788131714
+    },
+    {
+      "layer": 14,
+      "operation": "missing_key_normalizer",
+      "seconds": 7.023999840021133e-05
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009622015953063966
+    },
+    {
+      "layer": 14,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.433600306510926e-05
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.479999840259552e-05
+    },
+    {
+      "layer": 14,
+      "operation": "history_probability_transfer",
+      "seconds": 9.318400174379349e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008515520095825196
+    },
+    {
+      "layer": 14,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.966400146484375e-05
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009555839538574218
+    },
+    {
+      "layer": 14,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.520000219345093e-05
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.876799881458282e-05
+    },
+    {
+      "layer": 14,
+      "operation": "history_probability_transfer",
+      "seconds": 8.972799777984619e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008495360016822815
+    },
+    {
+      "layer": 14,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.627199798822403e-05
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009575615882873536
+    },
+    {
+      "layer": 14,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.583999961614609e-05
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.6783998608589174e-05
+    },
+    {
+      "layer": 14,
+      "operation": "history_probability_transfer",
+      "seconds": 9.216000139713287e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008566399812698364
+    },
+    {
+      "layer": 14,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.95360004901886e-05
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009698047637939453
+    },
+    {
+      "layer": 14,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.668800160288811e-05
+    },
+    {
+      "layer": 14,
+      "operation": "history_probability_transfer",
+      "seconds": 9.216000139713287e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000856768012046814
+    },
+    {
+      "layer": 14,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.764800101518631e-05
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009657919883728027
+    },
+    {
+      "layer": 14,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.379199892282487e-05
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.662400111556053e-05
+    },
+    {
+      "layer": 14,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000857695996761322
+    },
+    {
+      "layer": 14,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.752000004053115e-05
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009673343658447266
+    },
+    {
+      "layer": 14,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.324800223112106e-05
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.687999933958054e-05
+    },
+    {
+      "layer": 14,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008576319813728332
+    },
+    {
+      "layer": 14,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.950400024652481e-05
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00963753604888916
+    },
+    {
+      "layer": 14,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.430400282144547e-05
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.6720001846551896e-05
+    },
+    {
+      "layer": 14,
+      "operation": "history_probability_transfer",
+      "seconds": 9.216000139713287e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008607680201530456
+    },
+    {
+      "layer": 14,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.771200150251388e-05
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009740863800048828
+    },
+    {
+      "layer": 14,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.532800316810608e-05
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 4.470400139689445e-05
+    },
+    {
+      "layer": 14,
+      "operation": "history_probability_transfer",
+      "seconds": 5.536000058054924e-05
+    },
+    {
+      "layer": 14,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003969919979572296
+    },
+    {
+      "layer": 14,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.782400116324425e-05
+    },
+    {
+      "layer": 14,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0017552319765090942
+    },
+    {
+      "layer": 14,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.275200143456459e-05
+    },
+    {
+      "layer": 14,
+      "operation": "output_and_history_store",
+      "seconds": 7.615999784320593e-06
+    },
+    {
+      "layer": 14,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006687679886817932
+    },
+    {
+      "layer": 14,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018976000547409058
+    },
+    {
+      "layer": 15,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013523008346557617
+    },
+    {
+      "layer": 15,
+      "operation": "current_value_geometry",
+      "seconds": 0.0043439998626708986
+    },
+    {
+      "layer": 15,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020137600898742676
+    },
+    {
+      "layer": 15,
+      "operation": "history_probability_transfer",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008688960075378418
+    },
+    {
+      "layer": 15,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.963200122117996e-05
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009722463607788086
+    },
+    {
+      "layer": 15,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.321600198745727e-05
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.464000090956688e-05
+    },
+    {
+      "layer": 15,
+      "operation": "history_probability_transfer",
+      "seconds": 9.452799707651139e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008485119938850403
+    },
+    {
+      "layer": 15,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.761600077152252e-05
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00959769630432129
+    },
+    {
+      "layer": 15,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.31520015001297e-05
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.6783998608589174e-05
+    },
+    {
+      "layer": 15,
+      "operation": "history_probability_transfer",
+      "seconds": 9.030400216579437e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008483840227127076
+    },
+    {
+      "layer": 15,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.956800073385239e-05
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009646688461303711
+    },
+    {
+      "layer": 15,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.379199892282487e-05
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.867200180888176e-05
+    },
+    {
+      "layer": 15,
+      "operation": "history_probability_transfer",
+      "seconds": 9.228800237178802e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008545920252799987
+    },
+    {
+      "layer": 15,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.95360004901886e-05
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009696991920471191
+    },
+    {
+      "layer": 15,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.596800059080124e-05
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.659200087189674e-05
+    },
+    {
+      "layer": 15,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008558080196380615
+    },
+    {
+      "layer": 15,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.963200122117996e-05
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009687711715698242
+    },
+    {
+      "layer": 15,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.590400010347366e-05
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.867200180888176e-05
+    },
+    {
+      "layer": 15,
+      "operation": "history_probability_transfer",
+      "seconds": 9.011200070381165e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008577920198440551
+    },
+    {
+      "layer": 15,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.950400024652481e-05
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00971951961517334
+    },
+    {
+      "layer": 15,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.593600034713745e-05
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.758400097489357e-05
+    },
+    {
+      "layer": 15,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008586559891700745
+    },
+    {
+      "layer": 15,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.748799979686737e-05
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009677632331848145
+    },
+    {
+      "layer": 15,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.587199985980987e-05
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.867200180888176e-05
+    },
+    {
+      "layer": 15,
+      "operation": "history_probability_transfer",
+      "seconds": 9.212800115346908e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000856768012046814
+    },
+    {
+      "layer": 15,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.755200028419494e-05
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009725567817687988
+    },
+    {
+      "layer": 15,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.590400010347366e-05
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 4.8735998570919034e-05
+    },
+    {
+      "layer": 15,
+      "operation": "history_probability_transfer",
+      "seconds": 5.539200082421303e-05
+    },
+    {
+      "layer": 15,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003988800048828125
+    },
+    {
+      "layer": 15,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.680000081658363e-05
+    },
+    {
+      "layer": 15,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0017560640573501588
+    },
+    {
+      "layer": 15,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.156799986958504e-05
+    },
+    {
+      "layer": 15,
+      "operation": "output_and_history_store",
+      "seconds": 7.903999648988247e-06
+    },
+    {
+      "layer": 15,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.000679423987865448
+    },
+    {
+      "layer": 15,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019036799669265748
+    },
+    {
+      "layer": 16,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013539487838745118
+    },
+    {
+      "layer": 16,
+      "operation": "current_value_geometry",
+      "seconds": 0.004354559898376465
+    },
+    {
+      "layer": 16,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020310399532318117
+    },
+    {
+      "layer": 16,
+      "operation": "history_probability_transfer",
+      "seconds": 9.372799843549729e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008702399730682373
+    },
+    {
+      "layer": 16,
+      "operation": "missing_key_normalizer",
+      "seconds": 7.119999825954437e-05
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009696800231933594
+    },
+    {
+      "layer": 16,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.681599885225296e-05
+    },
+    {
+      "layer": 16,
+      "operation": "history_probability_transfer",
+      "seconds": 9.171199798583985e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008536639809608459
+    },
+    {
+      "layer": 16,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.697600334882736e-05
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00958016014099121
+    },
+    {
+      "layer": 16,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.520000219345093e-05
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.886399954557419e-05
+    },
+    {
+      "layer": 16,
+      "operation": "history_probability_transfer",
+      "seconds": 9.180799871683121e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008514879941940308
+    },
+    {
+      "layer": 16,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.905599683523179e-05
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00965180778503418
+    },
+    {
+      "layer": 16,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.548799693584443e-05
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.886399954557419e-05
+    },
+    {
+      "layer": 16,
+      "operation": "history_probability_transfer",
+      "seconds": 9.120000153779983e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008572480082511902
+    },
+    {
+      "layer": 16,
+      "operation": "missing_key_normalizer",
+      "seconds": 7.1103997528553e-05
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009688735961914063
+    },
+    {
+      "layer": 16,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.542399644851685e-05
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.88319993019104e-05
+    },
+    {
+      "layer": 16,
+      "operation": "history_probability_transfer",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008561279773712158
+    },
+    {
+      "layer": 16,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.700800359249115e-05
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009704031944274903
+    },
+    {
+      "layer": 16,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.532800316810608e-05
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.876799881458282e-05
+    },
+    {
+      "layer": 16,
+      "operation": "history_probability_transfer",
+      "seconds": 9.331200271844864e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008589119911193848
+    },
+    {
+      "layer": 16,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.960000097751617e-05
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009734880447387696
+    },
+    {
+      "layer": 16,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.510400146245956e-05
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.780799895524978e-05
+    },
+    {
+      "layer": 16,
+      "operation": "history_probability_transfer",
+      "seconds": 8.975999802350998e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008592640161514283
+    },
+    {
+      "layer": 16,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.700800359249115e-05
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009692671775817872
+    },
+    {
+      "layer": 16,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.52960029244423e-05
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.88319993019104e-05
+    },
+    {
+      "layer": 16,
+      "operation": "history_probability_transfer",
+      "seconds": 9.388799965381622e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008588160276412964
+    },
+    {
+      "layer": 16,
+      "operation": "missing_key_normalizer",
+      "seconds": 7.023999840021133e-05
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009716256141662598
+    },
+    {
+      "layer": 16,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.536000341176987e-05
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 4.886399954557419e-05
+    },
+    {
+      "layer": 16,
+      "operation": "history_probability_transfer",
+      "seconds": 5.478399991989136e-05
+    },
+    {
+      "layer": 16,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003989120125770569
+    },
+    {
+      "layer": 16,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.7376001477241516e-05
+    },
+    {
+      "layer": 16,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0017588800191879273
+    },
+    {
+      "layer": 16,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.259200021624565e-05
+    },
+    {
+      "layer": 16,
+      "operation": "output_and_history_store",
+      "seconds": 7.872000336647033e-06
+    },
+    {
+      "layer": 16,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007025279998779297
+    },
+    {
+      "layer": 16,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019034240245819091
+    },
+    {
+      "layer": 17,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013538847923278809
+    },
+    {
+      "layer": 17,
+      "operation": "current_value_geometry",
+      "seconds": 0.004363296031951905
+    },
+    {
+      "layer": 17,
+      "operation": "current_coarse_observation",
+      "seconds": 0.002023423910140991
+    },
+    {
+      "layer": 17,
+      "operation": "history_probability_transfer",
+      "seconds": 9.366399794816971e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008685119748115539
+    },
+    {
+      "layer": 17,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.899199634790421e-05
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009707039833068847
+    },
+    {
+      "layer": 17,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.507200121879578e-05
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.6751998364925385e-05
+    },
+    {
+      "layer": 17,
+      "operation": "history_probability_transfer",
+      "seconds": 9.120000153779983e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008530240058898926
+    },
+    {
+      "layer": 17,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.966400146484375e-05
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009619168281555176
+    },
+    {
+      "layer": 17,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.331200271844864e-05
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.886399954557419e-05
+    },
+    {
+      "layer": 17,
+      "operation": "history_probability_transfer",
+      "seconds": 9.120000153779983e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008537279963493347
+    },
+    {
+      "layer": 17,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.963200122117996e-05
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009643808364868164
+    },
+    {
+      "layer": 17,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.513600170612335e-05
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.88319993019104e-05
+    },
+    {
+      "layer": 17,
+      "operation": "history_probability_transfer",
+      "seconds": 9.120000153779983e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008579199910163879
+    },
+    {
+      "layer": 17,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.6880002617836e-05
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009680512428283692
+    },
+    {
+      "layer": 17,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.539200365543366e-05
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.8735998570919034e-05
+    },
+    {
+      "layer": 17,
+      "operation": "history_probability_transfer",
+      "seconds": 9.120000153779983e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008589439988136292
+    },
+    {
+      "layer": 17,
+      "operation": "missing_key_normalizer",
+      "seconds": 7.020799815654754e-05
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009656991958618164
+    },
+    {
+      "layer": 17,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.52640026807785e-05
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.8895999789237976e-05
+    },
+    {
+      "layer": 17,
+      "operation": "history_probability_transfer",
+      "seconds": 9.372799843549729e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008607360124588013
+    },
+    {
+      "layer": 17,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.745599955320358e-05
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00965392017364502
+    },
+    {
+      "layer": 17,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.600000083446503e-05
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.649600014090538e-05
+    },
+    {
+      "layer": 17,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008586879968643189
+    },
+    {
+      "layer": 17,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.748799979686737e-05
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009702143669128417
+    },
+    {
+      "layer": 17,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.532800316810608e-05
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.668800160288811e-05
+    },
+    {
+      "layer": 17,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008586559891700745
+    },
+    {
+      "layer": 17,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.963200122117996e-05
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.009710207939147949
+    },
+    {
+      "layer": 17,
+      "operation": "headmean_history_finalize",
+      "seconds": 9.603200107812882e-05
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 4.851200059056282e-05
+    },
+    {
+      "layer": 17,
+      "operation": "history_probability_transfer",
+      "seconds": 5.484800040721893e-05
+    },
+    {
+      "layer": 17,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003988800048828125
+    },
+    {
+      "layer": 17,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.782400116324425e-05
+    },
+    {
+      "layer": 17,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0017551039457321168
+    },
+    {
+      "layer": 17,
+      "operation": "headmean_history_finalize",
+      "seconds": 4.214400053024292e-05
+    },
+    {
+      "layer": 17,
+      "operation": "output_and_history_store",
+      "seconds": 7.807999849319458e-06
+    },
+    {
+      "layer": 17,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007251840233802795
+    },
+    {
+      "layer": 17,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019052159786224366
+    },
+    {
+      "layer": 18,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013506624221801758
+    },
+    {
+      "layer": 18,
+      "operation": "current_value_geometry",
+      "seconds": 0.004356416225433349
+    },
+    {
+      "layer": 18,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020302720069885253
+    },
+    {
+      "layer": 18,
+      "operation": "history_probability_transfer",
+      "seconds": 9.372799843549729e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008706560134887695
+    },
+    {
+      "layer": 18,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005360191822052002
+    },
+    {
+      "layer": 18,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.081600278615952e-05
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 4.927999898791313e-05
+    },
+    {
+      "layer": 18,
+      "operation": "history_probability_transfer",
+      "seconds": 9.203200042247772e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00086080002784729
+    },
+    {
+      "layer": 18,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005361855983734131
+    },
+    {
+      "layer": 18,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.027199864387512e-05
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 18,
+      "operation": "history_probability_transfer",
+      "seconds": 9.398400038480758e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008575999736785888
+    },
+    {
+      "layer": 18,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005356095790863037
+    },
+    {
+      "layer": 18,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.078400254249573e-05
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 5.0112001597881316e-05
+    },
+    {
+      "layer": 18,
+      "operation": "history_probability_transfer",
+      "seconds": 9.23520028591156e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008565760254859924
+    },
+    {
+      "layer": 18,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005382815837860108
+    },
+    {
+      "layer": 18,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 5.0847999751567844e-05
+    },
+    {
+      "layer": 18,
+      "operation": "history_probability_transfer",
+      "seconds": 9.324800223112106e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008619840145111083
+    },
+    {
+      "layer": 18,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.153599917888641e-05
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005384736061096192
+    },
+    {
+      "layer": 18,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.065600156784058e-05
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 5.027199909090996e-05
+    },
+    {
+      "layer": 18,
+      "operation": "history_probability_transfer",
+      "seconds": 9.430400282144547e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008628159761428833
+    },
+    {
+      "layer": 18,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9264000505208966e-05
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005379744052886963
+    },
+    {
+      "layer": 18,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.023999840021133e-05
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 18,
+      "operation": "history_probability_transfer",
+      "seconds": 9.328000247478485e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008617920279502868
+    },
+    {
+      "layer": 18,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005368383884429931
+    },
+    {
+      "layer": 18,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.969600170850754e-05
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 18,
+      "operation": "history_probability_transfer",
+      "seconds": 9.219200164079666e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008629119992256165
+    },
+    {
+      "layer": 18,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.032000109553337e-05
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005383903980255127
+    },
+    {
+      "layer": 18,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.92479982972145e-05
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 5.0815999507904055e-05
+    },
+    {
+      "layer": 18,
+      "operation": "history_probability_transfer",
+      "seconds": 5.488000065088272e-05
+    },
+    {
+      "layer": 18,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003980480134487152
+    },
+    {
+      "layer": 18,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.5487998276948926e-05
+    },
+    {
+      "layer": 18,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009881280064582825
+    },
+    {
+      "layer": 18,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.654399886727333e-05
+    },
+    {
+      "layer": 18,
+      "operation": "output_and_history_store",
+      "seconds": 7.327999919652939e-06
+    },
+    {
+      "layer": 18,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006709120273590088
+    },
+    {
+      "layer": 18,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018896960020065307
+    },
+    {
+      "layer": 19,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.01348742389678955
+    },
+    {
+      "layer": 19,
+      "operation": "current_value_geometry",
+      "seconds": 0.004350815773010254
+    },
+    {
+      "layer": 19,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020329599380493166
+    },
+    {
+      "layer": 19,
+      "operation": "history_probability_transfer",
+      "seconds": 9.372799843549729e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008526080250740051
+    },
+    {
+      "layer": 19,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.006399914622307e-05
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0053621759414672855
+    },
+    {
+      "layer": 19,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.966400146484375e-05
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 5.0175998359918594e-05
+    },
+    {
+      "layer": 19,
+      "operation": "history_probability_transfer",
+      "seconds": 9.241600334644318e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000840224027633667
+    },
+    {
+      "layer": 19,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.932800099253654e-05
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005347072124481201
+    },
+    {
+      "layer": 19,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.020799815654754e-05
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 5.0815999507904055e-05
+    },
+    {
+      "layer": 19,
+      "operation": "history_probability_transfer",
+      "seconds": 9.1839998960495e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008418239951133728
+    },
+    {
+      "layer": 19,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.006399914622307e-05
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005318175792694091
+    },
+    {
+      "layer": 19,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.97920024394989e-05
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 19,
+      "operation": "history_probability_transfer",
+      "seconds": 9.254399687051773e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008422719836235046
+    },
+    {
+      "layer": 19,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.936000123620033e-05
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005309599876403809
+    },
+    {
+      "layer": 19,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.049600034952164e-05
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 5.071999877691269e-05
+    },
+    {
+      "layer": 19,
+      "operation": "history_probability_transfer",
+      "seconds": 9.110400080680848e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008414400219917298
+    },
+    {
+      "layer": 19,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005339712142944336
+    },
+    {
+      "layer": 19,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.969600170850754e-05
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 5.0335999578237536e-05
+    },
+    {
+      "layer": 19,
+      "operation": "history_probability_transfer",
+      "seconds": 9.200000017881394e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008425279855728149
+    },
+    {
+      "layer": 19,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.936000123620033e-05
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005333631992340088
+    },
+    {
+      "layer": 19,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 19,
+      "operation": "history_probability_transfer",
+      "seconds": 9.190399944782258e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008438079953193664
+    },
+    {
+      "layer": 19,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.8848001062870023e-05
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005357279777526856
+    },
+    {
+      "layer": 19,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.97920024394989e-05
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 5.027199909090996e-05
+    },
+    {
+      "layer": 19,
+      "operation": "history_probability_transfer",
+      "seconds": 9.216000139713287e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008464959859848022
+    },
+    {
+      "layer": 19,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.939200147986412e-05
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005375616073608399
+    },
+    {
+      "layer": 19,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 5.0847999751567844e-05
+    },
+    {
+      "layer": 19,
+      "operation": "history_probability_transfer",
+      "seconds": 5.484800040721893e-05
+    },
+    {
+      "layer": 19,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0003970879912376404
+    },
+    {
+      "layer": 19,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.478400036692619e-05
+    },
+    {
+      "layer": 19,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009841279983520508
+    },
+    {
+      "layer": 19,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.6448001861572264e-05
+    },
+    {
+      "layer": 19,
+      "operation": "output_and_history_store",
+      "seconds": 7.903999648988247e-06
+    },
+    {
+      "layer": 19,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007362560033798217
+    },
+    {
+      "layer": 19,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001888416051864624
+    },
+    {
+      "layer": 20,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013561216354370118
+    },
+    {
+      "layer": 20,
+      "operation": "current_value_geometry",
+      "seconds": 0.00516758394241333
+    },
+    {
+      "layer": 20,
+      "operation": "current_coarse_observation",
+      "seconds": 0.002014208078384399
+    },
+    {
+      "layer": 20,
+      "operation": "history_probability_transfer",
+      "seconds": 9.391999989748e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008605759739875793
+    },
+    {
+      "layer": 20,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0053928961753845215
+    },
+    {
+      "layer": 20,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.081600278615952e-05
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 4.9215998500585554e-05
+    },
+    {
+      "layer": 20,
+      "operation": "history_probability_transfer",
+      "seconds": 9.228800237178802e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008464000225067139
+    },
+    {
+      "layer": 20,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.147199869155883e-05
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005404736042022705
+    },
+    {
+      "layer": 20,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.014399766921997e-05
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 5.0847999751567844e-05
+    },
+    {
+      "layer": 20,
+      "operation": "history_probability_transfer",
+      "seconds": 9.379199892282487e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008424000144004822
+    },
+    {
+      "layer": 20,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005303840160369873
+    },
+    {
+      "layer": 20,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.985600292682648e-05
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 5.0112001597881316e-05
+    },
+    {
+      "layer": 20,
+      "operation": "history_probability_transfer",
+      "seconds": 9.244800359010696e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008382400274276734
+    },
+    {
+      "layer": 20,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.936000123620033e-05
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005343904018402099
+    },
+    {
+      "layer": 20,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 5.0175998359918594e-05
+    },
+    {
+      "layer": 20,
+      "operation": "history_probability_transfer",
+      "seconds": 9.12960022687912e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008409280180931092
+    },
+    {
+      "layer": 20,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005354080200195312
+    },
+    {
+      "layer": 20,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.969600170850754e-05
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 5.0144001841545105e-05
+    },
+    {
+      "layer": 20,
+      "operation": "history_probability_transfer",
+      "seconds": 9.219200164079666e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008403519988059997
+    },
+    {
+      "layer": 20,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005368576049804687
+    },
+    {
+      "layer": 20,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.036799937486648e-05
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 5.075199902057648e-05
+    },
+    {
+      "layer": 20,
+      "operation": "history_probability_transfer",
+      "seconds": 9.331200271844864e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008449599742889404
+    },
+    {
+      "layer": 20,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9487998485565186e-05
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005349887847900391
+    },
+    {
+      "layer": 20,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.072000205516816e-05
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 20,
+      "operation": "history_probability_transfer",
+      "seconds": 9.23520028591156e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008474559783935546
+    },
+    {
+      "layer": 20,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.936000123620033e-05
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005355199813842773
+    },
+    {
+      "layer": 20,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.027199864387512e-05
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 5.09440004825592e-05
+    },
+    {
+      "layer": 20,
+      "operation": "history_probability_transfer",
+      "seconds": 5.4687999188899995e-05
+    },
+    {
+      "layer": 20,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000396479994058609
+    },
+    {
+      "layer": 20,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.532800078392029e-05
+    },
+    {
+      "layer": 20,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009826880097389221
+    },
+    {
+      "layer": 20,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.6448001861572264e-05
+    },
+    {
+      "layer": 20,
+      "operation": "output_and_history_store",
+      "seconds": 7.935999892652035e-06
+    },
+    {
+      "layer": 20,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0010027840137481689
+    },
+    {
+      "layer": 20,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0019099839925765991
+    },
+    {
+      "layer": 21,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.01350044822692871
+    },
+    {
+      "layer": 21,
+      "operation": "current_value_geometry",
+      "seconds": 0.0044702720642089844
+    },
+    {
+      "layer": 21,
+      "operation": "current_coarse_observation",
+      "seconds": 0.002038271903991699
+    },
+    {
+      "layer": 21,
+      "operation": "history_probability_transfer",
+      "seconds": 9.372799843549729e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008572160005569458
+    },
+    {
+      "layer": 21,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005403295993804931
+    },
+    {
+      "layer": 21,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.193599641323089e-05
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 5.0144001841545105e-05
+    },
+    {
+      "layer": 21,
+      "operation": "history_probability_transfer",
+      "seconds": 9.200000017881394e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008444479703903199
+    },
+    {
+      "layer": 21,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.035200133919716e-05
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005325632095336914
+    },
+    {
+      "layer": 21,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.023999840021133e-05
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 5.2287999540567396e-05
+    },
+    {
+      "layer": 21,
+      "operation": "history_probability_transfer",
+      "seconds": 9.116800129413604e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008389120101928711
+    },
+    {
+      "layer": 21,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.8848001062870023e-05
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0053030080795288086
+    },
+    {
+      "layer": 21,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.075200229883194e-05
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 5.027199909090996e-05
+    },
+    {
+      "layer": 21,
+      "operation": "history_probability_transfer",
+      "seconds": 9.219200164079666e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008382400274276734
+    },
+    {
+      "layer": 21,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.932800099253654e-05
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0053060798645019535
+    },
+    {
+      "layer": 21,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.017599791288375e-05
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 5.0912000238895414e-05
+    },
+    {
+      "layer": 21,
+      "operation": "history_probability_transfer",
+      "seconds": 9.116800129413604e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008360959887504577
+    },
+    {
+      "layer": 21,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005375520229339599
+    },
+    {
+      "layer": 21,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.075200229883194e-05
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 21,
+      "operation": "history_probability_transfer",
+      "seconds": 9.238400310277939e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008444160223007203
+    },
+    {
+      "layer": 21,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.939200147986412e-05
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005379807949066162
+    },
+    {
+      "layer": 21,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.03359991312027e-05
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 5.0112001597881316e-05
+    },
+    {
+      "layer": 21,
+      "operation": "history_probability_transfer",
+      "seconds": 9.193599969148636e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008455039858818054
+    },
+    {
+      "layer": 21,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005354015827178955
+    },
+    {
+      "layer": 21,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.174400240182876e-05
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 21,
+      "operation": "history_probability_transfer",
+      "seconds": 9.219200164079666e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008444799780845642
+    },
+    {
+      "layer": 21,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.0416001826524736e-05
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005404287815093994
+    },
+    {
+      "layer": 21,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.043199986219406e-05
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 5.0112001597881316e-05
+    },
+    {
+      "layer": 21,
+      "operation": "history_probability_transfer",
+      "seconds": 5.488000065088272e-05
+    },
+    {
+      "layer": 21,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00039724799990653993
+    },
+    {
+      "layer": 21,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.481600061058998e-05
+    },
+    {
+      "layer": 21,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009867200255393982
+    },
+    {
+      "layer": 21,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.5456001758575437e-05
+    },
+    {
+      "layer": 21,
+      "operation": "output_and_history_store",
+      "seconds": 7.840000092983246e-06
+    },
+    {
+      "layer": 21,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.000691648006439209
+    },
+    {
+      "layer": 21,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.0018879679441452027
+    },
+    {
+      "layer": 22,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013499903678894042
+    },
+    {
+      "layer": 22,
+      "operation": "current_value_geometry",
+      "seconds": 0.004319424152374267
+    },
+    {
+      "layer": 22,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020216960906982422
+    },
+    {
+      "layer": 22,
+      "operation": "history_probability_transfer",
+      "seconds": 9.228800237178802e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008556159734725952
+    },
+    {
+      "layer": 22,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.932800099253654e-05
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0053285441398620605
+    },
+    {
+      "layer": 22,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.969600170850754e-05
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 5.0815999507904055e-05
+    },
+    {
+      "layer": 22,
+      "operation": "history_probability_transfer",
+      "seconds": 9.187199920415879e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008397120237350464
+    },
+    {
+      "layer": 22,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005321216106414795
+    },
+    {
+      "layer": 22,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.072000205516816e-05
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 22,
+      "operation": "history_probability_transfer",
+      "seconds": 9.222400188446045e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008423359990119934
+    },
+    {
+      "layer": 22,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.936000123620033e-05
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005312479972839355
+    },
+    {
+      "layer": 22,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.1103997528553e-05
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 5.0175998359918594e-05
+    },
+    {
+      "layer": 22,
+      "operation": "history_probability_transfer",
+      "seconds": 9.12640020251274e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008408960103988648
+    },
+    {
+      "layer": 22,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9967998415231706e-05
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.00535920000076294
+    },
+    {
+      "layer": 22,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.103999704122543e-05
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 5.0112001597881316e-05
+    },
+    {
+      "layer": 22,
+      "operation": "history_probability_transfer",
+      "seconds": 9.219200164079666e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008444160223007203
+    },
+    {
+      "layer": 22,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.932800099253654e-05
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0053736639022827146
+    },
+    {
+      "layer": 22,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.03359991312027e-05
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 5.078399926424027e-05
+    },
+    {
+      "layer": 22,
+      "operation": "history_probability_transfer",
+      "seconds": 9.116800129413604e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008469759821891784
+    },
+    {
+      "layer": 22,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.939200147986412e-05
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005382719993591308
+    },
+    {
+      "layer": 22,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.075200229883194e-05
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 5.020799860358238e-05
+    },
+    {
+      "layer": 22,
+      "operation": "history_probability_transfer",
+      "seconds": 9.232000261545181e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008484479784965515
+    },
+    {
+      "layer": 22,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.932800099253654e-05
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005373695850372315
+    },
+    {
+      "layer": 22,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.017599791288375e-05
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 22,
+      "operation": "history_probability_transfer",
+      "seconds": 9.190399944782258e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008467839956283569
+    },
+    {
+      "layer": 22,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005349952220916748
+    },
+    {
+      "layer": 22,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.084800302982331e-05
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 5.004800111055374e-05
+    },
+    {
+      "layer": 22,
+      "operation": "history_probability_transfer",
+      "seconds": 5.5615998804569246e-05
+    },
+    {
+      "layer": 22,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00039795199036598205
+    },
+    {
+      "layer": 22,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.4752000123262405e-05
+    },
+    {
+      "layer": 22,
+      "operation": "sparse_attention_only",
+      "seconds": 0.000984928011894226
+    },
+    {
+      "layer": 22,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.708799928426743e-05
+    },
+    {
+      "layer": 22,
+      "operation": "output_and_history_store",
+      "seconds": 7.584000006318092e-06
+    },
+    {
+      "layer": 22,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0007016000151634217
+    },
+    {
+      "layer": 22,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001882912039756775
+    },
+    {
+      "layer": 23,
+      "operation": "shared_qkv_and_rope",
+      "seconds": 0.013490336418151855
+    },
+    {
+      "layer": 23,
+      "operation": "current_value_geometry",
+      "seconds": 0.004335423946380615
+    },
+    {
+      "layer": 23,
+      "operation": "current_coarse_observation",
+      "seconds": 0.0020179200172424317
+    },
+    {
+      "layer": 23,
+      "operation": "history_probability_transfer",
+      "seconds": 9.424000233411789e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.000852512001991272
+    },
+    {
+      "layer": 23,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.932800099253654e-05
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005351103782653808
+    },
+    {
+      "layer": 23,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.82239979505539e-05
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 5.078399926424027e-05
+    },
+    {
+      "layer": 23,
+      "operation": "history_probability_transfer",
+      "seconds": 9.177599847316742e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008387839794158935
+    },
+    {
+      "layer": 23,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.942400172352791e-05
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005318463802337647
+    },
+    {
+      "layer": 23,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.078400254249573e-05
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 5.008000135421753e-05
+    },
+    {
+      "layer": 23,
+      "operation": "history_probability_transfer",
+      "seconds": 9.225600212812423e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008403519988059997
+    },
+    {
+      "layer": 23,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.936000123620033e-05
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005311135768890381
+    },
+    {
+      "layer": 23,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.03359991312027e-05
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 5.0175998359918594e-05
+    },
+    {
+      "layer": 23,
+      "operation": "history_probability_transfer",
+      "seconds": 9.136000275611877e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008393920063972473
+    },
+    {
+      "layer": 23,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005311007976531982
+    },
+    {
+      "layer": 23,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.972800195217133e-05
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 5.0432000309228894e-05
+    },
+    {
+      "layer": 23,
+      "operation": "history_probability_transfer",
+      "seconds": 9.212800115346908e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008403199911117553
+    },
+    {
+      "layer": 23,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9296000748872755e-05
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005323647975921631
+    },
+    {
+      "layer": 23,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.011199742555618e-05
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 5.075199902057648e-05
+    },
+    {
+      "layer": 23,
+      "operation": "history_probability_transfer",
+      "seconds": 9.123200178146362e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008397120237350464
+    },
+    {
+      "layer": 23,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.932800099253654e-05
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005326399803161621
+    },
+    {
+      "layer": 23,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.078400254249573e-05
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 5.0175998359918594e-05
+    },
+    {
+      "layer": 23,
+      "operation": "history_probability_transfer",
+      "seconds": 9.20640006661415e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008444799780845642
+    },
+    {
+      "layer": 23,
+      "operation": "missing_key_normalizer",
+      "seconds": 6.035200133919716e-05
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005364352226257324
+    },
+    {
+      "layer": 23,
+      "operation": "headmean_history_finalize",
+      "seconds": 7.030399888753891e-05
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 5.023999884724617e-05
+    },
+    {
+      "layer": 23,
+      "operation": "history_probability_transfer",
+      "seconds": 9.196799993515015e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.0008437119722366334
+    },
+    {
+      "layer": 23,
+      "operation": "missing_key_normalizer",
+      "seconds": 5.9999998658895494e-05
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.005363296031951905
+    },
+    {
+      "layer": 23,
+      "operation": "headmean_history_finalize",
+      "seconds": 6.97920024394989e-05
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 5.027199909090996e-05
+    },
+    {
+      "layer": 23,
+      "operation": "history_probability_transfer",
+      "seconds": 5.5711999535560605e-05
+    },
+    {
+      "layer": 23,
+      "operation": "current_prior_state_selection",
+      "seconds": 0.00039776000380516055
+    },
+    {
+      "layer": 23,
+      "operation": "missing_key_normalizer",
+      "seconds": 3.481600061058998e-05
+    },
+    {
+      "layer": 23,
+      "operation": "sparse_attention_only",
+      "seconds": 0.0009860159754753112
+    },
+    {
+      "layer": 23,
+      "operation": "headmean_history_finalize",
+      "seconds": 3.756799921393395e-05
+    },
+    {
+      "layer": 23,
+      "operation": "output_and_history_store",
+      "seconds": 7.71200004965067e-06
+    },
+    {
+      "layer": 23,
+      "operation": "history_validation_and_statistics",
+      "seconds": 0.0006462720036506653
+    },
+    {
+      "layer": 23,
+      "operation": "dense_special_query_correction",
+      "seconds": 0.001880671977996826
+    }
+  ],
+  "attention_core_scope": "AV plus inline history export,not bare AV",
+  "global_attention_wrappers_seconds": 2.315823402404785,
+  "peak_allocated_gib": 14.88271188735962,
+  "peak_reserved_gib": 20.05859375,
+  "speedup_vs_dense": null,
+  "definition": "Mutually exclusive stage events;outer global Attention times only derive remainder,never added again. Other-model remainder=full event time-global wrappers. Includes CPU launch/sync gaps inside event intervals."
+}

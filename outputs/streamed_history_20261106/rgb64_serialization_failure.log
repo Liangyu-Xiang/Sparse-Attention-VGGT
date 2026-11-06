@@ -1,0 +1,60 @@
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/__init__.py:827: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+TIMING 0 {'seconds': 19.861984613351524, 'peak_allocated_gib': 26.041794300079346, 'peak_reserved_gib': 28.810546875}
+TIMING 1 {'seconds': 2.5206723464652896, 'peak_allocated_gib': 11.003501892089844, 'peak_reserved_gib': 14.08984375}
+TIMING 2 {'seconds': 2.5177321629598737, 'peak_allocated_gib': 11.002581596374512, 'peak_reserved_gib': 14.08984375}
+TIMING 3 {'seconds': 2.523005122318864, 'peak_allocated_gib': 11.003501892089844, 'peak_reserved_gib': 14.08984375}
+FIDELITY 0 0.00033425920992158353
+FIDELITY 1 0.014059847220778465
+FIDELITY 2 0.010380631312727928
+FIDELITY 3 0.0058652847073972225
+FIDELITY 4 0.01025996170938015
+FIDELITY 5 0.017042145133018494
+FIDELITY 6 0.026945771649479866
+FIDELITY 7 0.025479428470134735
+FIDELITY 8 0.03777267411351204
+FIDELITY 9 0.014711936935782433
+FIDELITY 10 0.02388257347047329
+FIDELITY 11 0.049030277878046036
+FIDELITY 12 0.06626828014850616
+FIDELITY 13 0.04088135436177254
+FIDELITY 14 0.008846939541399479
+FIDELITY 15 0.04363899677991867
+FIDELITY 16 0.021782996132969856
+FIDELITY 17 0.006716602947562933
+FIDELITY 18 0.004371868446469307
+FIDELITY 19 0.004180168267339468
+FIDELITY 20 0.009612699039280415
+FIDELITY 21 0.0038910391740500927
+FIDELITY 22 0.0009263268439099193
+FIDELITY 23 0.0007861876511014998
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-streamed-history-20261106/scripts/diagnose_streamed_history.py", line 65, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/tmp/sparse-vggt-streamed-history-20261106/scripts/diagnose_streamed_history.py", line 64, in main
+    save(a.output,dict(quality=q,sequence=a.sequence,input=entry,config=config,timing=dict(warmup=1,repeats=3,median_seconds=statistics.median(v['seconds'] for v in samples[1:]),samples=samples[1:],cold_samples=samples[:1]),probability_transfer=audit.rows,probability_generation=audit.generation,fidelity=fidelity.summary(),speedup_vs_dense=None,speedup_reason='No full Dense rerun;new method only',test_gt_read=False,layers=s.records));print('COMPLETE',a.sequence,flush=True)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-streamed-history-20261106/scripts/search_quality_speed.py", line 6, in save
+    p.parent.mkdir(parents=True,exist_ok=True);t=p.with_suffix(p.suffix+'.tmp');t.write_text(json.dumps(v,indent=2)+'\n');t.replace(p)
+                                                                                             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/json/__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/json/encoder.py", line 202, in encode
+    chunks = list(chunks)
+             ^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/json/encoder.py", line 432, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/json/encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type Tensor is not JSON serializable
