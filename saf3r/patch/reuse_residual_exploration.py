@@ -37,6 +37,7 @@ class ReuseExploreConfig:
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
     current_probability_probes:int=0
+    streamed_probability_history:bool=False
     skip_dead_exact_observation:bool=False
     rep_history_execution:str='population'
     rep_history_loss:str='legacy'
@@ -107,8 +108,9 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.streamed_probability_history and self.current_probability_probes:raise ValueError('Choose streamed historical evidence or full-Key probes,not both')
         if self.current_probability_probes not in (0,1,4):raise ValueError('Use0/1/4 exact current probability probes')
-        if self.current_probability_probes and (self.rep_history_loss!='A' or self.candidate_fraction!=1. or not self.shared_value_loss):raise ValueError('Current probes require all-eligible shared History A')
+        if (self.current_probability_probes or self.streamed_probability_history) and (self.rep_history_loss!='A' or self.candidate_fraction!=1. or not self.shared_value_loss):raise ValueError('Probability backend requires all-eligible shared History A')
         if self.skip_dead_exact_observation and not (self.compact and self.shared_value_loss and self.window_graph and self.candidate_fraction==1. and self.history_evidence_backend=='direct_sampled' and self.history_query_interval==self.query_group_size):raise ValueError('Dead Exact observations can only be skipped in full-eligible fully sampled shared path')
         if self.rep_history_execution not in ('population','prior_residual'):raise ValueError('Invalid History A compensation')
         if self.rep_history_execution!='population' and self.rep_history_loss!='A':raise ValueError('Prior-residual compensation requires History A')
@@ -372,6 +374,7 @@ class ReuseExploreState:
         self.grid,self.regions=canonical_layout(cluster_frames,height,width,c.grid_y,c.grid_x,device)
         self.grid_sizes=torch.bincount(self.grid,minlength=self.regions).float()
         self.history_ids=None;self.history_weights=None;self.history_relative=None;self.previous_grid=None;self.previous_real_grid=None
+        self.streamed_history_cache=None
         if c.cache_probe_indices:
             from .reuse_probe_cache import prepare
             prepare(self)
@@ -404,7 +407,7 @@ class ReuseResidualExploration(nn.Module):
 
     def forward(self,x,pos=None):
         o,s=self.original,self.state;c=s.config
-        if c.current_probability_probes:
+        if c.current_probability_probes or c.streamed_probability_history:
             from .current_probe_reuse import forward
             return forward(self,x,pos)
         if self.training or len(x)!=1 or self.layer!=s.previous_layer+1:raise ValueError('Batch-one ordered inference required')

@@ -20,7 +20,7 @@ class Fidelity:
   import torch
   import saf3r.patch.reuse_residual_exploration as mod
   import saf3r.triton.reuse_direct_sampled_probability as direct
-  self.orig_prepare=mod.prepare_qkv;self.new_backend=bool(getattr(self.s.config,'current_probability_probes',0))
+  self.orig_prepare=mod.prepare_qkv;self.new_backend=bool(getattr(self.s.config,'current_probability_probes',0) or getattr(self.s.config,'streamed_probability_history',False))
   if self.new_backend:
    import saf3r.patch.current_probe_reuse as direct
    self.orig_execute=direct.main_attention

@@ -13,7 +13,8 @@ from contextlib import nullcontext
 def _attention(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,
  H:tl.constexpr,R:tl.constexpr,N:tl.constexpr,A:tl.constexpr,S:tl.constexpr,D:tl.constexpr,
  QH:tl.constexpr,KH:tl.constexpr,VH:tl.constexpr,SCALE:tl.constexpr,BD:tl.constexpr,BK:tl.constexpr,
- HAS_BIAS:tl.constexpr,INLINE:tl.constexpr,P:tl.constexpr,T:tl.constexpr,FASTINLINE:tl.constexpr=0,SAMPLE_STRIDE:tl.constexpr=1,GROUP_MODE:tl.constexpr=0,SUPPORT_GROUP_SIZE:tl.constexpr=32,BM:tl.constexpr=32):
+ HAS_BIAS:tl.constexpr,INLINE:tl.constexpr,P:tl.constexpr,T:tl.constexpr,FASTINLINE:tl.constexpr=0,SAMPLE_STRIDE:tl.constexpr=1,GROUP_MODE:tl.constexpr=0,SUPPORT_GROUP_SIZE:tl.constexpr=32,BM:tl.constexpr=32,
+ HISTORY=None,PROXY_LSE=None,CLIPPED=None,STREAM_HISTORY:tl.constexpr=False):
  g=tl.program_id(0);h=tl.program_id(1);row=tl.arange(0,BM);rr=g*BM+row;d=tl.arange(0,BD);col=tl.arange(0,BK)
  if GROUP_MODE==1:g=g+1+g//(SAMPLE_STRIDE-1)
  elif GROUP_MODE==2:g=g*SAMPLE_STRIDE
@@ -37,6 +38,18 @@ def _attention(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,
   k=tl.load(K+h*KH+tl.maximum(key,0)[None,:]*D+d[:,None],valid[None,:]&(d[:,None]<D),0.)
   v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+d[None,:],valid[:,None]&(d[None,:]<D),0.)
   raw_qk=tl.dot(q,k,allow_tf32=False)*SCALE
+  if STREAM_HISTORY:
+   # Reuse the SAME QK tile as AV. Only one actual query per shared mask emits;
+   # no H x G x A logit/probability bank and no second selected-edge QK.
+   probe_row=tl.minimum(support_g*SUPPORT_GROUP_SIZE+SUPPORT_GROUP_SIZE//8,R-1)
+   if g==probe_row//BM:
+    probe_logit=tl.gather(raw_qk,tl.full((1,BK),probe_row-g*BM,tl.int32),0)
+    reference=tl.load(PROXY_LSE+h*tl.cdiv(R,SUPPORT_GROUP_SIZE)+support_g)
+    delta=probe_logit-reference
+    if tl.max(tl.max(tl.where(valid[None,:],delta,-float('inf')),0),0)>60.:
+     tl.atomic_or(CLIPPED+support_g,1,sem='relaxed')
+    score=tl.exp(tl.minimum(delta,60.))/H
+    tl.atomic_add(HISTORY+support_g*(S+A)+at[None,:],score,valid[None,:],sem='relaxed')
   z=tl.where(valid[None,:],raw_qk+bias[None,:],-float('inf'))
   mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
   if INLINE:
