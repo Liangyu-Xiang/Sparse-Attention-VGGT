@@ -14,7 +14,8 @@ def _attention(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,
  H:tl.constexpr,R:tl.constexpr,N:tl.constexpr,A:tl.constexpr,S:tl.constexpr,D:tl.constexpr,
  QH:tl.constexpr,KH:tl.constexpr,VH:tl.constexpr,SCALE:tl.constexpr,BD:tl.constexpr,BK:tl.constexpr,
  HAS_BIAS:tl.constexpr,INLINE:tl.constexpr,P:tl.constexpr,T:tl.constexpr,FASTINLINE:tl.constexpr=0,SAMPLE_STRIDE:tl.constexpr=1,GROUP_MODE:tl.constexpr=0,SUPPORT_GROUP_SIZE:tl.constexpr=32,BM:tl.constexpr=32,
- HISTORY=None,PROXY_LSE=None,CLIPPED=None,STREAM_HISTORY:tl.constexpr=False):
+ HISTORY=None,PROXY_LSE=None,CLIPPED=None,STREAM_HISTORY:tl.constexpr=False,
+ RAW_LSE=None,HISTORY_BITS:tl.constexpr=0):
  g=tl.program_id(0);h=tl.program_id(1);row=tl.arange(0,BM);rr=g*BM+row;d=tl.arange(0,BD);col=tl.arange(0,BK)
  if GROUP_MODE==1:g=g+1+g//(SAMPLE_STRIDE-1)
  elif GROUP_MODE==2:g=g*SAMPLE_STRIDE
@@ -27,6 +28,9 @@ def _attention(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,
  support_g=g//(SUPPORT_GROUP_SIZE//BM)
  q=tl.load(Q+h*QH+rr[:,None]*D+d[None,:],(rr[:,None]<R)&(d[None,:]<D),0.)
  maximum=tl.full((BM,),-float('inf'),tl.float32);den=tl.zeros((BM,),tl.float32);acc=tl.zeros((BM,BD),tl.float32)
+ if HISTORY_BITS:
+  probe_max=tl.full((),-float('inf'),tl.float32);probe_den=tl.full((),0.,tl.float32)
+  probe_row=tl.minimum(support_g*SUPPORT_GROUP_SIZE+SUPPORT_GROUP_SIZE//8,R-1)
  if INLINE:
   probe=tl.arange(0,P);pos=tl.load(POS+support_g*P+probe)-g*BM
   if FASTINLINE>=3 and P>1:slot=tl.min(tl.where(row[:,None]==pos[None,:],probe[None,:],P),1)
@@ -38,6 +42,21 @@ def _attention(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,
   k=tl.load(K+h*KH+tl.maximum(key,0)[None,:]*D+d[:,None],valid[None,:]&(d[:,None]<D),0.)
   v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+d[None,:],valid[:,None]&(d[None,:]<D),0.)
   raw_qk=tl.dot(q,k,allow_tf32=False)*SCALE
+  if HISTORY_BITS:
+   if g==probe_row//BM:
+    raw=tl.gather(raw_qk,tl.full((1,BK),probe_row-g*BM,tl.int32),0)
+    raw=tl.where(valid[None,:],raw,-float('inf'))
+    tile_max=tl.max(tl.max(raw,0),0);safe_tile=tl.where(tile_max==-float('inf'),0.,tile_max)
+    tile_den=tl.sum(tl.sum(tl.exp(raw-safe_tile),0),0)
+    next_probe_max=tl.maximum(probe_max,safe_tile)
+    probe_den=probe_den*tl.exp(probe_max-next_probe_max)+tile_den*tl.exp(safe_tile-next_probe_max);probe_max=next_probe_max
+    delta=raw-safe_tile
+    if HISTORY_BITS==8:
+     quant=tl.floor(-delta*16.+.5)
+     encoded=tl.minimum(quant,255.).to(tl.uint8)
+    else:encoded=delta.to(tl.float16)
+    tl.store(TILE_P+(support_g*H+h)*(S+A)+at[None,:],encoded,at[None,:]<S+A)
+    tl.store(TILE_LSE+(support_g*H+h)*tl.cdiv(S+A,BK)+tile,safe_tile)
   if STREAM_HISTORY:
    # Reuse the SAME QK tile as AV. Only one actual query per shared mask emits;
    # no H x G x A logit/probability bank and no second selected-edge QK.
@@ -88,6 +107,8 @@ def _attention(Q,K,V,IDS,SPECIAL,BIAS,POS,OUT,LSE,TILE_P,TILE_LSE,
  result=acc/tl.where(den>0,den,1.)[:,None]
  tl.store(OUT+(h*R+rr[:,None])*D+d[None,:],result,(rr[:,None]<R)&(d[None,:]<D))
  tl.store(LSE+h*R+rr,maximum+tl.log(den),rr<R)
+ if HISTORY_BITS:
+  if g==probe_row//BM:tl.store(RAW_LSE+h*tl.cdiv(R,SUPPORT_GROUP_SIZE)+support_g,probe_max+tl.log(probe_den))
 
 @triton.jit
 def _inline_mean(LOCAL,LOCAL_LSE,LSE,POS,PROB,H:tl.constexpr,R:tl.constexpr,A:tl.constexpr,S:tl.constexpr,P:tl.constexpr,T:tl.constexpr,BK:tl.constexpr,BH:tl.constexpr,MASKED:tl.constexpr=False,SAMPLE_STRIDE:tl.constexpr=1):

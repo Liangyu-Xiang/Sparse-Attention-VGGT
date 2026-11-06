@@ -38,6 +38,11 @@ class ReuseExploreConfig:
     p0_loss_pack: bool = False
     current_probability_probes:int=0
     streamed_probability_history:bool=False
+    streamed_history_normalizer:str='selected_d2'
+    streamed_history_bits:int=8
+    streamed_history_region_transport:bool=True
+    history_key_block_size:int=0
+    streamed_history_prior_weight:float=1.
     skip_dead_exact_observation:bool=False
     rep_history_execution:str='population'
     rep_history_loss:str='legacy'
@@ -108,6 +113,9 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if not 0.<self.streamed_history_prior_weight<=1.:raise ValueError('Streamed history must have strictly positive prior weight')
+        if self.history_key_block_size not in (0,64,128,256,512):raise ValueError('Use canonical0 or contiguous Key blocks64/128/256/512')
+        if self.streamed_history_normalizer not in ('selected_d2','coarse_proxy') or self.streamed_history_bits not in (8,16):raise ValueError('Invalid streamed-history evidence format')
         if self.streamed_probability_history and self.current_probability_probes:raise ValueError('Choose streamed historical evidence or full-Key probes,not both')
         if self.current_probability_probes not in (0,1,4):raise ValueError('Use0/1/4 exact current probability probes')
         if (self.current_probability_probes or self.streamed_probability_history) and (self.rep_history_loss!='A' or self.candidate_fraction!=1. or not self.shared_value_loss):raise ValueError('Probability backend requires all-eligible shared History A')
@@ -372,6 +380,9 @@ class ReuseExploreState:
             from .adaptive_value_clustering import AdaptiveFullCoverageValue
             self.fine=AdaptiveFullCoverageValue(cluster_frames,height*width,cluster_count,device,c.source_width,c.local_iterations,mode='local' if c.clustering_mode=='adaptive_local' else 'certified',neighbors=c.cluster_neighbors)
         self.grid,self.regions=canonical_layout(cluster_frames,height,width,c.grid_y,c.grid_x,device)
+        if c.streamed_probability_history and c.history_key_block_size:
+            self.grid=torch.arange(len(self.patches),device=device)//c.history_key_block_size
+            self.regions=math.ceil(len(self.patches)/c.history_key_block_size)
         self.grid_sizes=torch.bincount(self.grid,minlength=self.regions).float()
         self.history_ids=None;self.history_weights=None;self.history_relative=None;self.previous_grid=None;self.previous_real_grid=None
         self.streamed_history_cache=None
