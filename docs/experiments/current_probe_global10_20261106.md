@@ -31,3 +31,21 @@ references,not contemporaneous paired measurements. No target-GT retuning.
 geometry,default behavior,FP32/BF16 probability and sparse attention. This is
 budget-accounting/config work,not a new attention kernel. Defaults keep the
 old budget rule;the new field requires the current-probe backend.
+
+## Completed result
+
+18/18 pose+unposed reconstruction evaluations and source/config/input/protocol,
+isolation and budget audits passed. Actual final unique retention macro:7Scenes
+9.96487%,ETH3D9.97744%;total logical QK including probes/repeated corrected
+queries13.13114%/13.16128% of Dense QK,not10%.
+
+7Scenes:AUC3/30=22.31147/84.42503%,ACC/Comp/CD=.14243/.12513/.13378m,
+F1=47.10222%,5.34518s warm median scene mean,14.865GiB warm allocated peak.
+ETH3D:24.59474/78.32003%,.35891/.90942/.63416m,54.31966%,1.12759s,11.023GiB.
+Compared with fast14 reference,F1 drops2.456%/5.336% relative;ETH3D ACC worsens
+12.430% and CD5.630%.7Scenes Comp worsens2.524%,despite improved ACC. Thus this
+fixed schedule does not maintain quality;do not deploy it as a lossless
+replacement. No budget retuning or old-control reruns follow these test scores.
+Reference time is preceding-batch5.74509s/1.15039s,not paired. Formal Dense
+speedup N/A. See outputs/current_probe_global10_20261106/REPORT.md for all six
+metrics,per-scene rows,budget/state counts,protocol and runtime/memory details.
