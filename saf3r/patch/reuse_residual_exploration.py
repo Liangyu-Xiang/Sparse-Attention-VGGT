@@ -37,6 +37,11 @@ class ReuseExploreConfig:
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
     current_probability_probes:int=0
+    teacher_guided_history:bool=False
+    teacher_history_probes:int=4
+    teacher_history_samples:int=8
+    teacher_history_anchor_gain:float=1.
+    teacher_history_update_gain:float=1.
     streamed_probability_history:bool=False
     streamed_history_normalizer:str='selected_d2'
     streamed_history_bits:int=8
@@ -114,6 +119,7 @@ class ReuseExploreConfig:
 
     def __post_init__(self):
         if not 0.<self.streamed_history_prior_weight<=1.:raise ValueError('Streamed history must have strictly positive prior weight')
+        if self.teacher_guided_history and (not self.streamed_probability_history or self.query_group_size!=256 or self.history_key_block_size!=64 or self.shared_value_features!='head_sketch' or self.teacher_history_probes not in (1,2,4) or self.teacher_history_samples not in (4,8) or not 0<=self.teacher_history_update_gain<=1):raise ValueError('Teacher history requires block64,group256,head-sketch and valid probes/samples/gain')
         if self.history_key_block_size not in (0,64,128,256,512):raise ValueError('Use canonical0 or contiguous Key blocks64/128/256/512')
         if self.streamed_history_normalizer not in ('selected_d2','coarse_proxy') or self.streamed_history_bits not in (8,16):raise ValueError('Invalid streamed-history evidence format')
         if self.streamed_probability_history and self.current_probability_probes:raise ValueError('Choose streamed historical evidence or full-Key probes,not both')
@@ -418,6 +424,9 @@ class ReuseResidualExploration(nn.Module):
 
     def forward(self,x,pos=None):
         o,s=self.original,self.state;c=s.config
+        if c.teacher_guided_history:
+            from .teacher_guided_history import forward
+            return forward(self,x,pos)
         if c.current_probability_probes or c.streamed_probability_history:
             from .current_probe_reuse import forward
             return forward(self,x,pos)
