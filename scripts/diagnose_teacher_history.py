@@ -11,6 +11,8 @@ class Audit:
   from saf3r.patch import reuse_residual_exploration as mod,reuse_window_graph as window
   if self.s.config.teacher_history_attention_backend=='probability_tiles':
    from saf3r.triton import teacher_history_probability_tiles as av
+  elif self.s.config.teacher_history_attention_backend=='raw_masked':
+   from saf3r.triton import teacher_history_raw_fast as av
   else:
    from saf3r.triton import teacher_history_attention as av
   from saf3r.triton import teacher_history_probability as probability
@@ -19,6 +21,8 @@ class Audit:
    q,k,v=self.prepare(original,x,pos);self.q=q.to(v.dtype);self.k=k.to(v.dtype);self.v=v;self.original=original;self.start=0;self.samples=[];s=self.s
    self.groups=torch.linspace(0,s.groups-1,4,device=q.device).long().unique();self.positions=(self.groups[:,None]*256+torch.tensor([32,96,160,224],device=q.device)).clamp_max(s.n-1)
    self.heldout=(self.positions-16).clamp_min(0)
+   self.heldout=torch.where(torch.isin(self.heldout,s.specials),(self.heldout+8).clamp_max(s.n-1),self.heldout)
+   assert not bool(torch.isin(self.heldout,s.specials).any())
    with torch.autocast('cuda',enabled=False):
     raw=self.q[:,self.positions.flatten()].float()@self.k.float().transpose(1,2)*original.scale;self.truth=raw.softmax(-1).mean(0).reshape(len(self.groups),4,s.n).mean(1)[:,s.patches]
     raw=self.q[:,self.heldout.flatten()].float()@self.k.float().transpose(1,2)*original.scale;self.dense=(raw.softmax(-1)@v.float()).reshape(len(q),len(self.groups),4,v.shape[-1])
@@ -60,6 +64,8 @@ class Audit:
   from saf3r.patch import reuse_residual_exploration as mod,reuse_window_graph as window
   if self.s.config.teacher_history_attention_backend=='probability_tiles':
    from saf3r.triton import teacher_history_probability_tiles as av
+  elif self.s.config.teacher_history_attention_backend=='raw_masked':
+   from saf3r.triton import teacher_history_raw_fast as av
   else:
    from saf3r.triton import teacher_history_attention as av
   from saf3r.triton import teacher_history_probability as probability

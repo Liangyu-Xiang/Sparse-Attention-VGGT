@@ -1,0 +1,3268 @@
+{
+  "name": "scaled_middle10_c06",
+  "sequence": "scannet",
+  "config": {
+    "allocation_objective": "min_error",
+    "attention_backend": "indexed",
+    "attention_block_keys": 128,
+    "attention_block_queries": 64,
+    "attention_stages": 2,
+    "attention_warps": 4,
+    "budget_graph": false,
+    "cache_probe_indices": true,
+    "candidate_fraction": 1.0,
+    "capture": false,
+    "cluster_fraction": 0.06,
+    "cluster_neighbors": 32,
+    "clustering_mode": "source_local_unanchored",
+    "compact": true,
+    "dense_special_queries": 5,
+    "deterministic_reductions": false,
+    "direction_drop": true,
+    "disable_population_compensation": false,
+    "drop_multiplier": 1,
+    "dual_iterations": 16,
+    "evidence_mode": "fused_grid",
+    "execution_kernel": "direct_sparse",
+    "flash_group_chunk": 16,
+    "fuse_mask_ops": true,
+    "fuse_state_kernel": true,
+    "fused_coarse": true,
+    "graph_cache_capacity": 24,
+    "graph_cache_max_mib": 2048,
+    "grid_x": 2,
+    "grid_y": 2,
+    "guard_groups": 4,
+    "guard_rel_l2": 0.005,
+    "hierarchical": false,
+    "history_cache_format": "compact_sampled_log_fp16",
+    "history_evidence_backend": "direct_sampled",
+    "history_mode": "dense_m5c",
+    "history_per_cluster": 4,
+    "history_query_interval": 256,
+    "history_split_export": true,
+    "layer_retentions": [
+      0.07142857142857142,
+      0.07142857142857142,
+      0.07142857142857142,
+      0.07142857142857142,
+      0.07142857142857142,
+      0.07142857142857142,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.12857142857142856,
+      0.07142857142857142,
+      0.07142857142857142,
+      0.07142857142857142,
+      0.07142857142857142,
+      0.07142857142857142,
+      0.07142857142857142
+    ],
+    "local_iterations": 1,
+    "mass_transfer": true,
+    "p0_loss_pack": false,
+    "parent_arity": 4,
+    "parent_moment_mode": "exact",
+    "parent_passes": 2,
+    "prior_floor_fraction": 1e-06,
+    "query_group_size": 256,
+    "query_shift": 0,
+    "reference_dual_iterations": 16,
+    "refresh_interval": 1,
+    "rep_gain": true,
+    "retention": 0.2,
+    "reuse_window_graphs": true,
+    "sampled_split_launch": false,
+    "shared_value_allow_observed_rep": true,
+    "shared_value_features": "head_sketch",
+    "shared_value_loss": true,
+    "shared_value_weighting": "cluster_population",
+    "source_layout": "sequential",
+    "source_temporal_span": 1,
+    "source_width": 32,
+    "stable_binned_graph": true,
+    "state_l2": true,
+    "state_loss": "cosine_distortion",
+    "state_loss_history_gate": "observed",
+    "state_loss_operator": "group_history",
+    "state_loss_sketch_dim": 8,
+    "state_loss_variant": "legacy",
+    "static_shared_graph": false,
+    "window_graph": true,
+    "window_groups": 128,
+    "rep_history_loss": "A",
+    "fused_rope": true,
+    "autotune_dense_convolutions": true,
+    "fused_residual_add": true,
+    "reuse_cuda_allocations": true,
+    "efficient_source_scatter": true,
+    "current_probability_probes": 0,
+    "rep_history_execution": "prior_residual",
+    "skip_dead_exact_observation": false,
+    "streamed_probability_history": true,
+    "streamed_history_normalizer": "selected_d2",
+    "streamed_history_bits": 16,
+    "streamed_history_region_transport": true,
+    "history_key_block_size": 64,
+    "streamed_history_prior_weight": 0.75,
+    "teacher_guided_history": true,
+    "teacher_history_probes": 4,
+    "teacher_history_samples": 8,
+    "teacher_history_anchor_gain": 1.0,
+    "teacher_history_update_gain": 1.0,
+    "teacher_history_attention_backend": "probability_tiles",
+    "teacher_history_fused_prepare": true,
+    "teacher_history_layer_observation": true,
+    "total_edge_retention": true
+  },
+  "input": {
+    "image_paths": [
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/0.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1009.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1020.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1032.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1044.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1056.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1068.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/108.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1091.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1102.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1114.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1126.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1138.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/115.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1161.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1173.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1185.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1197.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1208.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/122.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1231.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1243.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1255.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1267.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1279.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1290.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1301.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1313.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1325.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1337.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1349.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1360.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1372.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1384.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1396.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1407.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1419.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1430.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1442.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1454.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1466.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1478.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/149.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1500.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1512.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1524.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1536.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1548.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/156.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1571.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1583.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1595.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1606.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1618.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/163.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1641.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1653.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1665.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1677.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1689.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/170.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1711.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1723.jpg",
+      "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1.jpg"
+    ],
+    "excluded_final_evaluation_image_paths": [
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000007.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000015.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000023.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000031.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000039.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000047.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000055.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000062.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000070.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000078.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000086.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000094.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000102.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000110.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000117.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000125.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000133.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000141.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000149.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000157.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000165.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000173.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000180.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000188.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000196.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000204.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000212.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000220.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000228.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000235.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000243.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000251.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000259.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000267.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000275.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000283.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000291.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000298.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000306.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000314.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000322.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000330.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000338.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000346.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000353.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000361.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000369.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000377.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000385.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000393.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000401.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000409.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000416.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000424.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000432.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000440.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000448.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000456.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000464.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000471.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000479.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000487.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000495.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000503.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000511.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000519.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000527.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000534.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000542.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000550.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000558.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000566.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000574.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000582.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000589.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000597.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000605.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000613.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000621.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000629.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000637.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000645.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000652.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000660.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000668.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000676.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000684.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000692.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000700.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000707.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000715.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000723.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000731.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000739.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000747.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000755.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000763.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000770.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000778.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000786.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000794.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000802.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000810.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000818.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000825.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000833.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000841.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000849.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000857.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000865.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000873.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000881.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000888.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000896.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000904.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000912.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000920.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000928.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000936.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000943.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000951.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000959.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000967.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000975.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000983.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000991.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/chess/seq-01/frame-000999.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000007.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000015.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000023.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000031.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000039.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000047.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000055.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000062.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000070.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000078.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000086.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000094.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000102.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000110.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000117.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000125.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000133.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000141.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000149.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000157.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000165.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000173.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000180.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000188.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000196.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000204.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000212.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000220.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000228.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000235.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000243.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000251.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000259.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000267.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000275.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000283.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000291.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000298.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000306.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000314.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000322.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000330.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000338.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000346.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000353.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000361.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000369.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000377.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000385.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000393.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000401.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000409.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000416.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000424.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000432.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000440.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000448.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000456.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000464.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000471.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000479.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000487.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000495.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000503.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000511.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000519.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000527.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000534.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000542.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000550.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000558.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000566.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000574.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000582.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000589.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000597.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000605.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000613.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000621.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000629.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000637.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000645.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000652.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000660.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000668.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000676.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000684.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000692.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000700.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000707.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000715.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000723.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000731.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000739.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000747.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000755.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000763.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000770.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000778.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000786.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000794.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000802.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000810.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000818.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000825.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000833.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000841.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000849.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000857.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000865.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000873.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000881.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000888.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000896.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000904.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000912.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000920.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000928.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000936.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000943.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000951.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000959.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000967.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000975.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000983.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000991.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/fire/seq-01/frame-000999.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000007.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000015.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000023.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000031.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000039.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000047.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000055.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000062.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000070.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000078.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000086.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000094.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000102.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000110.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000117.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000125.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000133.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000141.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000149.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000157.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000165.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000173.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000180.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000188.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000196.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000204.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000212.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000220.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000228.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000235.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000243.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000251.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000259.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000267.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000275.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000283.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000291.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000298.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000306.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000314.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000322.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000330.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000338.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000346.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000353.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000361.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000369.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000377.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000385.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000393.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000401.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000409.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000416.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000424.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000432.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000440.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000448.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000456.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000464.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000471.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000479.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000487.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000495.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000503.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000511.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000519.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000527.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000534.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000542.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000550.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000558.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000566.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000574.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000582.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000589.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000597.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000605.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000613.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000621.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000629.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000637.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000645.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000652.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000660.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000668.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000676.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000684.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000692.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000700.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000707.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000715.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000723.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000731.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000739.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000747.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000755.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000763.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000770.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000778.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000786.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000794.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000802.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000810.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000818.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000825.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000833.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000841.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000849.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000857.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000865.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000873.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000881.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000888.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000896.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000904.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000912.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000920.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000928.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000936.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000943.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000951.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000959.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000967.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000975.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000983.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000991.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/heads/seq-01/frame-000999.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000007.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000015.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000023.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000031.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000039.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000047.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000055.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000062.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000070.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000078.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000086.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000094.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000102.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000110.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000117.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000125.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000133.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000141.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000149.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000157.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000165.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000173.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000180.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000188.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000196.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000204.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000212.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000220.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000228.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000235.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000243.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000251.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000259.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000267.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000275.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000283.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000291.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000298.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000306.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000314.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000322.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000330.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000338.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000346.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000353.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000361.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000369.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000377.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000385.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000393.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000401.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000409.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000416.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000424.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000432.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000440.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000448.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000456.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000464.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000471.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000479.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000487.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000495.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000503.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000511.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000519.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000527.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000534.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000542.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000550.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000558.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000566.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000574.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000582.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000589.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000597.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000605.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000613.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000621.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000629.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000637.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000645.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000652.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000660.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000668.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000676.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000684.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000692.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000700.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000707.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000715.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000723.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000731.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000739.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000747.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000755.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000763.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000770.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000778.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000786.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000794.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000802.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000810.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000818.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000825.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000833.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000841.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000849.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000857.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000865.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000873.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000881.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000888.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000896.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000904.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000912.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000920.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000928.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000936.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000943.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000951.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000959.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000967.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000975.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000983.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000991.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/office/seq-01/frame-000999.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000007.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000015.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000023.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000031.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000039.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000047.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000055.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000062.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000070.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000078.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000086.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000094.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000102.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000110.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000117.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000125.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000133.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000141.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000149.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000157.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000165.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000173.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000180.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000188.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000196.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000204.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000212.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000220.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000228.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000235.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000243.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000251.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000259.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000267.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000275.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000283.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000291.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000298.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000306.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000314.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000322.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000330.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000338.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000346.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000353.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000361.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000369.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000377.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000385.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000393.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000401.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000409.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000416.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000424.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000432.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000440.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000448.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000456.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000464.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000471.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000479.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000487.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000495.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000503.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000511.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000519.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000527.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000534.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000542.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000550.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000558.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000566.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000574.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000582.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000589.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000597.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000605.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000613.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000621.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000629.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000637.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000645.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000652.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000660.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000668.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000676.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000684.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000692.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000700.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000707.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000715.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000723.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000731.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000739.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000747.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000755.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000763.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000770.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000778.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000786.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000794.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000802.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000810.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000818.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000825.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000833.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000841.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000849.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000857.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000865.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000873.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000881.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000888.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000896.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000904.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000912.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000920.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000928.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000936.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000943.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000951.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000959.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000967.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000975.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000983.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000991.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/pumpkin/seq-01/frame-000999.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000007.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000015.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000023.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000031.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000039.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000047.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000055.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000062.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000070.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000078.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000086.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000094.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000102.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000110.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000117.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000125.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000133.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000141.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000149.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000157.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000165.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000173.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000180.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000188.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000196.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000204.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000212.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000220.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000228.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000235.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000243.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000251.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000259.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000267.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000275.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000283.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000291.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000298.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000306.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000314.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000322.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000330.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000338.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000346.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000353.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000361.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000369.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000377.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000385.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000393.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000401.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000409.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000416.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000424.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000432.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000440.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000448.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000456.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000464.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000471.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000479.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000487.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000495.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000503.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000511.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000519.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000527.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000534.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000542.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000550.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000558.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000566.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000574.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000582.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000589.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000597.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000605.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000613.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000621.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000629.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000637.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000645.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000652.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000660.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000668.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000676.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000684.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000692.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000700.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000707.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000715.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000723.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000731.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000739.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000747.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000755.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000763.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000770.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000778.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000786.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000794.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000802.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000810.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000818.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000825.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000833.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000841.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000849.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000857.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000865.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000873.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000881.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000888.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000896.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000904.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000912.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000920.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000928.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000936.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000943.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000951.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000959.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000967.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000975.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000983.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000991.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/redkitchen/seq-01/frame-000999.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000000.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000003.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000007.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000011.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000015.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000019.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000023.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000027.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000031.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000035.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000039.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000043.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000047.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000051.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000055.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000058.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000062.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000066.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000070.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000074.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000078.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000082.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000086.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000090.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000094.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000098.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000102.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000106.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000110.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000113.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000117.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000121.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000125.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000129.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000133.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000137.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000141.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000145.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000149.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000153.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000157.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000161.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000165.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000168.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000172.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000176.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000180.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000184.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000188.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000192.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000196.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000200.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000204.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000208.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000212.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000216.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000220.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000223.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000227.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000231.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000235.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000239.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000243.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000247.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000251.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000255.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000259.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000263.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000267.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000271.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000275.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000278.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000282.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000286.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000290.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000294.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000298.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000302.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000306.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000310.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000314.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000318.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000322.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000326.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000330.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000333.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000337.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000341.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000345.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000349.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000353.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000357.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000361.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000365.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000369.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000373.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000377.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000381.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000385.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000388.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000392.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000396.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000400.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000404.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000408.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000412.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000416.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000420.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000424.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000428.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000432.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000436.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000440.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000443.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000447.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000451.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000455.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000459.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000463.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000467.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000471.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000475.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000479.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000483.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000487.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000491.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000495.color.png",
+      "workspace/benchmark_dataset/7scenes/7Scenes/stairs/seq-02/frame-000499.color.png",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0286.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0287.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0288.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0289.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0290.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0291.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0292.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0293.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0294.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0295.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0296.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0297.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0298.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0299.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0300.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0301.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0302.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0303.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0304.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0305.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0306.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0307.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0308.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0309.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0310.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0311.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0312.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0313.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0314.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0315.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0316.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0317.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0318.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0319.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0320.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0321.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0322.JPG",
+      "workspace/benchmark_dataset/eth3d/courtyard/images/dslr_images/DSC_0323.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0675.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0676.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0677.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0678.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0679.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0680.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0681.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0682.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0683.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0684.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0685.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0686.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0687.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0688.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0689.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0690.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0691.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0692.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0693.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0694.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0695.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0696.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0697.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0698.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0699.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0700.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0701.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0702.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0703.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0704.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0705.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0706.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0707.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0708.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0709.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0710.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0715.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0716.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0717.JPG",
+      "workspace/benchmark_dataset/eth3d/delivery_area/images/dslr_images/DSC_0718.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9257.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9258.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9259.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9260.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9261.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9262.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9263.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9264.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9265.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9266.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9267.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9268.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9269.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9270.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9271.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9272.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9273.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9274.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9275.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9276.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9277.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9278.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9279.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9280.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9281.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9282.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9283.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9284.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9285.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9287.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9294.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9295.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9296.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9297.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9299.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9300.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9301.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9302.JPG",
+      "workspace/benchmark_dataset/eth3d/electro/images/dslr_images/DSC_9303.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0324.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0325.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0326.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0327.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0328.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0329.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0330.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0331.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0332.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0333.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0334.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0335.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0336.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0337.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0338.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0339.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0340.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0341.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0342.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0343.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0344.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0345.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0346.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0347.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0348.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0349.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0350.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0351.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0352.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0353.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0354.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0355.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0356.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0357.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0358.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0359.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0360.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0361.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0362.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0363.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0364.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0365.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0366.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0386.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0387.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0388.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0389.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0390.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0391.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0392.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0393.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0394.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0395.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0396.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0397.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0398.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0399.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0400.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0401.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0402.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0404.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0405.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0406.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0407.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0408.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0409.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0410.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0411.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0412.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0413.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0414.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0415.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0419.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0420.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0421.JPG",
+      "workspace/benchmark_dataset/eth3d/facade/images/dslr_images/DSC_0422.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6487.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6489.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6490.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6491.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6492.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6493.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6494.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6495.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6496.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6497.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6499.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6500.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6502.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6503.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6504.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6505.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6506.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6507.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6508.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6509.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6510.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6511.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6512.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6513.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6514.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6515.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6516.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6517.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6518.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6519.JPG",
+      "workspace/benchmark_dataset/eth3d/kicker/images/dslr_images/DSC_6520.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0219.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0220.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0221.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0222.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0223.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0228.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0229.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0230.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0231.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0235.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0236.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0237.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0238.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0239.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0240.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0241.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0242.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0243.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0248.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0249.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0250.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0251.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0252.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0253.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0254.JPG",
+      "workspace/benchmark_dataset/eth3d/office/images/dslr_images/DSC_0255.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0634.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0635.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0636.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0637.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0638.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0639.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0640.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0641.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0642.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0643.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0644.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0645.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0646.JPG",
+      "workspace/benchmark_dataset/eth3d/pipes/images/dslr_images/DSC_0647.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0567.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0568.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0569.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0570.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0571.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0572.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0573.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0574.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0575.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0576.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0577.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0578.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0579.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0580.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0581.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0582.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0583.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0584.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0585.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0586.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0593.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0594.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0595.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0596.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0597.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0598.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0599.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0602.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0603.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0604.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0605.JPG",
+      "workspace/benchmark_dataset/eth3d/playground/images/dslr_images/DSC_0606.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0439.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0440.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0441.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0442.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0443.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0444.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0445.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0446.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0447.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0448.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0449.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0450.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0451.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0452.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0453.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0454.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0455.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0456.JPG",
+      "workspace/benchmark_dataset/eth3d/relief/images/dslr_images/DSC_0457.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0469.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0470.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0471.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0472.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0473.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0474.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0475.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0476.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0477.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0478.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0480.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0481.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0482.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0483.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0484.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0485.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0486.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0487.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0488.JPG",
+      "workspace/benchmark_dataset/eth3d/relief_2/images/dslr_images/DSC_0489.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0614.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0615.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0616.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0617.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0618.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0619.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0620.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0622.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0623.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0624.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0625.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0626.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0627.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0628.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0629.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0630.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0631.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0632.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0648.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0649.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0650.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0651.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0652.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0653.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0654.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0655.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0656.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0657.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0658.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0659.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0660.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0661.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0662.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0663.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0664.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0665.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0666.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0667.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0668.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0669.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0670.JPG",
+      "workspace/benchmark_dataset/eth3d/terrains/images/dslr_images/DSC_0671.JPG"
+    ],
+    "frames": 64,
+    "gt_loaded": false,
+    "excluded_corrupt_images": [
+      {
+        "path": "/mnt/rfs/users/xiangliangyu/datasets/scannet50_processed/scene0000_00/color/1735.jpg",
+        "reason": "image file is truncated (10 bytes not processed)"
+      }
+    ]
+  },
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Independent RGB-only sparse90 profile screening;local exact Attention teachers,no geometry",
+      "auc30": "Independent RGB-only sparse90 profile screening;local exact Attention teachers,no geometry",
+      "acc": "Independent RGB-only sparse90 profile screening;local exact Attention teachers,no geometry",
+      "comp": "Independent RGB-only sparse90 profile screening;local exact Attention teachers,no geometry",
+      "cd": "Independent RGB-only sparse90 profile screening;local exact Attention teachers,no geometry",
+      "f1": "Independent RGB-only sparse90 profile screening;local exact Attention teachers,no geometry"
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "score": 0.016131859811139293,
+  "fidelity": [
+    {
+      "layer": 0,
+      "projected_error_vs_teacher_mask": 4.177589119080949e-08,
+      "projected_error_vs_dense": 0.000659058045130223,
+      "teacher_mask_error_vs_dense": 0.000657493423204869
+    },
+    {
+      "layer": 0,
+      "projected_error_vs_teacher_mask": 6.564890497884335e-08,
+      "projected_error_vs_dense": 0.0006703214021399617,
+      "teacher_mask_error_vs_dense": 0.0006677815690636635
+    },
+    {
+      "layer": 0,
+      "projected_error_vs_teacher_mask": 6.883011138825168e-08,
+      "projected_error_vs_dense": 0.0007683102157898247,
+      "teacher_mask_error_vs_dense": 0.0007659531547687948
+    },
+    {
+      "layer": 1,
+      "projected_error_vs_teacher_mask": 0.0004995304043404758,
+      "projected_error_vs_dense": 0.020847896113991737,
+      "teacher_mask_error_vs_dense": 0.020639365538954735
+    },
+    {
+      "layer": 1,
+      "projected_error_vs_teacher_mask": 0.001010505366139114,
+      "projected_error_vs_dense": 0.023267947137355804,
+      "teacher_mask_error_vs_dense": 0.024208461865782738
+    },
+    {
+      "layer": 1,
+      "projected_error_vs_teacher_mask": 0.0005727507523261011,
+      "projected_error_vs_dense": 0.018406251445412636,
+      "teacher_mask_error_vs_dense": 0.019583076238632202
+    },
+    {
+      "layer": 2,
+      "projected_error_vs_teacher_mask": 0.005780997686088085,
+      "projected_error_vs_dense": 0.018212417140603065,
+      "teacher_mask_error_vs_dense": 0.010628927499055862
+    },
+    {
+      "layer": 2,
+      "projected_error_vs_teacher_mask": 0.0067529152147471905,
+      "projected_error_vs_dense": 0.018055042251944542,
+      "teacher_mask_error_vs_dense": 0.010326054878532887
+    },
+    {
+      "layer": 2,
+      "projected_error_vs_teacher_mask": 0.003613319480791688,
+      "projected_error_vs_dense": 0.014467577449977398,
+      "teacher_mask_error_vs_dense": 0.009169235825538635
+    },
+    {
+      "layer": 3,
+      "projected_error_vs_teacher_mask": 0.002369152382016182,
+      "projected_error_vs_dense": 0.006309107411652803,
+      "teacher_mask_error_vs_dense": 0.005490167066454887
+    },
+    {
+      "layer": 3,
+      "projected_error_vs_teacher_mask": 0.001943534123711288,
+      "projected_error_vs_dense": 0.005596410948783159,
+      "teacher_mask_error_vs_dense": 0.005361068993806839
+    },
+    {
+      "layer": 3,
+      "projected_error_vs_teacher_mask": 0.0021729017607867718,
+      "projected_error_vs_dense": 0.006169689819216728,
+      "teacher_mask_error_vs_dense": 0.005780612584203482
+    },
+    {
+      "layer": 4,
+      "projected_error_vs_teacher_mask": 0.005408100318163633,
+      "projected_error_vs_dense": 0.015518377535045147,
+      "teacher_mask_error_vs_dense": 0.00984505470842123
+    },
+    {
+      "layer": 4,
+      "projected_error_vs_teacher_mask": 0.005531681701540947,
+      "projected_error_vs_dense": 0.01617565006017685,
+      "teacher_mask_error_vs_dense": 0.010820605792105198
+    },
+    {
+      "layer": 4,
+      "projected_error_vs_teacher_mask": 0.006130407564342022,
+      "projected_error_vs_dense": 0.019155357033014297,
+      "teacher_mask_error_vs_dense": 0.011385049670934677
+    },
+    {
+      "layer": 5,
+      "projected_error_vs_teacher_mask": 0.011490088887512684,
+      "projected_error_vs_dense": 0.041823554784059525,
+      "teacher_mask_error_vs_dense": 0.041467197239398956
+    },
+    {
+      "layer": 5,
+      "projected_error_vs_teacher_mask": 0.013858222402632236,
+      "projected_error_vs_dense": 0.03502336144447327,
+      "teacher_mask_error_vs_dense": 0.041609276086091995
+    },
+    {
+      "layer": 5,
+      "projected_error_vs_teacher_mask": 0.01949559897184372,
+      "projected_error_vs_dense": 0.04778560996055603,
+      "teacher_mask_error_vs_dense": 0.05154353380203247
+    },
+    {
+      "layer": 6,
+      "projected_error_vs_teacher_mask": 0.020426806062459946,
+      "projected_error_vs_dense": 0.048454344272613525,
+      "teacher_mask_error_vs_dense": 0.04003884643316269
+    },
+    {
+      "layer": 6,
+      "projected_error_vs_teacher_mask": 0.017592523247003555,
+      "projected_error_vs_dense": 0.04287223517894745,
+      "teacher_mask_error_vs_dense": 0.03770720958709717
+    },
+    {
+      "layer": 6,
+      "projected_error_vs_teacher_mask": 0.015079770237207413,
+      "projected_error_vs_dense": 0.03880138695240021,
+      "teacher_mask_error_vs_dense": 0.03408803790807724
+    },
+    {
+      "layer": 7,
+      "projected_error_vs_teacher_mask": 0.006642121821641922,
+      "projected_error_vs_dense": 0.02549910545349121,
+      "teacher_mask_error_vs_dense": 0.02584667317569256
+    },
+    {
+      "layer": 7,
+      "projected_error_vs_teacher_mask": 0.007192011456936598,
+      "projected_error_vs_dense": 0.026340248063206673,
+      "teacher_mask_error_vs_dense": 0.027129895985126495
+    },
+    {
+      "layer": 7,
+      "projected_error_vs_teacher_mask": 0.008803504519164562,
+      "projected_error_vs_dense": 0.021871931850910187,
+      "teacher_mask_error_vs_dense": 0.023574426770210266
+    },
+    {
+      "layer": 8,
+      "projected_error_vs_teacher_mask": 0.004340100567787886,
+      "projected_error_vs_dense": 0.03278462216258049,
+      "teacher_mask_error_vs_dense": 0.027225105091929436
+    },
+    {
+      "layer": 8,
+      "projected_error_vs_teacher_mask": 0.003936178050935268,
+      "projected_error_vs_dense": 0.030630096793174744,
+      "teacher_mask_error_vs_dense": 0.025180518627166748
+    },
+    {
+      "layer": 8,
+      "projected_error_vs_teacher_mask": 0.005175222177058458,
+      "projected_error_vs_dense": 0.028484951704740524,
+      "teacher_mask_error_vs_dense": 0.017453458160161972
+    },
+    {
+      "layer": 9,
+      "projected_error_vs_teacher_mask": 0.0028108833357691765,
+      "projected_error_vs_dense": 0.01880783587694168,
+      "teacher_mask_error_vs_dense": 0.022055156528949738
+    },
+    {
+      "layer": 9,
+      "projected_error_vs_teacher_mask": 0.0027150555979460478,
+      "projected_error_vs_dense": 0.01584562659263611,
+      "teacher_mask_error_vs_dense": 0.018095148727297783
+    },
+    {
+      "layer": 9,
+      "projected_error_vs_teacher_mask": 0.004022006411105394,
+      "projected_error_vs_dense": 0.01917041651904583,
+      "teacher_mask_error_vs_dense": 0.02150784060359001
+    },
+    {
+      "layer": 10,
+      "projected_error_vs_teacher_mask": 0.006957645062357187,
+      "projected_error_vs_dense": 0.032708022743463516,
+      "teacher_mask_error_vs_dense": 0.035532500594854355
+    },
+    {
+      "layer": 10,
+      "projected_error_vs_teacher_mask": 0.005945813376456499,
+      "projected_error_vs_dense": 0.026884183287620544,
+      "teacher_mask_error_vs_dense": 0.035824116319417953
+    },
+    {
+      "layer": 10,
+      "projected_error_vs_teacher_mask": 0.012276838533580303,
+      "projected_error_vs_dense": 0.05110073834657669,
+      "teacher_mask_error_vs_dense": 0.031908441334962845
+    },
+    {
+      "layer": 11,
+      "projected_error_vs_teacher_mask": 0.017565788701176643,
+      "projected_error_vs_dense": 0.03307335823774338,
+      "teacher_mask_error_vs_dense": 0.03338165581226349
+    },
+    {
+      "layer": 11,
+      "projected_error_vs_teacher_mask": 0.01622607186436653,
+      "projected_error_vs_dense": 0.0319402702152729,
+      "teacher_mask_error_vs_dense": 0.0480964370071888
+    },
+    {
+      "layer": 11,
+      "projected_error_vs_teacher_mask": 0.017713097855448723,
+      "projected_error_vs_dense": 0.03692089393734932,
+      "teacher_mask_error_vs_dense": 0.037331633269786835
+    },
+    {
+      "layer": 12,
+      "projected_error_vs_teacher_mask": 0.009831596165895462,
+      "projected_error_vs_dense": 0.02854730561375618,
+      "teacher_mask_error_vs_dense": 0.034257564693689346
+    },
+    {
+      "layer": 12,
+      "projected_error_vs_teacher_mask": 0.01785890758037567,
+      "projected_error_vs_dense": 0.01697714813053608,
+      "teacher_mask_error_vs_dense": 0.02717280574142933
+    },
+    {
+      "layer": 12,
+      "projected_error_vs_teacher_mask": 0.009618912823498249,
+      "projected_error_vs_dense": 0.015399148687720299,
+      "teacher_mask_error_vs_dense": 0.016678886488080025
+    },
+    {
+      "layer": 13,
+      "projected_error_vs_teacher_mask": 0.00896039605140686,
+      "projected_error_vs_dense": 0.02059311792254448,
+      "teacher_mask_error_vs_dense": 0.023831501603126526
+    },
+    {
+      "layer": 13,
+      "projected_error_vs_teacher_mask": 0.005671942140907049,
+      "projected_error_vs_dense": 0.015294165350496769,
+      "teacher_mask_error_vs_dense": 0.020122665911912918
+    },
+    {
+      "layer": 13,
+      "projected_error_vs_teacher_mask": 0.01385136041790247,
+      "projected_error_vs_dense": 0.014785931445658207,
+      "teacher_mask_error_vs_dense": 0.022011490538716316
+    },
+    {
+      "layer": 14,
+      "projected_error_vs_teacher_mask": 0.0038159932009875774,
+      "projected_error_vs_dense": 0.01145327091217041,
+      "teacher_mask_error_vs_dense": 0.009298394434154034
+    },
+    {
+      "layer": 14,
+      "projected_error_vs_teacher_mask": 0.0049175382591784,
+      "projected_error_vs_dense": 0.002924469066783786,
+      "teacher_mask_error_vs_dense": 0.006736071314662695
+    },
+    {
+      "layer": 14,
+      "projected_error_vs_teacher_mask": 0.006932654418051243,
+      "projected_error_vs_dense": 0.007351340726017952,
+      "teacher_mask_error_vs_dense": 0.005501148756593466
+    },
+    {
+      "layer": 15,
+      "projected_error_vs_teacher_mask": 0.005773656535893679,
+      "projected_error_vs_dense": 0.008761897683143616,
+      "teacher_mask_error_vs_dense": 0.005185229238122702
+    },
+    {
+      "layer": 15,
+      "projected_error_vs_teacher_mask": 0.0032500396482646465,
+      "projected_error_vs_dense": 0.009496702812612057,
+      "teacher_mask_error_vs_dense": 0.008827481418848038
+    },
+    {
+      "layer": 15,
+      "projected_error_vs_teacher_mask": 0.0034496283624321222,
+      "projected_error_vs_dense": 0.0038188619073480368,
+      "teacher_mask_error_vs_dense": 0.003190879477187991
+    },
+    {
+      "layer": 16,
+      "projected_error_vs_teacher_mask": 0.013208653777837753,
+      "projected_error_vs_dense": 0.024485621601343155,
+      "teacher_mask_error_vs_dense": 0.009515729732811451
+    },
+    {
+      "layer": 16,
+      "projected_error_vs_teacher_mask": 0.002542306901887059,
+      "projected_error_vs_dense": 0.005758218467235565,
+      "teacher_mask_error_vs_dense": 0.008178574964404106
+    },
+    {
+      "layer": 16,
+      "projected_error_vs_teacher_mask": 0.00364761333912611,
+      "projected_error_vs_dense": 0.0063362265937030315,
+      "teacher_mask_error_vs_dense": 0.005917261354625225
+    },
+    {
+      "layer": 17,
+      "projected_error_vs_teacher_mask": 0.001669136923737824,
+      "projected_error_vs_dense": 0.0037558197509497404,
+      "teacher_mask_error_vs_dense": 0.003925725817680359
+    },
+    {
+      "layer": 17,
+      "projected_error_vs_teacher_mask": 0.00102046481333673,
+      "projected_error_vs_dense": 0.004650745075196028,
+      "teacher_mask_error_vs_dense": 0.0030751125887036324
+    },
+    {
+      "layer": 17,
+      "projected_error_vs_teacher_mask": 0.0018311187159270048,
+      "projected_error_vs_dense": 0.005590592510998249,
+      "teacher_mask_error_vs_dense": 0.003186657326295972
+    },
+    {
+      "layer": 18,
+      "projected_error_vs_teacher_mask": 0.0004831817059312016,
+      "projected_error_vs_dense": 0.0015003109583631158,
+      "teacher_mask_error_vs_dense": 0.0014056474901735783
+    },
+    {
+      "layer": 18,
+      "projected_error_vs_teacher_mask": 0.0007868793327361345,
+      "projected_error_vs_dense": 0.0013553393073379993,
+      "teacher_mask_error_vs_dense": 0.0012541849864646792
+    },
+    {
+      "layer": 18,
+      "projected_error_vs_teacher_mask": 0.0006487584905698895,
+      "projected_error_vs_dense": 0.0015615127049386501,
+      "teacher_mask_error_vs_dense": 0.0013066331157460809
+    },
+    {
+      "layer": 19,
+      "projected_error_vs_teacher_mask": 0.0007369995582848787,
+      "projected_error_vs_dense": 0.003724480513483286,
+      "teacher_mask_error_vs_dense": 0.004398910328745842
+    },
+    {
+      "layer": 19,
+      "projected_error_vs_teacher_mask": 0.0006456841947510839,
+      "projected_error_vs_dense": 0.003542269580066204,
+      "teacher_mask_error_vs_dense": 0.004088327754288912
+    },
+    {
+      "layer": 19,
+      "projected_error_vs_teacher_mask": 0.000790175108704716,
+      "projected_error_vs_dense": 0.003404187737032771,
+      "teacher_mask_error_vs_dense": 0.004169626161456108
+    },
+    {
+      "layer": 20,
+      "projected_error_vs_teacher_mask": 0.0008657879079692066,
+      "projected_error_vs_dense": 0.016883622854948044,
+      "teacher_mask_error_vs_dense": 0.016327736899256706
+    },
+    {
+      "layer": 20,
+      "projected_error_vs_teacher_mask": 0.0007608651067130268,
+      "projected_error_vs_dense": 0.014974570833146572,
+      "teacher_mask_error_vs_dense": 0.016360806301236153
+    },
+    {
+      "layer": 20,
+      "projected_error_vs_teacher_mask": 0.0007721325964666903,
+      "projected_error_vs_dense": 0.014110792428255081,
+      "teacher_mask_error_vs_dense": 0.015151997096836567
+    },
+    {
+      "layer": 21,
+      "projected_error_vs_teacher_mask": 0.0031549513805657625,
+      "projected_error_vs_dense": 0.006024976726621389,
+      "teacher_mask_error_vs_dense": 0.0027740064542740583
+    },
+    {
+      "layer": 21,
+      "projected_error_vs_teacher_mask": 0.0012678417842835188,
+      "projected_error_vs_dense": 0.002625207882374525,
+      "teacher_mask_error_vs_dense": 0.0025182394310832024
+    },
+    {
+      "layer": 21,
+      "projected_error_vs_teacher_mask": 0.0045347996056079865,
+      "projected_error_vs_dense": 0.00356047204695642,
+      "teacher_mask_error_vs_dense": 0.0033589997328817844
+    },
+    {
+      "layer": 22,
+      "projected_error_vs_teacher_mask": 0.0003074376145377755,
+      "projected_error_vs_dense": 0.0022038754541426897,
+      "teacher_mask_error_vs_dense": 0.0019685085862874985
+    },
+    {
+      "layer": 22,
+      "projected_error_vs_teacher_mask": 0.0004850812256336212,
+      "projected_error_vs_dense": 0.002605922520160675,
+      "teacher_mask_error_vs_dense": 0.00210526492446661
+    },
+    {
+      "layer": 22,
+      "projected_error_vs_teacher_mask": 0.0002776735054794699,
+      "projected_error_vs_dense": 0.0022522900253534317,
+      "teacher_mask_error_vs_dense": 0.0021794771309942007
+    },
+    {
+      "layer": 23,
+      "projected_error_vs_teacher_mask": 9.259039507014677e-05,
+      "projected_error_vs_dense": 0.0012461752630770206,
+      "teacher_mask_error_vs_dense": 0.0011043010745197535
+    },
+    {
+      "layer": 23,
+      "projected_error_vs_teacher_mask": 9.006584878079593e-05,
+      "projected_error_vs_dense": 0.0013853197451680899,
+      "teacher_mask_error_vs_dense": 0.0011616020929068327
+    },
+    {
+      "layer": 23,
+      "projected_error_vs_teacher_mask": 7.676125096622854e-05,
+      "projected_error_vs_dense": 0.0014497871743515134,
+      "teacher_mask_error_vs_dense": 0.0012959172017872334
+    }
+  ],
+  "probability": [
+    {
+      "layer": 0,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 2.3017406647340977e-07,
+        "relative_l2": 2.458854737596994e-07,
+        "cosine": 1.0
+      },
+      "history_prediction": {
+        "relative_l1": 0.0,
+        "relative_l2": 0.0,
+        "cosine": 0.0
+      },
+      "mask_jaccard": 1.0,
+      "captured_mass_vs_reference": 1.0
+    },
+    {
+      "layer": 0,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 1.7095672433242726e-07,
+        "relative_l2": 1.8642720078787534e-07,
+        "cosine": 0.9999998807907104
+      },
+      "history_prediction": {
+        "relative_l1": 0.0,
+        "relative_l2": 0.0,
+        "cosine": 0.0
+      },
+      "mask_jaccard": 1.0,
+      "captured_mass_vs_reference": 1.0
+    },
+    {
+      "layer": 0,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 1.506170690390718e-07,
+        "relative_l2": 1.7605437108159094e-07,
+        "cosine": 0.9999998807907104
+      },
+      "history_prediction": {
+        "relative_l1": 0.0,
+        "relative_l2": 0.0,
+        "cosine": 0.0
+      },
+      "mask_jaccard": 1.0,
+      "captured_mass_vs_reference": 1.0
+    },
+    {
+      "layer": 1,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.1161499097943306,
+        "relative_l2": 0.16486051678657532,
+        "cosine": 0.9866628646850586
+      },
+      "history_prediction": {
+        "relative_l1": 0.12056944519281387,
+        "relative_l2": 0.1751817762851715,
+        "cosine": 0.9850890636444092
+      },
+      "mask_jaccard": 0.9633201360702515,
+      "captured_mass_vs_reference": 1.0009500980377197
+    },
+    {
+      "layer": 1,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.10808755457401276,
+        "relative_l2": 0.1564161479473114,
+        "cosine": 0.9879993796348572
+      },
+      "history_prediction": {
+        "relative_l1": 0.11340449750423431,
+        "relative_l2": 0.1685892641544342,
+        "cosine": 0.9862001538276672
+      },
+      "mask_jaccard": 0.9697330594062805,
+      "captured_mass_vs_reference": 1.0013211965560913
+    },
+    {
+      "layer": 1,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.11551781743764877,
+        "relative_l2": 0.1616332232952118,
+        "cosine": 0.9870412945747375
+      },
+      "history_prediction": {
+        "relative_l1": 0.11540438234806061,
+        "relative_l2": 0.15929606556892395,
+        "cosine": 0.9873486757278442
+      },
+      "mask_jaccard": 0.9791316986083984,
+      "captured_mass_vs_reference": 0.9968081712722778
+    },
+    {
+      "layer": 2,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.2869545817375183,
+        "relative_l2": 0.38360196352005005,
+        "cosine": 0.923635721206665
+      },
+      "history_prediction": {
+        "relative_l1": 0.2857741415500641,
+        "relative_l2": 0.3779114782810211,
+        "cosine": 0.925991415977478
+      },
+      "mask_jaccard": 0.9171109199523926,
+      "captured_mass_vs_reference": 0.9627690315246582
+    },
+    {
+      "layer": 2,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.3235541582107544,
+        "relative_l2": 0.42828476428985596,
+        "cosine": 0.9037212133407593
+      },
+      "history_prediction": {
+        "relative_l1": 0.3171699345111847,
+        "relative_l2": 0.4228099286556244,
+        "cosine": 0.906661868095398
+      },
+      "mask_jaccard": 0.9052461385726929,
+      "captured_mass_vs_reference": 0.9512825012207031
+    },
+    {
+      "layer": 2,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.2792961001396179,
+        "relative_l2": 0.3711090385913849,
+        "cosine": 0.9285898804664612
+      },
+      "history_prediction": {
+        "relative_l1": 0.2728652358055115,
+        "relative_l2": 0.36648133397102356,
+        "cosine": 0.9304901361465454
+      },
+      "mask_jaccard": 0.9280710220336914,
+      "captured_mass_vs_reference": 0.9646517038345337
+    },
+    {
+      "layer": 3,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.5147743225097656,
+        "relative_l2": 0.6601889729499817,
+        "cosine": 0.7552529573440552
+      },
+      "history_prediction": {
+        "relative_l1": 0.4444873631000519,
+        "relative_l2": 0.5712921023368835,
+        "cosine": 0.8212125301361084
+      },
+      "mask_jaccard": 0.7318187952041626,
+      "captured_mass_vs_reference": 0.6195772886276245
+    },
+    {
+      "layer": 3,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.5260186195373535,
+        "relative_l2": 0.6570931673049927,
+        "cosine": 0.7566417455673218
+      },
+      "history_prediction": {
+        "relative_l1": 0.444438099861145,
+        "relative_l2": 0.5608225464820862,
+        "cosine": 0.8283788561820984
+      },
+      "mask_jaccard": 0.733151376247406,
+      "captured_mass_vs_reference": 0.6297279596328735
+    },
+    {
+      "layer": 3,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.48403677344322205,
+        "relative_l2": 0.6183466911315918,
+        "cosine": 0.7884552478790283
+      },
+      "history_prediction": {
+        "relative_l1": 0.4082619547843933,
+        "relative_l2": 0.5043919086456299,
+        "cosine": 0.8635068535804749
+      },
+      "mask_jaccard": 0.7826931476593018,
+      "captured_mass_vs_reference": 0.6990378499031067
+    },
+    {
+      "layer": 4,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.571825385093689,
+        "relative_l2": 0.6417623162269592,
+        "cosine": 0.7703695297241211
+      },
+      "history_prediction": {
+        "relative_l1": 0.3559243381023407,
+        "relative_l2": 0.3505995571613312,
+        "cosine": 0.9386395215988159
+      },
+      "mask_jaccard": 0.7390077710151672,
+      "captured_mass_vs_reference": 0.6507797241210938
+    },
+    {
+      "layer": 4,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.5970900058746338,
+        "relative_l2": 0.6563956141471863,
+        "cosine": 0.7572714686393738
+      },
+      "history_prediction": {
+        "relative_l1": 0.35883384943008423,
+        "relative_l2": 0.34765559434890747,
+        "cosine": 0.9391235113143921
+      },
+      "mask_jaccard": 0.7288525700569153,
+      "captured_mass_vs_reference": 0.6214959621429443
+    },
+    {
+      "layer": 4,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.5142714381217957,
+        "relative_l2": 0.5914487242698669,
+        "cosine": 0.807826042175293
+      },
+      "history_prediction": {
+        "relative_l1": 0.31884336471557617,
+        "relative_l2": 0.34134605526924133,
+        "cosine": 0.9444727897644043
+      },
+      "mask_jaccard": 0.8219479918479919,
+      "captured_mass_vs_reference": 0.7556841373443604
+    },
+    {
+      "layer": 5,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.5520979762077332,
+        "relative_l2": 0.5985449552536011,
+        "cosine": 0.8021477460861206
+      },
+      "history_prediction": {
+        "relative_l1": 0.36563754081726074,
+        "relative_l2": 0.5159810781478882,
+        "cosine": 0.8877285122871399
+      },
+      "mask_jaccard": 0.8309110403060913,
+      "captured_mass_vs_reference": 0.8390608429908752
+    },
+    {
+      "layer": 5,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6046327948570251,
+        "relative_l2": 0.6290324926376343,
+        "cosine": 0.7782523036003113
+      },
+      "history_prediction": {
+        "relative_l1": 0.39194706082344055,
+        "relative_l2": 0.496943861246109,
+        "cosine": 0.8897107839584351
+      },
+      "mask_jaccard": 0.7736051678657532,
+      "captured_mass_vs_reference": 0.7660316824913025
+    },
+    {
+      "layer": 5,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6099793314933777,
+        "relative_l2": 0.640778124332428,
+        "cosine": 0.7693402767181396
+      },
+      "history_prediction": {
+        "relative_l1": 0.3831647038459778,
+        "relative_l2": 0.4212380051612854,
+        "cosine": 0.9087237119674683
+      },
+      "mask_jaccard": 0.7670442461967468,
+      "captured_mass_vs_reference": 0.7556601166725159
+    },
+    {
+      "layer": 6,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6355663537979126,
+        "relative_l2": 0.6576488018035889,
+        "cosine": 0.7566762566566467
+      },
+      "history_prediction": {
+        "relative_l1": 0.40457674860954285,
+        "relative_l2": 0.375467985868454,
+        "cosine": 0.9292356967926025
+      },
+      "mask_jaccard": 0.6118059158325195,
+      "captured_mass_vs_reference": 0.772416353225708
+    },
+    {
+      "layer": 6,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6537805199623108,
+        "relative_l2": 0.6743761301040649,
+        "cosine": 0.7417954206466675
+      },
+      "history_prediction": {
+        "relative_l1": 0.37696921825408936,
+        "relative_l2": 0.37586045265197754,
+        "cosine": 0.9273334741592407
+      },
+      "mask_jaccard": 0.5760190486907959,
+      "captured_mass_vs_reference": 0.7176982164382935
+    },
+    {
+      "layer": 6,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6193906664848328,
+        "relative_l2": 0.6485801339149475,
+        "cosine": 0.7626429200172424
+      },
+      "history_prediction": {
+        "relative_l1": 0.37270447611808777,
+        "relative_l2": 0.3759996294975281,
+        "cosine": 0.9323219060897827
+      },
+      "mask_jaccard": 0.5639460682868958,
+      "captured_mass_vs_reference": 0.749062716960907
+    },
+    {
+      "layer": 7,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6168221235275269,
+        "relative_l2": 0.6609318852424622,
+        "cosine": 0.756874680519104
+      },
+      "history_prediction": {
+        "relative_l1": 0.3125121295452118,
+        "relative_l2": 0.4019987881183624,
+        "cosine": 0.9364322423934937
+      },
+      "mask_jaccard": 0.5836889743804932,
+      "captured_mass_vs_reference": 0.7541892528533936
+    },
+    {
+      "layer": 7,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6577540040016174,
+        "relative_l2": 0.6877800226211548,
+        "cosine": 0.7330950498580933
+      },
+      "history_prediction": {
+        "relative_l1": 0.3184191584587097,
+        "relative_l2": 0.39714959263801575,
+        "cosine": 0.9371546506881714
+      },
+      "mask_jaccard": 0.5545864105224609,
+      "captured_mass_vs_reference": 0.7145289778709412
+    },
+    {
+      "layer": 7,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6677376627922058,
+        "relative_l2": 0.6916548609733582,
+        "cosine": 0.7295563817024231
+      },
+      "history_prediction": {
+        "relative_l1": 0.35479098558425903,
+        "relative_l2": 0.4387511610984802,
+        "cosine": 0.9174360632896423
+      },
+      "mask_jaccard": 0.5518420934677124,
+      "captured_mass_vs_reference": 0.7114591002464294
+    },
+    {
+      "layer": 8,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.43060147762298584,
+        "relative_l2": 0.5313048958778381,
+        "cosine": 0.8493442535400391
+      },
+      "history_prediction": {
+        "relative_l1": 0.31291091442108154,
+        "relative_l2": 0.4329119920730591,
+        "cosine": 0.9013674259185791
+      },
+      "mask_jaccard": 0.6533844470977783,
+      "captured_mass_vs_reference": 0.8918188810348511
+    },
+    {
+      "layer": 8,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.4480683505535126,
+        "relative_l2": 0.5528794527053833,
+        "cosine": 0.8370492458343506
+      },
+      "history_prediction": {
+        "relative_l1": 0.3412487804889679,
+        "relative_l2": 0.48055577278137207,
+        "cosine": 0.8791100382804871
+      },
+      "mask_jaccard": 0.6235834360122681,
+      "captured_mass_vs_reference": 0.8791881203651428
+    },
+    {
+      "layer": 8,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.441611647605896,
+        "relative_l2": 0.5485575795173645,
+        "cosine": 0.8420119285583496
+      },
+      "history_prediction": {
+        "relative_l1": 0.3483867049217224,
+        "relative_l2": 0.5046907663345337,
+        "cosine": 0.8732013702392578
+      },
+      "mask_jaccard": 0.6221858263015747,
+      "captured_mass_vs_reference": 0.8715285658836365
+    },
+    {
+      "layer": 9,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.5653233528137207,
+        "relative_l2": 0.6162323951721191,
+        "cosine": 0.7914463877677917
+      },
+      "history_prediction": {
+        "relative_l1": 0.407038152217865,
+        "relative_l2": 0.49708321690559387,
+        "cosine": 0.9006280899047852
+      },
+      "mask_jaccard": 0.6682634353637695,
+      "captured_mass_vs_reference": 0.8531017303466797
+    },
+    {
+      "layer": 9,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.5530557632446289,
+        "relative_l2": 0.6111608147621155,
+        "cosine": 0.793286919593811
+      },
+      "history_prediction": {
+        "relative_l1": 0.396514892578125,
+        "relative_l2": 0.48770758509635925,
+        "cosine": 0.8992197513580322
+      },
+      "mask_jaccard": 0.6609513759613037,
+      "captured_mass_vs_reference": 0.8425127267837524
+    },
+    {
+      "layer": 9,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6138406991958618,
+        "relative_l2": 0.6477277278900146,
+        "cosine": 0.7671579718589783
+      },
+      "history_prediction": {
+        "relative_l1": 0.4481198787689209,
+        "relative_l2": 0.540120005607605,
+        "cosine": 0.8703716993331909
+      },
+      "mask_jaccard": 0.6471015214920044,
+      "captured_mass_vs_reference": 0.8088279962539673
+    },
+    {
+      "layer": 10,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.5457630157470703,
+        "relative_l2": 0.6575120687484741,
+        "cosine": 0.7546210885047913
+      },
+      "history_prediction": {
+        "relative_l1": 0.4050368666648865,
+        "relative_l2": 0.5529953837394714,
+        "cosine": 0.8520996570587158
+      },
+      "mask_jaccard": 0.6149989366531372,
+      "captured_mass_vs_reference": 0.8538556694984436
+    },
+    {
+      "layer": 10,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.588140070438385,
+        "relative_l2": 0.7144656181335449,
+        "cosine": 0.7041438817977905
+      },
+      "history_prediction": {
+        "relative_l1": 0.39323076605796814,
+        "relative_l2": 0.5526077747344971,
+        "cosine": 0.8624850511550903
+      },
+      "mask_jaccard": 0.6255614757537842,
+      "captured_mass_vs_reference": 0.8553181886672974
+    },
+    {
+      "layer": 10,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.7135039567947388,
+        "relative_l2": 0.7489607930183411,
+        "cosine": 0.6870816349983215
+      },
+      "history_prediction": {
+        "relative_l1": 0.5168388485908508,
+        "relative_l2": 0.6782087087631226,
+        "cosine": 0.8133227825164795
+      },
+      "mask_jaccard": 0.6174161434173584,
+      "captured_mass_vs_reference": 0.8180964589118958
+    },
+    {
+      "layer": 11,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.7891016602516174,
+        "relative_l2": 0.9393429160118103,
+        "cosine": 0.3772200644016266
+      },
+      "history_prediction": {
+        "relative_l1": 0.7127946019172668,
+        "relative_l2": 0.9362218379974365,
+        "cosine": 0.4787901043891907
+      },
+      "mask_jaccard": 0.5507904887199402,
+      "captured_mass_vs_reference": 0.7164640426635742
+    },
+    {
+      "layer": 11,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.8136965036392212,
+        "relative_l2": 0.9082679152488708,
+        "cosine": 0.4485393166542053
+      },
+      "history_prediction": {
+        "relative_l1": 0.7018413543701172,
+        "relative_l2": 0.887080729007721,
+        "cosine": 0.5281856060028076
+      },
+      "mask_jaccard": 0.5744280219078064,
+      "captured_mass_vs_reference": 0.7260037660598755
+    },
+    {
+      "layer": 11,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.860923707485199,
+        "relative_l2": 0.858517587184906,
+        "cosine": 0.5716506242752075
+      },
+      "history_prediction": {
+        "relative_l1": 0.6261765956878662,
+        "relative_l2": 0.8352303504943848,
+        "cosine": 0.639070987701416
+      },
+      "mask_jaccard": 0.4990544617176056,
+      "captured_mass_vs_reference": 0.7066207528114319
+    },
+    {
+      "layer": 12,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.7345097661018372,
+        "relative_l2": 0.8012396097183228,
+        "cosine": 0.5825823545455933
+      },
+      "history_prediction": {
+        "relative_l1": 0.6548348069190979,
+        "relative_l2": 0.7416874766349792,
+        "cosine": 0.6633186340332031
+      },
+      "mask_jaccard": 0.6105399131774902,
+      "captured_mass_vs_reference": 0.8090770840644836
+    },
+    {
+      "layer": 12,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.7211466431617737,
+        "relative_l2": 0.7550662159919739,
+        "cosine": 0.667033851146698
+      },
+      "history_prediction": {
+        "relative_l1": 0.6166791319847107,
+        "relative_l2": 0.7012776732444763,
+        "cosine": 0.7291289567947388
+      },
+      "mask_jaccard": 0.6436054110527039,
+      "captured_mass_vs_reference": 0.8393008708953857
+    },
+    {
+      "layer": 12,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.8354909420013428,
+        "relative_l2": 0.7364162802696228,
+        "cosine": 0.6818898320198059
+      },
+      "history_prediction": {
+        "relative_l1": 0.6484097838401794,
+        "relative_l2": 0.6955047249794006,
+        "cosine": 0.7266887426376343
+      },
+      "mask_jaccard": 0.5645989775657654,
+      "captured_mass_vs_reference": 0.8243761658668518
+    },
+    {
+      "layer": 13,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6955674886703491,
+        "relative_l2": 0.7993724942207336,
+        "cosine": 0.5789230465888977
+      },
+      "history_prediction": {
+        "relative_l1": 0.5965412855148315,
+        "relative_l2": 0.714383602142334,
+        "cosine": 0.7362421154975891
+      },
+      "mask_jaccard": 0.6329659223556519,
+      "captured_mass_vs_reference": 0.8139423131942749
+    },
+    {
+      "layer": 13,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.7194564342498779,
+        "relative_l2": 0.7479026317596436,
+        "cosine": 0.682616114616394
+      },
+      "history_prediction": {
+        "relative_l1": 0.6313849687576294,
+        "relative_l2": 0.7223302125930786,
+        "cosine": 0.7218901515007019
+      },
+      "mask_jaccard": 0.6286417841911316,
+      "captured_mass_vs_reference": 0.8666703701019287
+    },
+    {
+      "layer": 13,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.8758819699287415,
+        "relative_l2": 0.7784716486930847,
+        "cosine": 0.6627617478370667
+      },
+      "history_prediction": {
+        "relative_l1": 0.6507129669189453,
+        "relative_l2": 0.7167435884475708,
+        "cosine": 0.7409642934799194
+      },
+      "mask_jaccard": 0.5611390471458435,
+      "captured_mass_vs_reference": 0.7886806130409241
+    },
+    {
+      "layer": 14,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.8855343461036682,
+        "relative_l2": 0.796577513217926,
+        "cosine": 0.6147253513336182
+      },
+      "history_prediction": {
+        "relative_l1": 0.7665949463844299,
+        "relative_l2": 0.7370182871818542,
+        "cosine": 0.7450217604637146
+      },
+      "mask_jaccard": 0.5999406576156616,
+      "captured_mass_vs_reference": 0.8452922105789185
+    },
+    {
+      "layer": 14,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.8732622265815735,
+        "relative_l2": 0.8652197122573853,
+        "cosine": 0.5226996541023254
+      },
+      "history_prediction": {
+        "relative_l1": 0.8161888122558594,
+        "relative_l2": 0.8623302578926086,
+        "cosine": 0.5412578582763672
+      },
+      "mask_jaccard": 0.6636294722557068,
+      "captured_mass_vs_reference": 0.9629707336425781
+    },
+    {
+      "layer": 14,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.9929558634757996,
+        "relative_l2": 0.7468149662017822,
+        "cosine": 0.6817513108253479
+      },
+      "history_prediction": {
+        "relative_l1": 0.851265549659729,
+        "relative_l2": 0.7345199584960938,
+        "cosine": 0.6985257863998413
+      },
+      "mask_jaccard": 0.5971376299858093,
+      "captured_mass_vs_reference": 0.882691502571106
+    },
+    {
+      "layer": 15,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6556679010391235,
+        "relative_l2": 0.7289199233055115,
+        "cosine": 0.726396918296814
+      },
+      "history_prediction": {
+        "relative_l1": 0.5875366926193237,
+        "relative_l2": 0.711004376411438,
+        "cosine": 0.7497518658638
+      },
+      "mask_jaccard": 0.6268449425697327,
+      "captured_mass_vs_reference": 0.873900294303894
+    },
+    {
+      "layer": 15,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6479933857917786,
+        "relative_l2": 0.7423951029777527,
+        "cosine": 0.7186435461044312
+      },
+      "history_prediction": {
+        "relative_l1": 0.5926463007926941,
+        "relative_l2": 0.7264847159385681,
+        "cosine": 0.7371559143066406
+      },
+      "mask_jaccard": 0.670966386795044,
+      "captured_mass_vs_reference": 0.8984580039978027
+    },
+    {
+      "layer": 15,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.8248787522315979,
+        "relative_l2": 0.7878802418708801,
+        "cosine": 0.6218225359916687
+      },
+      "history_prediction": {
+        "relative_l1": 0.7295274138450623,
+        "relative_l2": 0.7858323454856873,
+        "cosine": 0.6253633499145508
+      },
+      "mask_jaccard": 0.6380490660667419,
+      "captured_mass_vs_reference": 0.9474337697029114
+    },
+    {
+      "layer": 16,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6638284921646118,
+        "relative_l2": 0.6787537336349487,
+        "cosine": 0.7636323571205139
+      },
+      "history_prediction": {
+        "relative_l1": 0.5727432370185852,
+        "relative_l2": 0.6274564266204834,
+        "cosine": 0.8063762187957764
+      },
+      "mask_jaccard": 0.6805395483970642,
+      "captured_mass_vs_reference": 0.9024810791015625
+    },
+    {
+      "layer": 16,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.5766080617904663,
+        "relative_l2": 0.5985608696937561,
+        "cosine": 0.8172815442085266
+      },
+      "history_prediction": {
+        "relative_l1": 0.5140592455863953,
+        "relative_l2": 0.5451405644416809,
+        "cosine": 0.857345461845398
+      },
+      "mask_jaccard": 0.7480401992797852,
+      "captured_mass_vs_reference": 0.9433671832084656
+    },
+    {
+      "layer": 16,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.6595683097839355,
+        "relative_l2": 0.9257964491844177,
+        "cosine": 0.5967796444892883
+      },
+      "history_prediction": {
+        "relative_l1": 0.597931981086731,
+        "relative_l2": 0.933110773563385,
+        "cosine": 0.6047175526618958
+      },
+      "mask_jaccard": 0.7212777733802795,
+      "captured_mass_vs_reference": 0.9454429149627686
+    },
+    {
+      "layer": 17,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.40305283665657043,
+        "relative_l2": 0.6432252526283264,
+        "cosine": 0.7793452143669128
+      },
+      "history_prediction": {
+        "relative_l1": 0.5470798015594482,
+        "relative_l2": 0.6344910860061646,
+        "cosine": 0.8054784536361694
+      },
+      "mask_jaccard": 0.6580967903137207,
+      "captured_mass_vs_reference": 0.9312701225280762
+    },
+    {
+      "layer": 17,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.38376080989837646,
+        "relative_l2": 0.6095157265663147,
+        "cosine": 0.8068829774856567
+      },
+      "history_prediction": {
+        "relative_l1": 0.5091225504875183,
+        "relative_l2": 0.6078024506568909,
+        "cosine": 0.8256931304931641
+      },
+      "mask_jaccard": 0.6581947207450867,
+      "captured_mass_vs_reference": 0.963829517364502
+    },
+    {
+      "layer": 17,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.3790271282196045,
+        "relative_l2": 0.6169934272766113,
+        "cosine": 0.8058578372001648
+      },
+      "history_prediction": {
+        "relative_l1": 0.47676852345466614,
+        "relative_l2": 0.6446942687034607,
+        "cosine": 0.8182694315910339
+      },
+      "mask_jaccard": 0.660334050655365,
+      "captured_mass_vs_reference": 0.9505136609077454
+    },
+    {
+      "layer": 18,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.26058974862098694,
+        "relative_l2": 0.38786962628364563,
+        "cosine": 0.9314924478530884
+      },
+      "history_prediction": {
+        "relative_l1": 0.4581238627433777,
+        "relative_l2": 0.566571831703186,
+        "cosine": 0.9136399030685425
+      },
+      "mask_jaccard": 0.9621820449829102,
+      "captured_mass_vs_reference": 0.9953252077102661
+    },
+    {
+      "layer": 18,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.26121699810028076,
+        "relative_l2": 0.36602216958999634,
+        "cosine": 0.9385935068130493
+      },
+      "history_prediction": {
+        "relative_l1": 0.42000651359558105,
+        "relative_l2": 0.45525622367858887,
+        "cosine": 0.9364302158355713
+      },
+      "mask_jaccard": 0.9595074653625488,
+      "captured_mass_vs_reference": 1.0039094686508179
+    },
+    {
+      "layer": 18,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.24304895102977753,
+        "relative_l2": 0.3256290555000305,
+        "cosine": 0.9505395293235779
+      },
+      "history_prediction": {
+        "relative_l1": 0.37247514724731445,
+        "relative_l2": 0.43595626950263977,
+        "cosine": 0.9446015954017639
+      },
+      "mask_jaccard": 0.9608355164527893,
+      "captured_mass_vs_reference": 0.9900562763214111
+    },
+    {
+      "layer": 19,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.23586541414260864,
+        "relative_l2": 0.31271061301231384,
+        "cosine": 0.947583019733429
+      },
+      "history_prediction": {
+        "relative_l1": 0.27096933126449585,
+        "relative_l2": 0.3573376536369324,
+        "cosine": 0.9455840587615967
+      },
+      "mask_jaccard": 0.9849952459335327,
+      "captured_mass_vs_reference": 0.9887353777885437
+    },
+    {
+      "layer": 19,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.23705606162548065,
+        "relative_l2": 0.3422454297542572,
+        "cosine": 0.9396200180053711
+      },
+      "history_prediction": {
+        "relative_l1": 0.2742471396923065,
+        "relative_l2": 0.3804040253162384,
+        "cosine": 0.9390987157821655
+      },
+      "mask_jaccard": 0.9843900203704834,
+      "captured_mass_vs_reference": 0.9949259161949158
+    },
+    {
+      "layer": 19,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.22600694000720978,
+        "relative_l2": 0.3764609396457672,
+        "cosine": 0.9264984130859375
+      },
+      "history_prediction": {
+        "relative_l1": 0.2717297077178955,
+        "relative_l2": 0.47899335622787476,
+        "cosine": 0.8926385641098022
+      },
+      "mask_jaccard": 0.9758026003837585,
+      "captured_mass_vs_reference": 0.9270600080490112
+    },
+    {
+      "layer": 20,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.20595914125442505,
+        "relative_l2": 0.2977658212184906,
+        "cosine": 0.9556890726089478
+      },
+      "history_prediction": {
+        "relative_l1": 0.40416085720062256,
+        "relative_l2": 0.4731428921222687,
+        "cosine": 0.9661691784858704
+      },
+      "mask_jaccard": 0.9644949436187744,
+      "captured_mass_vs_reference": 1.0000629425048828
+    },
+    {
+      "layer": 20,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.20259477198123932,
+        "relative_l2": 0.2864843010902405,
+        "cosine": 0.9591069221496582
+      },
+      "history_prediction": {
+        "relative_l1": 0.40200474858283997,
+        "relative_l2": 0.45673492550849915,
+        "cosine": 0.9697593450546265
+      },
+      "mask_jaccard": 0.967910647392273,
+      "captured_mass_vs_reference": 1.001841425895691
+    },
+    {
+      "layer": 20,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.19632869958877563,
+        "relative_l2": 0.26936855912208557,
+        "cosine": 0.9635334014892578
+      },
+      "history_prediction": {
+        "relative_l1": 0.3022577166557312,
+        "relative_l2": 0.3649722635746002,
+        "cosine": 0.9732685089111328
+      },
+      "mask_jaccard": 0.9599525928497314,
+      "captured_mass_vs_reference": 1.0062518119812012
+    },
+    {
+      "layer": 21,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.32955697178840637,
+        "relative_l2": 0.5387395024299622,
+        "cosine": 0.8324131965637207
+      },
+      "history_prediction": {
+        "relative_l1": 0.3533538281917572,
+        "relative_l2": 0.5566264986991882,
+        "cosine": 0.8342915773391724
+      },
+      "mask_jaccard": 0.940148115158081,
+      "captured_mass_vs_reference": 0.8665443658828735
+    },
+    {
+      "layer": 21,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.306263267993927,
+        "relative_l2": 0.49773743748664856,
+        "cosine": 0.8676021695137024
+      },
+      "history_prediction": {
+        "relative_l1": 0.32107362151145935,
+        "relative_l2": 0.4977920353412628,
+        "cosine": 0.8682368993759155
+      },
+      "mask_jaccard": 0.9578897356987,
+      "captured_mass_vs_reference": 0.9536893367767334
+    },
+    {
+      "layer": 21,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.32958900928497314,
+        "relative_l2": 0.5624948143959045,
+        "cosine": 0.8268886804580688
+      },
+      "history_prediction": {
+        "relative_l1": 0.3662380874156952,
+        "relative_l2": 0.5993916392326355,
+        "cosine": 0.8017417192459106
+      },
+      "mask_jaccard": 0.9247261881828308,
+      "captured_mass_vs_reference": 0.8344482779502869
+    },
+    {
+      "layer": 22,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.16625560820102692,
+        "relative_l2": 0.3014315366744995,
+        "cosine": 0.9575790166854858
+      },
+      "history_prediction": {
+        "relative_l1": 0.6379260420799255,
+        "relative_l2": 0.944570779800415,
+        "cosine": 0.9190418124198914
+      },
+      "mask_jaccard": 0.956385612487793,
+      "captured_mass_vs_reference": 0.9985768795013428
+    },
+    {
+      "layer": 22,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.15363018214702606,
+        "relative_l2": 0.2390899807214737,
+        "cosine": 0.9724106788635254
+      },
+      "history_prediction": {
+        "relative_l1": 0.5357088446617126,
+        "relative_l2": 0.6495684385299683,
+        "cosine": 0.959566056728363
+      },
+      "mask_jaccard": 0.9657956957817078,
+      "captured_mass_vs_reference": 0.9979254603385925
+    },
+    {
+      "layer": 22,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.1496729850769043,
+        "relative_l2": 0.22640429437160492,
+        "cosine": 0.9751696586608887
+      },
+      "history_prediction": {
+        "relative_l1": 0.4644472002983093,
+        "relative_l2": 0.5870377421379089,
+        "cosine": 0.9588534832000732
+      },
+      "mask_jaccard": 0.9620313048362732,
+      "captured_mass_vs_reference": 0.9991763830184937
+    },
+    {
+      "layer": 23,
+      "groups": [
+        0,
+        86
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.13417726755142212,
+        "relative_l2": 0.18745730817317963,
+        "cosine": 0.9824150800704956
+      },
+      "history_prediction": {
+        "relative_l1": 0.17910993099212646,
+        "relative_l2": 0.185798779129982,
+        "cosine": 0.9945359230041504
+      },
+      "mask_jaccard": 0.9766854643821716,
+      "captured_mass_vs_reference": 1.0142481327056885
+    },
+    {
+      "layer": 23,
+      "groups": [
+        173
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.13556721806526184,
+        "relative_l2": 0.18488821387290955,
+        "cosine": 0.9828026294708252
+      },
+      "history_prediction": {
+        "relative_l1": 0.14607791602611542,
+        "relative_l2": 0.1562056839466095,
+        "cosine": 0.9926315546035767
+      },
+      "mask_jaccard": 0.9839135408401489,
+      "captured_mass_vs_reference": 1.0165716409683228
+    },
+    {
+      "layer": 23,
+      "groups": [
+        260
+      ],
+      "all_patch_prediction": {
+        "relative_l1": 0.12709598243236542,
+        "relative_l2": 0.17038419842720032,
+        "cosine": 0.9854426383972168
+      },
+      "history_prediction": {
+        "relative_l1": 0.12946391105651855,
+        "relative_l2": 0.1357644647359848,
+        "cosine": 0.9949803352355957
+      },
+      "mask_jaccard": 0.9740042686462402,
+      "captured_mass_vs_reference": 1.0108729600906372
+    }
+  ],
+  "speedup_vs_dense": null,
+  "speedup_reason": "Instrumented RGB proxy only,not formal timing",
+  "test_gt_read": false
+}

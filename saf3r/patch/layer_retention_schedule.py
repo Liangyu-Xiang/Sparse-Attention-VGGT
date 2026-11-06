@@ -41,11 +41,25 @@ def patch_budget(total_keys, special_keys, retention):
     return budget
 
 
+def total_edge_patch_budget(total_keys,special_keys,dense_queries,retention):
+    """Exact integer cap after the existing full-Key special-Query correction."""
+    if not 0<=dense_queries<total_keys:raise ValueError('Invalid Dense special-query geometry')
+    edge_cap=math.floor(retention*total_keys*total_keys)
+    remaining=edge_cap-dense_queries*total_keys
+    if remaining<0:raise ValueError('Special queries alone exceed the requested total-edge cap')
+    keys=remaining//(total_keys-dense_queries)
+    result=keys-special_keys
+    if result<1:raise ValueError('Total-edge cap cannot accommodate required Special Keys')
+    return result
+
 def layer_budget(config, layer, total_keys, special_keys):
     if not 0 <= layer < 24:
         raise ValueError("Layer must be in [0, 23]")
     rates = config.layer_retentions
     rate = config.retention if rates is None else rates[layer]
+    if getattr(config,'total_edge_retention',False):
+        if special_keys%5:raise ValueError('Expected five Special Keys per frame')
+        return total_edge_patch_budget(total_keys,special_keys,special_keys//5*config.dense_special_queries,rate)
     return patch_budget(total_keys, special_keys, rate)
 
 
