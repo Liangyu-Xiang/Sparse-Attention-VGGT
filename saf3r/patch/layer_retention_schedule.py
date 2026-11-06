@@ -49,6 +49,25 @@ def layer_budget(config, layer, total_keys, special_keys):
     return patch_budget(total_keys, special_keys, rate)
 
 
+def output_patch_budget(total_keys, special_keys, dense_queries, retention):
+    """Cap final unique edges, including full-key special-query replacement.
+
+    For D corrected rows, only the other N-D rows use the shared sparse cap.
+    This counts the final support union; auxiliary probe QK and repeated
+    execution of the corrected rows must still be reported separately.
+    """
+    if not 0 <= dense_queries < total_keys:
+        raise ValueError('Invalid dense-query geometry')
+    if dense_queries == 0:
+        return patch_budget(total_keys, special_keys, retention)
+    patch_budget(total_keys, special_keys, retention)  # validate geometry/rate
+    keys = math.floor((retention*total_keys*total_keys-dense_queries*total_keys)
+                      /(total_keys-dense_queries))
+    if keys <= special_keys:
+        raise ValueError('Retention cannot accommodate corrected queries and special keys')
+    return keys-special_keys
+
+
 def profile_summary(rates, total_keys, special_keys):
     budgets = [patch_budget(total_keys, special_keys, rate) for rate in rates]
     densities = [(b + special_keys) / total_keys for b in budgets]

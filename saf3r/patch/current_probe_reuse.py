@@ -22,6 +22,11 @@ def forward(module,x,pos):
  o,s=module.original,module.state;c=s.config;layer=module.layer
  if module.training or len(x)!=1 or layer!=s.previous_layer+1:raise ValueError('Ordered inference required')
  s.budget=layer_budget(c,layer,s.n,len(s.specials))
+ if c.account_dense_special_query_budget:
+  from .layer_retention_schedule import output_patch_budget
+  dense_queries=s.semantic_specials.numel()//5*c.dense_special_queries
+  target=c.retention if c.layer_retentions is None else c.layer_retentions[layer]
+  s.budget=output_patch_budget(s.n,len(s.specials),dense_queries,target)
  with stage(s,'shared_qkv_and_rope'):
   q,k,v=prepare_qkv(o,x,pos);q=q.to(v.dtype).contiguous();k=k.to(v.dtype).contiguous()
  with stage(s,'current_value_geometry'),torch.autocast(x.device.type,enabled=False):
@@ -69,5 +74,7 @@ def forward(module,x,pos):
   extra=(s.n-joined['counts'][dense_ids//c.query_group_size]-len(s.specials)).sum()
   record.update(dense_special_query_count=len(dense_ids),dense_special_query_physical_qk_per_head=len(dense_ids)*s.n,actual_unique_density=(raw+extra)/s.n**2,final_unique_qk_per_head=raw+extra)
  else:record['dense_special_query_count']=0
+ if c.account_dense_special_query_budget:
+  record.update(output_retention_target=target,output_unique_qk_cap_per_head=(s.n-dense_queries)*(s.budget+len(s.specials))+dense_queries*s.n,dense_special_queries_in_budget=True)
  s.previous_layer=layer;s.records.append(record)
  return o.proj_drop(o.proj(output.transpose(0,1).reshape(1,s.n,-1)))

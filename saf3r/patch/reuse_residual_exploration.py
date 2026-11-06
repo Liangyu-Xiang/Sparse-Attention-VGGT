@@ -37,6 +37,7 @@ class ReuseExploreConfig:
     flash_group_chunk: int = 16
     p0_loss_pack: bool = False
     current_probability_probes:int=0
+    account_dense_special_query_budget:bool=False
     skip_dead_exact_observation:bool=False
     rep_history_execution:str='population'
     rep_history_loss:str='legacy'
@@ -107,6 +108,7 @@ class ReuseExploreConfig:
     guard_rel_l2:float=.005
 
     def __post_init__(self):
+        if self.account_dense_special_query_budget and not self.current_probability_probes:raise ValueError('Output-edge budget accounting requires the current-probe backend')
         if self.current_probability_probes not in (0,1,4):raise ValueError('Use0/1/4 exact current probability probes')
         if self.current_probability_probes and (self.rep_history_loss!='A' or self.candidate_fraction!=1. or not self.shared_value_loss):raise ValueError('Current probes require all-eligible shared History A')
         if self.skip_dead_exact_observation and not (self.compact and self.shared_value_loss and self.window_graph and self.candidate_fraction==1. and self.history_evidence_backend=='direct_sampled' and self.history_query_interval==self.query_group_size):raise ValueError('Dead Exact observations can only be skipped in full-eligible fully sampled shared path')

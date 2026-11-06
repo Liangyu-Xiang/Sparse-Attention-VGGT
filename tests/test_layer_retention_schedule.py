@@ -3,7 +3,26 @@ from types import SimpleNamespace
 import pytest
 from saf3r.patch.layer_retention_schedule import (
     PROFILES, layer_budget, patch_budget, profile_summary, validate_schedule,
+    output_patch_budget,
 )
+
+
+@pytest.mark.parametrize('n,special,dense',[(1003,5,0),(1003,5,1),(1003,5,5),(133248,640,640),(35340,190,190)])
+def test_final_output_budget_counts_corrected_queries_and_special_keys(n,special,dense):
+    rates=[.1*5/7]*6+[.18*5/7]*12+[.1*5/7]*6
+    total=0
+    for r in rates:
+        b=output_patch_budget(n,special,dense,r)
+        cap=(n-dense)*(b+special)+dense*n
+        assert cap<=r*n*n+1e-5
+        assert r*n*n-cap<n-dense+1e-5
+        total+=cap
+    assert total<=.1*24*n*n+1e-4
+    if dense==0:assert output_patch_budget(n,special,0,.1)==patch_budget(n,special,.1)
+
+
+def test_final_output_budget_rejects_infeasible_dense_floor():
+    with pytest.raises(ValueError):output_patch_budget(100,10,10,.1)
 
 
 def test_midlayer_increase_does_not_change_cluster_initialization_budget():
