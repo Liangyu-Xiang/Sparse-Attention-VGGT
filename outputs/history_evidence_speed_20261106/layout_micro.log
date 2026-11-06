@@ -1,0 +1,63 @@
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/__init__.py:827: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/__init__.py:827: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+{'name': 'bare', 'seconds': 0.008268112182617188, 'samples': [0.008540096282958985, 0.008403807640075684, 0.008295904159545899, 0.008201791763305663, 0.008235487937927246, 0.008240320205688477]}
+Traceback (most recent call last):
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py", line 43, in wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py", line 2192, in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py", line 1297, in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py", line 1259, in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py", line 705, in broadcast_impl_shape
+    raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-history-speed-20261106/scripts/benchmark_teacher_history_av.py", line 15, in <module>
+    out=fn();torch.cuda.synchronize();times=[]
+        ^^^^
+  File "/tmp/sparse-vggt-history-speed-20261106/scripts/benchmark_teacher_history_av.py", line 14, in <lambda>
+    for name,fn in [('bare',lambda:main_attention(q,k,v,ids,special,d**-.5,w.log())[0]),*[(f'w{ww}_s{ss}',lambda ww=ww,ss=ss:attention(q,k,v,ids,special,w,d**-.5,4,True,ww,ss)[0]) for ww in [4,8] for ss in [1,2,3]]]:
+                                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-history-speed-20261106/saf3r/triton/teacher_history_attention.py", line 73, in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 419, in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 733, in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 861, in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py", line 300, in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py", line 80, in make_ir
+    return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+triton.compiler.errors.CompilationError: at 31:5:
+  v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+  raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+  mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+  if CAPTURE:
+   inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+   if FULL:
+    if emit:
+     # Retain the MMA row layout: masked stores avoid cross-warp gather.
+     raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+     raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+     selected=row==GS//8
+     tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+     ^
+Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']

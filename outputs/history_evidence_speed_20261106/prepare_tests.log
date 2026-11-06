@@ -1,0 +1,162 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_______________________ test_fused_key_preparation[1024] _______________________
+
+n = 1024
+
+    @pytest.mark.parametrize('n',[1024,1027,1088])
+    def test_fused_key_preparation(n):
+     torch.manual_seed(131);h,d=16,64;k=torch.randn(h,n,d,device='cuda',dtype=torch.bfloat16);special=torch.tensor([0,1,2,3,4],device='cuda');patch=torch.arange(5,n,device='cuda');mat=projection(h,d,4,'cuda');s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patch,specials=special,_value_sketch_matrix=mat)
+>    ref=prepare_keys(s,k);bank,anchors,z=prepare(k,patch,special,mat);torch.testing.assert_close(bank,ref['bank'],rtol=0,atol=0)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_prepare.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_prepare.py:23: in prepare
+    _prepare[(r+len(specials),h)](k,patches,specials,matrix,bank,anchors,z,n,r,len(specials),h,d,sk,k.stride(0),block,samples,triton.next_power_of_2(d),num_warps=4,num_stages=1)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f18cde743d0>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f18c54d6840>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f18bc080d60>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f18bc05ff70>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 3:1:
+E       def _prepare(K,PATCH,SPECIAL,W,BANK,ANCHOR,Z,N:tl.constexpr,R:tl.constexpr,S:tl.constexpr,H:tl.constexpr,D:tl.constexpr,SK:tl.constexpr,KH:tl.constexpr,BLOCK:tl.constexpr,M:tl.constexpr,BD:tl.constexpr):
+E        r=tl.program_id(0);h=tl.program_id(1);t=tl.arange(0,BLOCK);d=tl.arange(0,BD)
+E        if r<R:
+E        ^
+E       AssertionError("Mismatched type for key between then block (<['64'], int64>) and else block (int64)")
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+_______________________ test_fused_key_preparation[1027] _______________________
+
+n = 1027
+
+    @pytest.mark.parametrize('n',[1024,1027,1088])
+    def test_fused_key_preparation(n):
+     torch.manual_seed(131);h,d=16,64;k=torch.randn(h,n,d,device='cuda',dtype=torch.bfloat16);special=torch.tensor([0,1,2,3,4],device='cuda');patch=torch.arange(5,n,device='cuda');mat=projection(h,d,4,'cuda');s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patch,specials=special,_value_sketch_matrix=mat)
+>    ref=prepare_keys(s,k);bank,anchors,z=prepare(k,patch,special,mat);torch.testing.assert_close(bank,ref['bank'],rtol=0,atol=0)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_prepare.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_prepare.py:23: in prepare
+    _prepare[(r+len(specials),h)](k,patches,specials,matrix,bank,anchors,z,n,r,len(specials),h,d,sk,k.stride(0),block,samples,triton.next_power_of_2(d),num_warps=4,num_stages=1)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f19e31be2d0>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f18c54d6840>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f18bc12c540>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f19e31bc8b0>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 3:1:
+E       def _prepare(K,PATCH,SPECIAL,W,BANK,ANCHOR,Z,N:tl.constexpr,R:tl.constexpr,S:tl.constexpr,H:tl.constexpr,D:tl.constexpr,SK:tl.constexpr,KH:tl.constexpr,BLOCK:tl.constexpr,M:tl.constexpr,BD:tl.constexpr):
+E        r=tl.program_id(0);h=tl.program_id(1);t=tl.arange(0,BLOCK);d=tl.arange(0,BD)
+E        if r<R:
+E        ^
+E       AssertionError("Mismatched type for key between then block (<['64'], int64>) and else block (int64)")
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+_______________________ test_fused_key_preparation[1088] _______________________
+
+n = 1088
+
+    @pytest.mark.parametrize('n',[1024,1027,1088])
+    def test_fused_key_preparation(n):
+     torch.manual_seed(131);h,d=16,64;k=torch.randn(h,n,d,device='cuda',dtype=torch.bfloat16);special=torch.tensor([0,1,2,3,4],device='cuda');patch=torch.arange(5,n,device='cuda');mat=projection(h,d,4,'cuda');s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patch,specials=special,_value_sketch_matrix=mat)
+>    ref=prepare_keys(s,k);bank,anchors,z=prepare(k,patch,special,mat);torch.testing.assert_close(bank,ref['bank'],rtol=0,atol=0)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_prepare.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_prepare.py:23: in prepare
+    _prepare[(r+len(specials),h)](k,patches,specials,matrix,bank,anchors,z,n,r,len(specials),h,d,sk,k.stride(0),block,samples,triton.next_power_of_2(d),num_warps=4,num_stages=1)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f18bc0bedd0>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f18c54d6840>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f18bc12cfe0>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f18bc0bf030>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 3:1:
+E       def _prepare(K,PATCH,SPECIAL,W,BANK,ANCHOR,Z,N:tl.constexpr,R:tl.constexpr,S:tl.constexpr,H:tl.constexpr,D:tl.constexpr,SK:tl.constexpr,KH:tl.constexpr,BLOCK:tl.constexpr,M:tl.constexpr,BD:tl.constexpr):
+E        r=tl.program_id(0);h=tl.program_id(1);t=tl.arange(0,BLOCK);d=tl.arange(0,BD)
+E        if r<R:
+E        ^
+E       AssertionError("Mismatched type for key between then block (<['64'], int64>) and else block (int64)")
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+=============================== warnings summary ===============================
+../../mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/dash/testing/plugin.py:104
+  /mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/dash/testing/plugin.py:104: PytestRemovedIn10Warning: The hookimpl pytest_addhooks uses old-style configuration options (marks or attributes).
+  Please use the pytest.hookimpl(tryfirst=True) decorator instead
+   to configure the hooks.
+   See https://docs.pytest.org/en/latest/deprecations.html#configuring-hook-specs-impls-using-markers
+    @pytest.mark.tryfirst
+
+tests/test_teacher_history_prepare.py::test_fused_key_preparation[1024]
+tests/test_teacher_history_prepare.py::test_fused_key_preparation[1024]
+  /mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/__init__.py:827: UserWarning: Can't initialize NVML
+    warnings.warn("Can't initialize NVML")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_teacher_history_prepare.py::test_fused_key_preparation[1024]
+FAILED tests/test_teacher_history_prepare.py::test_fused_key_preparation[1027]
+FAILED tests/test_teacher_history_prepare.py::test_fused_key_preparation[1088]
+3 failed, 3 warnings in 4.79s

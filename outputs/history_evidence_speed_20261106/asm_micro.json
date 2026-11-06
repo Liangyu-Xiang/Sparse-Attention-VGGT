@@ -1,0 +1,95 @@
+{
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "auc30": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "acc": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "comp": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "cd": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "f1": "Same synthetic shapes local AV/evidence microbenchmark;no geometry"
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "rows": [
+    {
+      "name": "bare",
+      "seconds": 0.00823308801651001,
+      "samples": [
+        0.008527872085571288,
+        0.008279040336608886,
+        0.008140416145324706,
+        0.008181440353393554,
+        0.008231424331665039,
+        0.008234751701354981
+      ]
+    },
+    {
+      "name": "q64_k128_w4_s1",
+      "seconds": 0.010064095973968505,
+      "samples": [
+        0.01021987247467041,
+        0.01005241584777832,
+        0.010068896293640137,
+        0.010052576065063476,
+        0.010059295654296875,
+        0.010093759536743165
+      ],
+      "relative_l2": 0.0
+    },
+    {
+      "name": "q64_k64_w4_s1",
+      "seconds": 0.011497151851654053,
+      "samples": [
+        0.01159440040588379,
+        0.011476448059082031,
+        0.01144035243988037,
+        0.011478879928588866,
+        0.011515423774719239,
+        0.011548192024230956
+      ],
+      "relative_l2": 0.0007804239867255092
+    },
+    {
+      "name": "q128_k64_w4_s1",
+      "seconds": 0.012350800037384032,
+      "samples": [
+        0.012424351692199707,
+        0.012303711891174317,
+        0.012389087677001953,
+        0.012421216011047363,
+        0.012312512397766113,
+        0.012297792434692383
+      ],
+      "relative_l2": 0.0007804239867255092
+    }
+  ],
+  "shape": {
+    "heads": 16,
+    "n": 133760,
+    "d": 64,
+    "groups": 64,
+    "extra_keys": 23436,
+    "specials": 640
+  },
+  "speedup_vs_dense": null,
+  "speedup_reason": "Kernel benchmark,not full forward"
+}

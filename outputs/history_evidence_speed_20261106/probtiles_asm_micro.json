@@ -1,0 +1,108 @@
+{
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "auc30": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "acc": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "comp": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "cd": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "f1": "Same synthetic shapes local AV/evidence microbenchmark;no geometry"
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "rows": [
+    {
+      "name": "bare",
+      "seconds": 0.008216879844665528,
+      "samples": [
+        0.008597599983215331,
+        0.008321439743041992,
+        0.00818073558807373,
+        0.00816921615600586,
+        0.008163328170776368,
+        0.008253024101257325
+      ]
+    },
+    {
+      "name": "tiles_asmFalse_s1",
+      "seconds": 0.01015937614440918,
+      "samples": [
+        0.010295968055725097,
+        0.010141440391540527,
+        0.010147839546203614,
+        0.010159040451049805,
+        0.010185503959655761,
+        0.010159711837768554
+      ],
+      "relative_l2": 0.0
+    },
+    {
+      "name": "tiles_asmFalse_s2",
+      "seconds": 0.011066463947296143,
+      "samples": [
+        0.011202879905700684,
+        0.011069760322570801,
+        0.011050016403198241,
+        0.011042688369750977,
+        0.011063167572021484,
+        0.011104736328125
+      ],
+      "relative_l2": 0.0
+    },
+    {
+      "name": "tiles_asmTrue_s1",
+      "seconds": 0.011548672199249268,
+      "samples": [
+        0.011677599906921387,
+        0.011549983978271484,
+        0.011660991668701172,
+        0.011523648262023926,
+        0.01154736042022705,
+        0.01154195213317871
+      ],
+      "relative_l2": 0.0
+    },
+    {
+      "name": "tiles_asmTrue_s2",
+      "seconds": 0.011855696201324463,
+      "samples": [
+        0.011999103546142578,
+        0.011854816436767578,
+        0.01181993579864502,
+        0.01182694435119629,
+        0.011867551803588868,
+        0.011856575965881348
+      ],
+      "relative_l2": 0.0
+    }
+  ],
+  "shape": {
+    "heads": 16,
+    "n": 133760,
+    "d": 64,
+    "groups": 64,
+    "extra_keys": 23436,
+    "specials": 640
+  },
+  "speedup_vs_dense": null,
+  "speedup_reason": "Kernel benchmark,not full forward"
+}

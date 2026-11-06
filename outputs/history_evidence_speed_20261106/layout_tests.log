@@ -1,0 +1,1203 @@
+FFFFFFFFFFF                                                              [100%]
+=================================== FAILURES ===================================
+_________________ test_av_and_unbiased_probe_partition[512-4] __________________
+
+args = (<triton.language.core.tensor object at 0x7f53c027b790>, <triton.language.core.tensor object at 0x7f53c009ced0>, <triton.language.core.tensor object at 0x7f53c009c310>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f53c01df890>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f53c01df890>
+input = <triton.language.core.tensor object at 0x7f53c009ced0>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 512, probes = 4
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,4),(480,4),(512,2),(356,2),(259,1)])
+    def test_av_and_unbiased_probe_partition(n,probes):
+     torch.manual_seed(127);device='cuda';h,d,a=2,32,17;g=(n+255)//256;q=torch.randn(h,n,d,device=device,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);specials=torch.tensor([0,5],device=device);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=device);ids=torch.stack([patches[torch.randperm(len(patches),device=device)[:a]] for _ in range(g)]).int();weights=torch.exp(torch.rand(g,a,device=device)*2+30)
+>    ref,_=main_attention(q,k,v,ids,specials,d**-.5,weights.log());out,e=attention(q,k,v,ids,specials,weights,d**-.5,probes,True);bare,_=attention(q,k,v,ids,specials,weights,d**-.5,probes,False)
+                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_attention.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f55d5bf1e50>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53c01d74c0>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f55d5bf6ff0>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+_________________ test_av_and_unbiased_probe_partition[259-4] __________________
+
+args = (<triton.language.core.tensor object at 0x7f5370730350>, <triton.language.core.tensor object at 0x7f5370733950>, <triton.language.core.tensor object at 0x7f5370733090>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f53c015d290>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f53c015d290>
+input = <triton.language.core.tensor object at 0x7f5370733950>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 259, probes = 4
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,4),(480,4),(512,2),(356,2),(259,1)])
+    def test_av_and_unbiased_probe_partition(n,probes):
+     torch.manual_seed(127);device='cuda';h,d,a=2,32,17;g=(n+255)//256;q=torch.randn(h,n,d,device=device,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);specials=torch.tensor([0,5],device=device);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=device);ids=torch.stack([patches[torch.randperm(len(patches),device=device)[:a]] for _ in range(g)]).int();weights=torch.exp(torch.rand(g,a,device=device)*2+30)
+>    ref,_=main_attention(q,k,v,ids,specials,d**-.5,weights.log());out,e=attention(q,k,v,ids,specials,weights,d**-.5,probes,True);bare,_=attention(q,k,v,ids,specials,weights,d**-.5,probes,False)
+                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_attention.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f53c015fc10>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53706f09a0>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f53c015f0b0>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+_________________ test_av_and_unbiased_probe_partition[356-4] __________________
+
+args = (<triton.language.core.tensor object at 0x7f5370736ad0>, <triton.language.core.tensor object at 0x7f5370735d10>, <triton.language.core.tensor object at 0x7f53c0208610>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f53c0286a50>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f53c0286a50>
+input = <triton.language.core.tensor object at 0x7f5370735d10>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 356, probes = 4
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,4),(480,4),(512,2),(356,2),(259,1)])
+    def test_av_and_unbiased_probe_partition(n,probes):
+     torch.manual_seed(127);device='cuda';h,d,a=2,32,17;g=(n+255)//256;q=torch.randn(h,n,d,device=device,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);specials=torch.tensor([0,5],device=device);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=device);ids=torch.stack([patches[torch.randperm(len(patches),device=device)[:a]] for _ in range(g)]).int();weights=torch.exp(torch.rand(g,a,device=device)*2+30)
+>    ref,_=main_attention(q,k,v,ids,specials,d**-.5,weights.log());out,e=attention(q,k,v,ids,specials,weights,d**-.5,probes,True);bare,_=attention(q,k,v,ids,specials,weights,d**-.5,probes,False)
+                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_attention.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f53c0267590>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53706f3f60>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f53c0287630>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+_________________ test_av_and_unbiased_probe_partition[480-4] __________________
+
+args = (<triton.language.core.tensor object at 0x7f53c00fe850>, <triton.language.core.tensor object at 0x7f53c00fda50>, <triton.language.core.tensor object at 0x7f536ff0d190>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f56f63d02d0>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f56f63d02d0>
+input = <triton.language.core.tensor object at 0x7f53c00fda50>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 480, probes = 4
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,4),(480,4),(512,2),(356,2),(259,1)])
+    def test_av_and_unbiased_probe_partition(n,probes):
+     torch.manual_seed(127);device='cuda';h,d,a=2,32,17;g=(n+255)//256;q=torch.randn(h,n,d,device=device,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);specials=torch.tensor([0,5],device=device);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=device);ids=torch.stack([patches[torch.randperm(len(patches),device=device)[:a]] for _ in range(g)]).int();weights=torch.exp(torch.rand(g,a,device=device)*2+30)
+>    ref,_=main_attention(q,k,v,ids,specials,d**-.5,weights.log());out,e=attention(q,k,v,ids,specials,weights,d**-.5,probes,True);bare,_=attention(q,k,v,ids,specials,weights,d**-.5,probes,False)
+                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_attention.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f56f6401210>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53706f0ea0>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f56f6403f70>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+_________________ test_av_and_unbiased_probe_partition[512-2] __________________
+
+args = (<triton.language.core.tensor object at 0x7f537070de90>, <triton.language.core.tensor object at 0x7f53c0246610>, <triton.language.core.tensor object at 0x7f53c02448d0>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f53c0249250>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f53c0249250>
+input = <triton.language.core.tensor object at 0x7f53c0246610>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 512, probes = 2
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,4),(480,4),(512,2),(356,2),(259,1)])
+    def test_av_and_unbiased_probe_partition(n,probes):
+     torch.manual_seed(127);device='cuda';h,d,a=2,32,17;g=(n+255)//256;q=torch.randn(h,n,d,device=device,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);specials=torch.tensor([0,5],device=device);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=device);ids=torch.stack([patches[torch.randperm(len(patches),device=device)[:a]] for _ in range(g)]).int();weights=torch.exp(torch.rand(g,a,device=device)*2+30)
+>    ref,_=main_attention(q,k,v,ids,specials,d**-.5,weights.log());out,e=attention(q,k,v,ids,specials,weights,d**-.5,probes,True);bare,_=attention(q,k,v,ids,specials,weights,d**-.5,probes,False)
+                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_attention.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f53c01b3390>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53706f1a80>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f53c0248db0>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+_________________ test_av_and_unbiased_probe_partition[356-2] __________________
+
+args = (<triton.language.core.tensor object at 0x7f53c02561d0>, <triton.language.core.tensor object at 0x7f53c0254690>, <triton.language.core.tensor object at 0x7f53c0256250>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f53c015efd0>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f53c015efd0>
+input = <triton.language.core.tensor object at 0x7f53c0254690>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 356, probes = 2
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,4),(480,4),(512,2),(356,2),(259,1)])
+    def test_av_and_unbiased_probe_partition(n,probes):
+     torch.manual_seed(127);device='cuda';h,d,a=2,32,17;g=(n+255)//256;q=torch.randn(h,n,d,device=device,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);specials=torch.tensor([0,5],device=device);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=device);ids=torch.stack([patches[torch.randperm(len(patches),device=device)[:a]] for _ in range(g)]).int();weights=torch.exp(torch.rand(g,a,device=device)*2+30)
+>    ref,_=main_attention(q,k,v,ids,specials,d**-.5,weights.log());out,e=attention(q,k,v,ids,specials,weights,d**-.5,probes,True);bare,_=attention(q,k,v,ids,specials,weights,d**-.5,probes,False)
+                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_attention.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f53c024a150>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53c0222ac0>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f53c015cab0>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+_________________ test_av_and_unbiased_probe_partition[259-1] __________________
+
+args = (<triton.language.core.tensor object at 0x7f53c0178d10>, <triton.language.core.tensor object at 0x7f53c026e810>, <triton.language.core.tensor object at 0x7f53c0178ad0>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f537073d710>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f537073d710>
+input = <triton.language.core.tensor object at 0x7f53c026e810>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 259, probes = 1
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,4),(480,4),(512,2),(356,2),(259,1)])
+    def test_av_and_unbiased_probe_partition(n,probes):
+     torch.manual_seed(127);device='cuda';h,d,a=2,32,17;g=(n+255)//256;q=torch.randn(h,n,d,device=device,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);specials=torch.tensor([0,5],device=device);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=device);ids=torch.stack([patches[torch.randperm(len(patches),device=device)[:a]] for _ in range(g)]).int();weights=torch.exp(torch.rand(g,a,device=device)*2+30)
+>    ref,_=main_attention(q,k,v,ids,specials,d**-.5,weights.log());out,e=attention(q,k,v,ids,specials,weights,d**-.5,probes,True);bare,_=attention(q,k,v,ids,specials,weights,d**-.5,probes,False)
+                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_attention.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f537073cf90>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53c0222b60>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f537073ebb0>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+______________________ test_observe_predict_update[512-4] ______________________
+
+args = (<triton.language.core.tensor object at 0x7f53c026f1d0>, <triton.language.core.tensor object at 0x7f53c026d090>, <triton.language.core.tensor object at 0x7f537070f290>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f53c00df190>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f53c00df190>
+input = <triton.language.core.tensor object at 0x7f53c026d090>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 512, probes = 4
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,2),(480,1)])
+    def test_observe_predict_update(n,probes):
+     torch.manual_seed(41);dev='cuda';h,d=2,32;g=(n+255)//256;specials=torch.tensor([0,5],device=dev);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=dev);np=len(patches);q=torch.randn(h,n,d,device=dev,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);scale=d**-.5
+     s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patches,specials=specials,_value_sketch_matrix=projection(h,d,4,dev))
+     prep=prepare_keys(s,k);obs=p.observe(q,prep,0,g,256,probes,scale);pos=obs['positions'];qp=q[:,pos].float();r=prep['regions'];m=8
+     raw=torch.einsum('hgpd,hrd->hgpr',qp,prep['bank'].float())*scale+prep['bias'];coarse=raw.softmax(-1).mean((0,2))[:,:r]
+     torch.testing.assert_close(obs['coarse'],coarse,rtol=1e-4,atol=2e-6)
+     raw=torch.einsum('hgpd,hkd->hgpk',qp,prep['anchor_keys'].float()).reshape(h,g,probes,r,m)*scale;raw.masked_fill_(~prep['valid'].reshape(1,1,1,r,m),-torch.inf);logs=raw.softmax(-1).mean((0,2)).clamp_min(1e-30).log()
+     torch.testing.assert_close(obs['sample_logprob'],logs,rtol=2e-5,atol=2e-5)
+     oldphi=torch.rand(g,np,device=dev);oldphi=oldphi/oldphi.sum(1,keepdim=True)*.8;oldmass=p.block_mass(oldphi,64);oldcoarse=coarse*.9;oldlog=logs+torch.randn_like(logs)*.2
+     old=dict(dense_probability=oldphi,block_mass=oldmass,coarse=oldcoarse,sample_logprob=oldlog);pred,mass=p.predict(old,obs,prep['assignment'],prep['sizes'],64,.75,1.)
+     transport=oldmass*coarse/oldcoarse;sp=(1-oldmass.sum(1))*(1-coarse.sum(1))/(1-oldcoarse.sum(1));transport/= (transport.sum(1)+sp)[:,None];beta=2*(coarse*oldcoarse).sqrt()/(coarse+oldcoarse)
+     grid=torch.arange(np,device=dev)//64;delta=(logs-oldlog)[:,grid,prep['assignment']];tilted=oldphi*delta.clamp(-20,20).exp();tilt_mass=p.block_mass(tilted,64);ref=.75*transport[:,grid]*(beta[:,grid]*tilted/tilt_mass[:,grid]+(1-beta[:,grid])/prep['sizes'][grid])+.25*coarse[:,grid]/prep['sizes'][grid]
+     torch.testing.assert_close(pred,ref,rtol=3e-5,atol=1e-7);torch.testing.assert_close(mass,p.block_mass(pred,64),rtol=1e-5,atol=1e-7)
+     # Selected posterior gets unweighted conditional evidence from compensated AV.
+     ids=torch.stack([torch.randperm(np,device=dev)[:37] for _ in range(g)]).int();ids[-1,-1]=-1;actual=patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int();weights=torch.exp(torch.randn(g,37,device=dev)*2+3)
+>    _,e=attention(q,k,v,actual,specials,weights,scale,probes,True);out=torch.empty_like(pred);p.update(pred.clone(),mass,ids,e,out,2,64,1.)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_probability.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f56f6401650>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53c010e160>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f53c0118b70>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+______________________ test_observe_predict_update[259-4] ______________________
+
+args = (<triton.language.core.tensor object at 0x7f536ff0d650>, <triton.language.core.tensor object at 0x7f536ff0ee10>, <triton.language.core.tensor object at 0x7f536ff0c050>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f53c009c3d0>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f53c009c3d0>
+input = <triton.language.core.tensor object at 0x7f536ff0ee10>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 259, probes = 4
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,2),(480,1)])
+    def test_observe_predict_update(n,probes):
+     torch.manual_seed(41);dev='cuda';h,d=2,32;g=(n+255)//256;specials=torch.tensor([0,5],device=dev);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=dev);np=len(patches);q=torch.randn(h,n,d,device=dev,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);scale=d**-.5
+     s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patches,specials=specials,_value_sketch_matrix=projection(h,d,4,dev))
+     prep=prepare_keys(s,k);obs=p.observe(q,prep,0,g,256,probes,scale);pos=obs['positions'];qp=q[:,pos].float();r=prep['regions'];m=8
+     raw=torch.einsum('hgpd,hrd->hgpr',qp,prep['bank'].float())*scale+prep['bias'];coarse=raw.softmax(-1).mean((0,2))[:,:r]
+     torch.testing.assert_close(obs['coarse'],coarse,rtol=1e-4,atol=2e-6)
+     raw=torch.einsum('hgpd,hkd->hgpk',qp,prep['anchor_keys'].float()).reshape(h,g,probes,r,m)*scale;raw.masked_fill_(~prep['valid'].reshape(1,1,1,r,m),-torch.inf);logs=raw.softmax(-1).mean((0,2)).clamp_min(1e-30).log()
+     torch.testing.assert_close(obs['sample_logprob'],logs,rtol=2e-5,atol=2e-5)
+     oldphi=torch.rand(g,np,device=dev);oldphi=oldphi/oldphi.sum(1,keepdim=True)*.8;oldmass=p.block_mass(oldphi,64);oldcoarse=coarse*.9;oldlog=logs+torch.randn_like(logs)*.2
+     old=dict(dense_probability=oldphi,block_mass=oldmass,coarse=oldcoarse,sample_logprob=oldlog);pred,mass=p.predict(old,obs,prep['assignment'],prep['sizes'],64,.75,1.)
+     transport=oldmass*coarse/oldcoarse;sp=(1-oldmass.sum(1))*(1-coarse.sum(1))/(1-oldcoarse.sum(1));transport/= (transport.sum(1)+sp)[:,None];beta=2*(coarse*oldcoarse).sqrt()/(coarse+oldcoarse)
+     grid=torch.arange(np,device=dev)//64;delta=(logs-oldlog)[:,grid,prep['assignment']];tilted=oldphi*delta.clamp(-20,20).exp();tilt_mass=p.block_mass(tilted,64);ref=.75*transport[:,grid]*(beta[:,grid]*tilted/tilt_mass[:,grid]+(1-beta[:,grid])/prep['sizes'][grid])+.25*coarse[:,grid]/prep['sizes'][grid]
+     torch.testing.assert_close(pred,ref,rtol=3e-5,atol=1e-7);torch.testing.assert_close(mass,p.block_mass(pred,64),rtol=1e-5,atol=1e-7)
+     # Selected posterior gets unweighted conditional evidence from compensated AV.
+     ids=torch.stack([torch.randperm(np,device=dev)[:37] for _ in range(g)]).int();ids[-1,-1]=-1;actual=patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int();weights=torch.exp(torch.randn(g,37,device=dev)*2+3)
+>    _,e=attention(q,k,v,actual,specials,weights,scale,probes,True);out=torch.empty_like(pred);p.update(pred.clone(),mass,ids,e,out,2,64,1.)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_probability.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f537073d950>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53c0210d60>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f53707322b0>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+______________________ test_observe_predict_update[356-2] ______________________
+
+args = (<triton.language.core.tensor object at 0x7f53c0256a50>, <triton.language.core.tensor object at 0x7f537070df90>, <triton.language.core.tensor object at 0x7f537070ef90>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f5370580fd0>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f5370580fd0>
+input = <triton.language.core.tensor object at 0x7f537070df90>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 356, probes = 2
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,2),(480,1)])
+    def test_observe_predict_update(n,probes):
+     torch.manual_seed(41);dev='cuda';h,d=2,32;g=(n+255)//256;specials=torch.tensor([0,5],device=dev);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=dev);np=len(patches);q=torch.randn(h,n,d,device=dev,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);scale=d**-.5
+     s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patches,specials=specials,_value_sketch_matrix=projection(h,d,4,dev))
+     prep=prepare_keys(s,k);obs=p.observe(q,prep,0,g,256,probes,scale);pos=obs['positions'];qp=q[:,pos].float();r=prep['regions'];m=8
+     raw=torch.einsum('hgpd,hrd->hgpr',qp,prep['bank'].float())*scale+prep['bias'];coarse=raw.softmax(-1).mean((0,2))[:,:r]
+     torch.testing.assert_close(obs['coarse'],coarse,rtol=1e-4,atol=2e-6)
+     raw=torch.einsum('hgpd,hkd->hgpk',qp,prep['anchor_keys'].float()).reshape(h,g,probes,r,m)*scale;raw.masked_fill_(~prep['valid'].reshape(1,1,1,r,m),-torch.inf);logs=raw.softmax(-1).mean((0,2)).clamp_min(1e-30).log()
+     torch.testing.assert_close(obs['sample_logprob'],logs,rtol=2e-5,atol=2e-5)
+     oldphi=torch.rand(g,np,device=dev);oldphi=oldphi/oldphi.sum(1,keepdim=True)*.8;oldmass=p.block_mass(oldphi,64);oldcoarse=coarse*.9;oldlog=logs+torch.randn_like(logs)*.2
+     old=dict(dense_probability=oldphi,block_mass=oldmass,coarse=oldcoarse,sample_logprob=oldlog);pred,mass=p.predict(old,obs,prep['assignment'],prep['sizes'],64,.75,1.)
+     transport=oldmass*coarse/oldcoarse;sp=(1-oldmass.sum(1))*(1-coarse.sum(1))/(1-oldcoarse.sum(1));transport/= (transport.sum(1)+sp)[:,None];beta=2*(coarse*oldcoarse).sqrt()/(coarse+oldcoarse)
+     grid=torch.arange(np,device=dev)//64;delta=(logs-oldlog)[:,grid,prep['assignment']];tilted=oldphi*delta.clamp(-20,20).exp();tilt_mass=p.block_mass(tilted,64);ref=.75*transport[:,grid]*(beta[:,grid]*tilted/tilt_mass[:,grid]+(1-beta[:,grid])/prep['sizes'][grid])+.25*coarse[:,grid]/prep['sizes'][grid]
+     torch.testing.assert_close(pred,ref,rtol=3e-5,atol=1e-7);torch.testing.assert_close(mass,p.block_mass(pred,64),rtol=1e-5,atol=1e-7)
+     # Selected posterior gets unweighted conditional evidence from compensated AV.
+     ids=torch.stack([torch.randperm(np,device=dev)[:37] for _ in range(g)]).int();ids[-1,-1]=-1;actual=patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int();weights=torch.exp(torch.randn(g,37,device=dev)*2+3)
+>    _,e=attention(q,k,v,actual,specials,weights,scale,probes,True);out=torch.empty_like(pred);p.update(pred.clone(),mass,ids,e,out,2,64,1.)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_probability.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f53705824d0>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f53c02109a0>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f5370582630>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+______________________ test_observe_predict_update[480-1] ______________________
+
+args = (<triton.language.core.tensor object at 0x7f53707354d0>, <triton.language.core.tensor object at 0x7f53707368d0>, <triton.language.core.tensor object at 0x7f5370737810>)
+kwargs = {'_semantic': <triton.language.semantic.TritonSemantic object at 0x7f55d008e550>}
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if "_semantic" not in kwargs or kwargs["_semantic"] is None:
+            raise ValueError("Did you forget to add @triton.jit ? "
+                             "(`_semantic` argument must be provided outside of JIT functions.)")
+>       return fn(*args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/core.py:2192: in store
+    return _semantic.store(pointer, value, mask, boundary_check, cache_modifier, eviction_policy)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1297: in store
+    return self._store_legacy(ptr, val, mask, boundary_check, cache, eviction)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:1259: in _store_legacy
+    val = self.broadcast_impl_shape(val, ptr.type.get_block_shapes())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.language.semantic.TritonSemantic object at 0x7f55d008e550>
+input = <triton.language.core.tensor object at 0x7f53707368d0>, shape = (1, 128)
+
+    def broadcast_impl_shape(self, input: TensorTy, shape: Tuple[int]) -> TensorTy:
+        if not input.type.is_block():
+            return self.splat(input, shape)
+        src_shape = input.type.get_block_shapes()
+        if len(src_shape) != len(shape):
+            raise ValueError(f"Cannot broadcast, rank mismatch: {src_shape}, {shape}")
+        if shape == src_shape:
+            return input
+        for i, item in enumerate(src_shape):
+            if shape[i] != item and item != 1:
+>               raise ValueError(f"Cannot broadcast, the expanded size of the tensor ({shape[i]})"
+                                 f" must match the existing size ({item}) at non-singleton dimension"
+                                 f" {i}: {src_shape}, {shape}")
+E               ValueError: Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/semantic.py:705: ValueError
+
+The above exception was the direct cause of the following exception:
+
+n = 480, probes = 1
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,2),(480,1)])
+    def test_observe_predict_update(n,probes):
+     torch.manual_seed(41);dev='cuda';h,d=2,32;g=(n+255)//256;specials=torch.tensor([0,5],device=dev);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=dev);np=len(patches);q=torch.randn(h,n,d,device=dev,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);scale=d**-.5
+     s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patches,specials=specials,_value_sketch_matrix=projection(h,d,4,dev))
+     prep=prepare_keys(s,k);obs=p.observe(q,prep,0,g,256,probes,scale);pos=obs['positions'];qp=q[:,pos].float();r=prep['regions'];m=8
+     raw=torch.einsum('hgpd,hrd->hgpr',qp,prep['bank'].float())*scale+prep['bias'];coarse=raw.softmax(-1).mean((0,2))[:,:r]
+     torch.testing.assert_close(obs['coarse'],coarse,rtol=1e-4,atol=2e-6)
+     raw=torch.einsum('hgpd,hkd->hgpk',qp,prep['anchor_keys'].float()).reshape(h,g,probes,r,m)*scale;raw.masked_fill_(~prep['valid'].reshape(1,1,1,r,m),-torch.inf);logs=raw.softmax(-1).mean((0,2)).clamp_min(1e-30).log()
+     torch.testing.assert_close(obs['sample_logprob'],logs,rtol=2e-5,atol=2e-5)
+     oldphi=torch.rand(g,np,device=dev);oldphi=oldphi/oldphi.sum(1,keepdim=True)*.8;oldmass=p.block_mass(oldphi,64);oldcoarse=coarse*.9;oldlog=logs+torch.randn_like(logs)*.2
+     old=dict(dense_probability=oldphi,block_mass=oldmass,coarse=oldcoarse,sample_logprob=oldlog);pred,mass=p.predict(old,obs,prep['assignment'],prep['sizes'],64,.75,1.)
+     transport=oldmass*coarse/oldcoarse;sp=(1-oldmass.sum(1))*(1-coarse.sum(1))/(1-oldcoarse.sum(1));transport/= (transport.sum(1)+sp)[:,None];beta=2*(coarse*oldcoarse).sqrt()/(coarse+oldcoarse)
+     grid=torch.arange(np,device=dev)//64;delta=(logs-oldlog)[:,grid,prep['assignment']];tilted=oldphi*delta.clamp(-20,20).exp();tilt_mass=p.block_mass(tilted,64);ref=.75*transport[:,grid]*(beta[:,grid]*tilted/tilt_mass[:,grid]+(1-beta[:,grid])/prep['sizes'][grid])+.25*coarse[:,grid]/prep['sizes'][grid]
+     torch.testing.assert_close(pred,ref,rtol=3e-5,atol=1e-7);torch.testing.assert_close(mass,p.block_mass(pred,64),rtol=1e-5,atol=1e-7)
+     # Selected posterior gets unweighted conditional evidence from compensated AV.
+     ids=torch.stack([torch.randperm(np,device=dev)[:37] for _ in range(g)]).int();ids[-1,-1]=-1;actual=patches[ids.clamp_min(0)].masked_fill(ids<0,-1).int();weights=torch.exp(torch.randn(g,37,device=dev)*2+3)
+>    _,e=attention(q,k,v,actual,specials,weights,scale,probes,True);out=torch.empty_like(pred);p.update(pred.clone(),mass,ids,e,out,2,64,1.)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_probability.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+saf3r/triton/teacher_history_attention.py:73: in attention
+    _attention[(triton.cdiv(end-first,64),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,triton.next_power_of_2(d),64,128,256,num_warps=warps,num_stages=stages)
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:419: in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:733: in run
+    kernel = self._do_compile(key, signature, device, constexprs, options, attrs, warmup)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py:861: in _do_compile
+    kernel = self.compile(src, target=target, options=options.__dict__)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:300: in compile
+    module = src.make_ir(target, options, codegen_fns, module_map, context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <triton.compiler.compiler.ASTSource object at 0x7f5370589dd0>
+target = GPUTarget(backend='cuda', arch=120, warp_size=32)
+options = CUDAOptions(num_warps=4, num_ctas=1, num_stages=1, warp_size=32, maxnreg=None, cluster_dims=(1, 1, 1), ptx_version=Non...b/libdevice.10.bc'),), debug=False, backend_name='cuda', sanitize_overflow=True, arch='sm120', instrumentation_mode='')
+codegen_fns = {'convert_custom_types': <function convert_custom_float8_sm80 at 0x7f55d86874c0>, 'min_dot_size': <function min_dot_size.<locals>.check_dot_compatibility at 0x7f536fe53c40>}
+module_map = {'triton.language.extra.libdevice': <module 'triton.language.extra.cuda.libdevice' from '/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/language/extra/cuda/libdevice.py'>}
+context = <triton._C.libtriton.ir.context object at 0x7f5370589a30>
+
+    def make_ir(self, target: GPUTarget, options, codegen_fns, module_map, context):
+        from .code_generator import ast_to_ttir
+>       return ast_to_ttir(self.fn, self, context=context, options=options, codegen_fns=codegen_fns,
+                           module_map=module_map)
+E       triton.compiler.errors.CompilationError: at 31:5:
+E         v=tl.load(V+h*VH+tl.maximum(key,0)[:,None]*D+dd[None,:],valid[:,None]&(dd[None,:]<D),0.)
+E         raw=tl.dot(q,k,allow_tf32=False)*SCALE;z=tl.where(valid[None,:],raw+bias[None,:],-float('inf'))
+E         mx=tl.maximum(maximum,tl.max(z,1));safe=tl.where(mx==-float('inf'),0.,mx);alpha=tl.exp(maximum-safe);p=tl.exp(z-safe[:,None])
+E         if CAPTURE:
+E          inverse=tl.load(INV+g*A+at-S,(at>=S)&valid,1.)
+E          if FULL:
+E           if emit:
+E            # Retain the MMA row layout: masked stores avoid cross-warp gather.
+E            raw_valid=tl.where(valid[None,:],raw,-float('inf'));center=tl.max(raw_valid,1);center=tl.where(center==-float('inf'),0.,center)
+E            raw_den=raw_den*alpha+tl.sum(p*inverse[None,:],1);last_shift=safe
+E            selected=row==GS//8
+E            tl.store(RAW+((g*H+h)*PROBES+slot)*(S+A)+at[None,:],raw_valid-center[:,None],selected[:,None]&(at[None,:]<S+A))
+E            ^
+E       Cannot broadcast, the expanded size of the tensor (1) must match the existing size (64) at non-singleton dimension 0: ['64', '128'], ['1', '128']
+
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py:80: CompilationError
+=============================== warnings summary ===============================
+../../mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/dash/testing/plugin.py:104
+  /mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/dash/testing/plugin.py:104: PytestRemovedIn10Warning: The hookimpl pytest_addhooks uses old-style configuration options (marks or attributes).
+  Please use the pytest.hookimpl(tryfirst=True) decorator instead
+   to configure the hooks.
+   See https://docs.pytest.org/en/latest/deprecations.html#configuring-hook-specs-impls-using-markers
+    @pytest.mark.tryfirst
+
+tests/test_teacher_history_attention.py::test_av_and_unbiased_probe_partition[512-4]
+tests/test_teacher_history_attention.py::test_av_and_unbiased_probe_partition[512-4]
+  /mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/__init__.py:827: UserWarning: Can't initialize NVML
+    warnings.warn("Can't initialize NVML")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_teacher_history_attention.py::test_av_and_unbiased_probe_partition[512-4]
+FAILED tests/test_teacher_history_attention.py::test_av_and_unbiased_probe_partition[259-4]
+FAILED tests/test_teacher_history_attention.py::test_av_and_unbiased_probe_partition[356-4]
+FAILED tests/test_teacher_history_attention.py::test_av_and_unbiased_probe_partition[480-4]
+FAILED tests/test_teacher_history_attention.py::test_av_and_unbiased_probe_partition[512-2]
+FAILED tests/test_teacher_history_attention.py::test_av_and_unbiased_probe_partition[356-2]
+FAILED tests/test_teacher_history_attention.py::test_av_and_unbiased_probe_partition[259-1]
+FAILED tests/test_teacher_history_probability.py::test_observe_predict_update[512-4]
+FAILED tests/test_teacher_history_probability.py::test_observe_predict_update[259-4]
+FAILED tests/test_teacher_history_probability.py::test_observe_predict_update[356-2]
+FAILED tests/test_teacher_history_probability.py::test_observe_predict_update[480-1]
+11 failed, 3 warnings in 6.77s

@@ -1,0 +1,32 @@
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/__init__.py:827: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/__init__.py:827: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+{'name': 'bare', 'seconds': 0.008219424247741698, 'samples': [0.008535840034484864, 0.008261119842529297, 0.008156160354614257, 0.008158880233764649, 0.008204192161560058, 0.00823465633392334]}
+{'name': 'q64_k64_w2_s1', 'seconds': 0.012569119930267334, 'samples': [0.01270736026763916, 0.01254419231414795, 0.012565631866455079, 0.012572607994079589, 0.012558239936828614, 0.012601728439331055]}
+{'name': 'q64_k64_w4_s1', 'seconds': 0.013160736083984374, 'samples': [0.01319660758972168, 0.013047967910766602, 0.013130911827087402, 0.013135104179382325, 0.013186367988586425, 0.01319206428527832]}
+{'name': 'q64_k128_w2_s1', 'seconds': 0.020332783699035645, 'samples': [0.02070537567138672, 0.020317792892456055, 0.020310495376586916, 0.020337472915649413, 0.0203372802734375, 0.02032828712463379]}
+{'name': 'q64_k128_w4_s1', 'seconds': 0.017764495849609374, 'samples': [0.01784163284301758, 0.017712608337402343, 0.017800479888916015, 0.017727903366088867, 0.017728511810302734, 0.017812480926513673]}
+{'name': 'q64_k256_w2_s1', 'seconds': 0.2761358642578125, 'samples': [0.27610317993164063, 0.2761685485839844, 0.2756975708007813, 0.27609466552734374, 0.27654275512695314, 0.27648028564453125]}
+Traceback (most recent call last):
+  File "/tmp/sparse-vggt-history-speed-20261106/scripts/benchmark_teacher_history_av.py", line 15, in <module>
+    out=fn();torch.cuda.synchronize();times=[]
+        ^^^^
+  File "/tmp/sparse-vggt-history-speed-20261106/scripts/benchmark_teacher_history_av.py", line 14, in <lambda>
+    for name,fn in [('bare',lambda:main_attention(q,k,v,ids,special,d**-.5,w.log())[0]),*[(f'q{bm}_k{bk}_w{ww}_s{ss}',lambda bm=bm,bk=bk,ww=ww,ss=ss:attention(q,k,v,ids,special,w,d**-.5,4,True,ww,ss,bm,bk)[0]) for bm in [64,128] for bk in [64,128,256] for ww in [2,4] for ss in [1]]]:
+                                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/sparse-vggt-history-speed-20261106/saf3r/triton/teacher_history_attention.py", line 81, in attention
+    _attention[(triton.cdiv(end-first,block_queries),h)](qq,k,v,ids[begin_group:end_group],specials,bias[begin_group:end_group],inverse[begin_group:end_group],oo,raw[begin_group:end_group] if capture else raw,shift[begin_group:end_group] if capture else shift,ll,h,end-first,k.shape[1],a,s,d,qq.stride(0),k.stride(0),v.stride(0),oo.stride(0),ll.stride(0),scale,probes,capture,full,raw_fp32,triton.next_power_of_2(d),block_queries,block_keys,256,num_warps=warps,num_stages=stages)
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 419, in <lambda>
+    return lambda *args, **kwargs: self.run(grid=grid, warmup=False, *args, **kwargs)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/runtime/jit.py", line 756, in run
+    launch_metadata = kernel.launch_metadata(grid, stream, *bound_args.values())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py", line 490, in launch_metadata
+    self._init_handles()
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py", line 464, in _init_handles
+    raise_(OutOfResources(self.metadata.shared, max_shared, "shared memory"))
+  File "/mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/triton/compiler/compiler.py", line 456, in raise_
+    raise err
+triton.runtime.errors.OutOfResources: out of resource: shared memory, Required: 106496, Hardware limit: 101376. Reducing block sizes or `num_stages` may help.

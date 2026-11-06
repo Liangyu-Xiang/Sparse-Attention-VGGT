@@ -1,0 +1,93 @@
+{
+  "quality": {
+    "values": {
+      "auc03": null,
+      "auc30": null,
+      "acc": null,
+      "comp": null,
+      "cd": null,
+      "f1": null
+    },
+    "complete": false,
+    "unavailable": {
+      "auc03": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "auc30": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "acc": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "comp": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "cd": "Same synthetic shapes local AV/evidence microbenchmark;no geometry",
+      "f1": "Same synthetic shapes local AV/evidence microbenchmark;no geometry"
+    },
+    "speedup_vs_vggt": null,
+    "speedup_unavailable": "Requires matched VGGT Dense full-forward timing; see comparison report",
+    "units": {
+      "auc03": "fraction",
+      "auc30": "fraction",
+      "acc": "m",
+      "comp": "m",
+      "cd": "m",
+      "f1": "fraction"
+    },
+    "cd_definition": "(ACC + Comp) / 2; unsquared nearest-neighbour distances"
+  },
+  "rows": [
+    {
+      "name": "bare",
+      "seconds": 0.008229967594146728,
+      "samples": [
+        0.008551615715026856,
+        0.008281888008117676,
+        0.008226271629333495,
+        0.008158176422119141,
+        0.008228639602661132,
+        0.008231295585632323
+      ],
+      "kernel": null
+    },
+    {
+      "name": "late_den_s1",
+      "seconds": 0.01045847988128662,
+      "samples": [
+        0.010530112266540527,
+        0.010408063888549805,
+        0.01041254425048828,
+        0.01043552017211914,
+        0.010481439590454101,
+        0.010501472473144532
+      ],
+      "kernel": {
+        "registers": 255,
+        "spills": 20,
+        "shared_bytes": 24576
+      },
+      "relative_l2": 0.0
+    },
+    {
+      "name": "late_den_s2",
+      "seconds": 0.009110847949981689,
+      "samples": [
+        0.009182880401611328,
+        0.009071455955505372,
+        0.009071711540222169,
+        0.00907430362701416,
+        0.00914739227294922,
+        0.009153120040893555
+      ],
+      "kernel": {
+        "registers": 255,
+        "spills": 4,
+        "shared_bytes": 49664
+      },
+      "relative_l2": 0.0
+    }
+  ],
+  "shape": {
+    "heads": 16,
+    "n": 133760,
+    "d": 64,
+    "groups": 64,
+    "extra_keys": 23436,
+    "specials": 640
+  },
+  "speedup_vs_dense": null,
+  "speedup_reason": "Kernel benchmark,not full forward"
+}

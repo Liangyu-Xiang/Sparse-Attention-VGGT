@@ -1,0 +1,171 @@
+..........FFFF.......                                                    [100%]
+=================================== FAILURES ===================================
+______________________ test_observe_predict_update[512-4] ______________________
+
+n = 512, probes = 4
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,2),(480,1)])
+    def test_observe_predict_update(n,probes):
+     torch.manual_seed(41);dev='cuda';h,d=2,32;g=(n+255)//256;specials=torch.tensor([0,5],device=dev);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=dev);np=len(patches);q=torch.randn(h,n,d,device=dev,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);scale=d**-.5
+     s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patches,specials=specials,_value_sketch_matrix=projection(h,d,4,dev))
+>    prep=prepare_keys(s,k);obs=p.observe(q,prep,0,g,256,probes,scale);pos=obs['positions'];qp=q[:,pos].float();r=prep['regions'];m=8
+          ^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_probability.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+s = namespace(config=namespace(history_key_block_size=64, teacher_history_samples=8), patches=tensor([  1,   2,   3,   4, ...e, True, True, True, True, True]], device='cuda:0')), _teacher_layout_shape=(510, 64, 8, device(type='cuda', index=0)))
+k = tensor([[[-0.2422,  0.3223,  0.2793,  ...,  1.0234, -1.1719, -1.2891],
+         [ 1.5938,  0.7578,  0.6602,  ..., -1.0...
+         [ 1.1328, -1.8906,  0.4727,  ...,  0.2031,  0.8164,  0.8594]]],
+       device='cuda:0', dtype=torch.bfloat16)
+
+    def prepare_keys(s,k):
+     from .head_value_sketch import features
+     c=s.config;block=c.history_key_block_size;m=c.teacher_history_samples
+     h,_,d=k.shape;n=len(s.patches);r=triton.cdiv(n,block)
+     shape=(n,block,m,k.device)
+     if getattr(s,'_teacher_layout_shape',None)!=shape:
+      sizes=(n-torch.arange(r,device=k.device)*block).clamp_max(block);effective=sizes.clamp_max(m)
+      slot=torch.arange(m,device=k.device);valid=slot[None,:]<effective[:,None]
+      index=torch.arange(r,device=k.device)[:,None]*block+((2*slot[None,:]+1)*sizes[:,None]//(2*effective[:,None]))
+      index=index.clamp_max(n-1);s._teacher_layout=(sizes.float(),index,valid);s._teacher_layout_shape=shape
+     sizes,index,valid=s._teacher_layout
+     pad=r*block-n
+>    if c.teacher_history_fused_prepare:
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E    AttributeError: 'types.SimpleNamespace' object has no attribute 'teacher_history_fused_prepare'
+
+saf3r/patch/teacher_guided_history.py:22: AttributeError
+______________________ test_observe_predict_update[259-4] ______________________
+
+n = 259, probes = 4
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,2),(480,1)])
+    def test_observe_predict_update(n,probes):
+     torch.manual_seed(41);dev='cuda';h,d=2,32;g=(n+255)//256;specials=torch.tensor([0,5],device=dev);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=dev);np=len(patches);q=torch.randn(h,n,d,device=dev,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);scale=d**-.5
+     s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patches,specials=specials,_value_sketch_matrix=projection(h,d,4,dev))
+>    prep=prepare_keys(s,k);obs=p.observe(q,prep,0,g,256,probes,scale);pos=obs['positions'];qp=q[:,pos].float();r=prep['regions'];m=8
+          ^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_probability.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+s = namespace(config=namespace(history_key_block_size=64, teacher_history_samples=8), patches=tensor([  1,   2,   3,   4, ...lse, False, False, False]],
+       device='cuda:0')), _teacher_layout_shape=(257, 64, 8, device(type='cuda', index=0)))
+k = tensor([[[-0.2422,  0.3223,  0.2793,  ...,  1.0234, -1.1719, -1.2891],
+         [ 1.5938,  0.7578,  0.6602,  ..., -1.0...
+         [-0.6367, -0.3770, -0.0272,  ...,  0.2754,  1.2891,  0.5352]]],
+       device='cuda:0', dtype=torch.bfloat16)
+
+    def prepare_keys(s,k):
+     from .head_value_sketch import features
+     c=s.config;block=c.history_key_block_size;m=c.teacher_history_samples
+     h,_,d=k.shape;n=len(s.patches);r=triton.cdiv(n,block)
+     shape=(n,block,m,k.device)
+     if getattr(s,'_teacher_layout_shape',None)!=shape:
+      sizes=(n-torch.arange(r,device=k.device)*block).clamp_max(block);effective=sizes.clamp_max(m)
+      slot=torch.arange(m,device=k.device);valid=slot[None,:]<effective[:,None]
+      index=torch.arange(r,device=k.device)[:,None]*block+((2*slot[None,:]+1)*sizes[:,None]//(2*effective[:,None]))
+      index=index.clamp_max(n-1);s._teacher_layout=(sizes.float(),index,valid);s._teacher_layout_shape=shape
+     sizes,index,valid=s._teacher_layout
+     pad=r*block-n
+>    if c.teacher_history_fused_prepare:
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E    AttributeError: 'types.SimpleNamespace' object has no attribute 'teacher_history_fused_prepare'
+
+saf3r/patch/teacher_guided_history.py:22: AttributeError
+______________________ test_observe_predict_update[356-2] ______________________
+
+n = 356, probes = 2
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,2),(480,1)])
+    def test_observe_predict_update(n,probes):
+     torch.manual_seed(41);dev='cuda';h,d=2,32;g=(n+255)//256;specials=torch.tensor([0,5],device=dev);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=dev);np=len(patches);q=torch.randn(h,n,d,device=dev,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);scale=d**-.5
+     s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patches,specials=specials,_value_sketch_matrix=projection(h,d,4,dev))
+>    prep=prepare_keys(s,k);obs=p.observe(q,prep,0,g,256,probes,scale);pos=obs['positions'];qp=q[:,pos].float();r=prep['regions'];m=8
+          ^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_probability.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+s = namespace(config=namespace(history_key_block_size=64, teacher_history_samples=8), patches=tensor([  1,   2,   3,   4, ...e, True, True, True, True, True]], device='cuda:0')), _teacher_layout_shape=(354, 64, 8, device(type='cuda', index=0)))
+k = tensor([[[-0.2422,  0.3223,  0.2793,  ...,  1.0234, -1.1719, -1.2891],
+         [ 1.5938,  0.7578,  0.6602,  ..., -1.0...
+         [ 0.6758,  1.1562,  0.3496,  ..., -1.7578, -1.4531,  0.9102]]],
+       device='cuda:0', dtype=torch.bfloat16)
+
+    def prepare_keys(s,k):
+     from .head_value_sketch import features
+     c=s.config;block=c.history_key_block_size;m=c.teacher_history_samples
+     h,_,d=k.shape;n=len(s.patches);r=triton.cdiv(n,block)
+     shape=(n,block,m,k.device)
+     if getattr(s,'_teacher_layout_shape',None)!=shape:
+      sizes=(n-torch.arange(r,device=k.device)*block).clamp_max(block);effective=sizes.clamp_max(m)
+      slot=torch.arange(m,device=k.device);valid=slot[None,:]<effective[:,None]
+      index=torch.arange(r,device=k.device)[:,None]*block+((2*slot[None,:]+1)*sizes[:,None]//(2*effective[:,None]))
+      index=index.clamp_max(n-1);s._teacher_layout=(sizes.float(),index,valid);s._teacher_layout_shape=shape
+     sizes,index,valid=s._teacher_layout
+     pad=r*block-n
+>    if c.teacher_history_fused_prepare:
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E    AttributeError: 'types.SimpleNamespace' object has no attribute 'teacher_history_fused_prepare'
+
+saf3r/patch/teacher_guided_history.py:22: AttributeError
+______________________ test_observe_predict_update[480-1] ______________________
+
+n = 480, probes = 1
+
+    @pytest.mark.parametrize('n,probes',[(512,4),(259,4),(356,2),(480,1)])
+    def test_observe_predict_update(n,probes):
+     torch.manual_seed(41);dev='cuda';h,d=2,32;g=(n+255)//256;specials=torch.tensor([0,5],device=dev);patches=torch.tensor([j for j in range(n) if j not in [0,5]],device=dev);np=len(patches);q=torch.randn(h,n,d,device=dev,dtype=torch.bfloat16);k=torch.randn_like(q);v=torch.randn_like(q);scale=d**-.5
+     s=types.SimpleNamespace(config=types.SimpleNamespace(history_key_block_size=64,teacher_history_samples=8),patches=patches,specials=specials,_value_sketch_matrix=projection(h,d,4,dev))
+>    prep=prepare_keys(s,k);obs=p.observe(q,prep,0,g,256,probes,scale);pos=obs['positions'];qp=q[:,pos].float();r=prep['regions'];m=8
+          ^^^^^^^^^^^^^^^^^
+
+tests/test_teacher_history_probability.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+s = namespace(config=namespace(history_key_block_size=64, teacher_history_samples=8), patches=tensor([  1,   2,   3,   4, ...e, True, True, True, True, True]], device='cuda:0')), _teacher_layout_shape=(478, 64, 8, device(type='cuda', index=0)))
+k = tensor([[[-2.4219e-01,  3.2227e-01,  2.7930e-01,  ...,  1.0234e+00,
+          -1.1719e+00, -1.2891e+00],
+         [ 1....2188e-01,  7.6172e-01,  ...,  1.8516e+00,
+          -6.2500e-01, -1.2734e+00]]], device='cuda:0', dtype=torch.bfloat16)
+
+    def prepare_keys(s,k):
+     from .head_value_sketch import features
+     c=s.config;block=c.history_key_block_size;m=c.teacher_history_samples
+     h,_,d=k.shape;n=len(s.patches);r=triton.cdiv(n,block)
+     shape=(n,block,m,k.device)
+     if getattr(s,'_teacher_layout_shape',None)!=shape:
+      sizes=(n-torch.arange(r,device=k.device)*block).clamp_max(block);effective=sizes.clamp_max(m)
+      slot=torch.arange(m,device=k.device);valid=slot[None,:]<effective[:,None]
+      index=torch.arange(r,device=k.device)[:,None]*block+((2*slot[None,:]+1)*sizes[:,None]//(2*effective[:,None]))
+      index=index.clamp_max(n-1);s._teacher_layout=(sizes.float(),index,valid);s._teacher_layout_shape=shape
+     sizes,index,valid=s._teacher_layout
+     pad=r*block-n
+>    if c.teacher_history_fused_prepare:
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E    AttributeError: 'types.SimpleNamespace' object has no attribute 'teacher_history_fused_prepare'
+
+saf3r/patch/teacher_guided_history.py:22: AttributeError
+=============================== warnings summary ===============================
+../../mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/dash/testing/plugin.py:104
+  /mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/dash/testing/plugin.py:104: PytestRemovedIn10Warning: The hookimpl pytest_addhooks uses old-style configuration options (marks or attributes).
+  Please use the pytest.hookimpl(tryfirst=True) decorator instead
+   to configure the hooks.
+   See https://docs.pytest.org/en/latest/deprecations.html#configuring-hook-specs-impls-using-markers
+    @pytest.mark.tryfirst
+
+tests/test_teacher_history_prepare.py::test_fused_key_preparation[1024]
+tests/test_teacher_history_prepare.py::test_fused_key_preparation[1024]
+  /mnt/rfs/users/xiangliangyu/conda-envs/vggt-baseline/lib/python3.11/site-packages/torch/cuda/__init__.py:827: UserWarning: Can't initialize NVML
+    warnings.warn("Can't initialize NVML")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_teacher_history_probability.py::test_observe_predict_update[512-4]
+FAILED tests/test_teacher_history_probability.py::test_observe_predict_update[259-4]
+FAILED tests/test_teacher_history_probability.py::test_observe_predict_update[356-2]
+FAILED tests/test_teacher_history_probability.py::test_observe_predict_update[480-1]
+4 failed, 17 passed, 3 warnings in 17.19s
