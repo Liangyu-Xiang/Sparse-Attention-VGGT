@@ -9,7 +9,10 @@ class Audit:
  def __enter__(self):
   import torch
   from saf3r.patch import reuse_residual_exploration as mod,reuse_window_graph as window
-  from saf3r.triton import teacher_history_attention as av
+  if self.s.config.teacher_history_attention_backend=='probability_tiles':
+   from saf3r.triton import teacher_history_probability_tiles as av
+  else:
+   from saf3r.triton import teacher_history_attention as av
   from saf3r.triton import teacher_history_probability as probability
   self.update=probability.update;self.prepare=mod.prepare_qkv;self.select=window.select;self.attention=av.attention;self.handles=[]
   def prepare(original,x,pos):
@@ -55,7 +58,10 @@ class Audit:
   return self
  def __exit__(self,*exc):
   from saf3r.patch import reuse_residual_exploration as mod,reuse_window_graph as window
-  from saf3r.triton import teacher_history_attention as av
+  if self.s.config.teacher_history_attention_backend=='probability_tiles':
+   from saf3r.triton import teacher_history_probability_tiles as av
+  else:
+   from saf3r.triton import teacher_history_attention as av
   from saf3r.triton import teacher_history_probability as probability
   mod.prepare_qkv=self.prepare;window.select=self.select;av.attention=self.attention;probability.update=self.update
 

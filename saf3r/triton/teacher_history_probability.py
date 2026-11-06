@@ -68,11 +68,15 @@ def _finish_mass(PART,BLOCK_MASS,MASS,R:tl.constexpr,T:tl.constexpr,BR:tl.conste
  tl.store(MASS+g,tl.minimum(1.-1.e-7,tl.maximum(1.e-7,1.-patch+selected)))
 
 @triton.jit
-def _posterior(RAW,SHIFT,DEN,IDS,MASS,PHI,G:tl.constexpr,H:tl.constexpr,P:tl.constexpr,N:tl.constexpr,A:tl.constexpr,S:tl.constexpr,T:tl.constexpr,B:tl.constexpr,BH:tl.constexpr,ETA:tl.constexpr):
+def _posterior(RAW,SHIFT,DEN,IDS,MASS,PHI,INV,G:tl.constexpr,H:tl.constexpr,P:tl.constexpr,N:tl.constexpr,A:tl.constexpr,S:tl.constexpr,T:tl.constexpr,B:tl.constexpr,BH:tl.constexpr,RAW_WIDTH:tl.constexpr,ETA:tl.constexpr,PROB_TILES:tl.constexpr):
  tile=tl.program_id(0);g=tl.program_id(1);key=tile*B+tl.arange(0,B);h=tl.arange(0,BH);p=tl.arange(0,P)
- raw=tl.load(RAW+((g*H+h[:,None,None])*P+p[None,:,None])*(S+A)+key[None,None,:],(h[:,None,None]<H)&(key[None,None,:]<S+A),-float('inf')).to(tl.float32)
+ raw=tl.load(RAW+((g*H+h[:,None,None])*P+p[None,:,None])*RAW_WIDTH+key[None,None,:],(h[:,None,None]<H)&(key[None,None,:]<S+A),-float('inf')).to(tl.float32)
  shift=tl.load(SHIFT+((g*H+h[:,None])*P+p[None,:])*T+tile,h[:,None]<H,0.);den=tl.load(DEN+(h[:,None]*G+g)*P+p[None,:],h[:,None]<H,0.)
- prob=tl.sum(tl.sum(tl.where(h[:,None,None]<H,tl.exp(raw+shift[:,:,None]-den[:,:,None]),0.),0),0)/(H*P)
+ if PROB_TILES:
+  inverse=tl.load(INV+g*A+key-S,(key>=S)&(key<S+A),1.)
+  contribution=raw*tl.exp(shift-den)[:,:,None]*inverse[None,None,:]
+ else:contribution=tl.exp(raw+shift[:,:,None]-den[:,:,None])
+ prob=tl.sum(tl.sum(tl.where(h[:,None,None]<H,contribution,0.),0),0)/(H*P)
  j=tl.load(IDS+g*A+key-S,(key>=S)&(key<S+A),-1);valid=(key>=S)&(key<S+A)&(j>=0);mass=tl.load(MASS+g);observed=mass*prob
  if ETA==1.:updated=observed
  elif ETA==.5:
@@ -90,7 +94,7 @@ def update(prior,target_mass,ids,evidence,destination,specials,block,eta):
  g,n=prior.shape;a=ids.shape[1];r=target_mass.shape[1];h,_,p=evidence['raw_lse'].shape;t=triton.cdiv(a,256);partial=torch.empty((g,t),device=prior.device);mass=torch.empty(g,device=prior.device)
  _selected_mass[(g,t)](prior,ids,partial,n,a,t,256,num_warps=4);_finish_mass[(g,)](partial,target_mass,mass,r,t,triton.next_power_of_2(r),triton.next_power_of_2(t),num_warps=4)
  tiles=triton.cdiv(specials+a,128)
- _posterior[(tiles,g)](evidence['encoded'],evidence['shifts'],evidence['raw_lse'],ids,mass,prior,g,h,p,n,a,specials,tiles,128,triton.next_power_of_2(h),eta,num_warps=4)
+ _posterior[(tiles,g)](evidence['encoded'],evidence['shifts'],evidence['raw_lse'],ids,mass,prior,evidence.get('inverse_weights',prior),g,h,p,n,a,specials,tiles,128,triton.next_power_of_2(h),evidence['encoded'].shape[-1],eta,evidence.get('probability_tiles',False),num_warps=4)
  _normalize[(g,triton.cdiv(r,4))](prior,target_mass,destination,n,r,block,4,num_warps=4)
 
 @triton.jit

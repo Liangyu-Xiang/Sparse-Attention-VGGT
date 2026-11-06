@@ -38,6 +38,9 @@ class ReuseExploreConfig:
     p0_loss_pack: bool = False
     current_probability_probes:int=0
     teacher_guided_history:bool=False
+    teacher_history_attention_backend:str='inline_gather'
+    teacher_history_fused_prepare:bool=False
+    teacher_history_layer_observation:bool=False
     teacher_history_probes:int=4
     teacher_history_samples:int=8
     teacher_history_anchor_gain:float=1.
@@ -119,6 +122,7 @@ class ReuseExploreConfig:
 
     def __post_init__(self):
         if not 0.<self.streamed_history_prior_weight<=1.:raise ValueError('Streamed history must have strictly positive prior weight')
+        if self.teacher_history_attention_backend not in ('inline_gather','probability_tiles'):raise ValueError('Invalid teacher-history AV backend')
         if self.teacher_guided_history and (not self.streamed_probability_history or self.query_group_size!=256 or self.history_key_block_size!=64 or self.shared_value_features!='head_sketch' or self.teacher_history_probes not in (1,2,4) or self.teacher_history_samples not in (4,8) or not 0<=self.teacher_history_update_gain<=1):raise ValueError('Teacher history requires block64,group256,head-sketch and valid probes/samples/gain')
         if self.history_key_block_size not in (0,64,128,256,512):raise ValueError('Use canonical0 or contiguous Key blocks64/128/256/512')
         if self.streamed_history_normalizer not in ('selected_d2','coarse_proxy') or self.streamed_history_bits not in (8,16):raise ValueError('Invalid streamed-history evidence format')
