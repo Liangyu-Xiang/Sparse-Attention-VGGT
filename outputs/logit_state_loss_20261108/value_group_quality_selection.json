@@ -1,0 +1,10 @@
+{
+  "selected": "group_mean_value_layer_half",
+  "reason": "SourceRGB all3stage improvement over previously selected groupmean+cumulant;middle16.0407%vs16.2358%",
+  "formula": "unknown:currentmeanQ*meanK+0.5*(a_layer centeredValueNorm2+b_layer centeredRepDistance2);known:add0.5centered previous actualgroupmeanlogit residual afterremoving previous same-layerbias",
+  "fit": "Coefficients frozen from sourceRGB10;ridge0.1;clip4;noETH3Dor7ScenesGT",
+  "new_operations": "two scalar affinebiases using alreadycomputedstate norms/distances;no new feature extractor,currentfineQKoranchor",
+  "quality_gate": "ALLsix ETH3D11 macro no worse than fast;unchanged gate",
+  "speed_gate": "7Scenes128 all7 notslowerthanfast;not established",
+  "no_cumulant": true
+}
