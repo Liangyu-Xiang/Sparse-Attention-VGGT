@@ -1,0 +1,27 @@
+Local measured/reused7Scenes,all7scenes x128frames,equal-scene macro.
+AUC/F1 percentages in table,fractions in CSV. ACC/Comp/CD metres,CD=(ACC+Comp)/2 unsquared.
+method | AUC@3 | AUC@30 | ACC | Comp | CD | F1
+fast_subgroup | 22.75% | 84.36% | 0.15502 | 0.12869 | 0.14185 | 46.87%
+SAF3R_DINO_Top128 | 24.29% | 84.76% | 0.14022 | 0.12495 | 0.13258 | 47.04%
+global_logshrink_previous_batch | 22.38% | 84.23% | 0.15202 | 0.12430 | 0.13816 | 47.56%
+fast_historical_20261106 | 23.04% | 84.59% | 0.14487 | 0.12204 | 0.13346 | 48.29%
+FastVGGT_native_ratio090 | 21.28% | 83.59% | 0.12444 | 0.13784 | 0.13114 | 48.85%
+
+Runtime:1cold+3warm synchronized full forwards; mean of per-scene warmed medians. Includes reset,clustering,routing,history,reordering,all prediction heads. Excludes model/image load and CPU quality.
+{'method': 'fast_subgroup', 'seconds': 5.788926846879933, 'warm_peak_GiB': 19.660892963409424, 'batch': 'final7_quality frozen candidate', 'paired_dense_speedup': None}
+{'method': 'SAF3R_DINO_Top128', 'seconds': 7.601793882969234, 'warm_peak_GiB': 22.95932674407959, 'batch': 'Historical/reused control; see original batch artifact', 'paired_dense_speedup': None}
+{'method': 'global_logshrink_previous_batch', 'seconds': 6.285995939613453, 'warm_peak_GiB': 14.421138286590576, 'batch': 'Historical/reused control; see original batch artifact', 'paired_dense_speedup': None}
+{'method': 'fast_historical_20261106', 'seconds': 5.745090182205396, 'warm_peak_GiB': 14.852638244628906, 'batch': 'Historical/reused control; see original batch artifact', 'paired_dense_speedup': None}
+{'method': 'FastVGGT_native_ratio090', 'seconds': 7.149017631475415, 'warm_peak_GiB': 14.896748065948486, 'batch': 'FastVGGT explicit requested evaluation 20261108; separate batch', 'paired_dense_speedup': None}
+Dense-relative speedup=N/A:no paired Dense timings;unchanged controls not rerun without explicit request. Dense definition=1.00x. Historical controls are not contemporaneous speed comparisons.
+No published-reference scores used; native local FastVGGT is not claimed paper-equivalent. No local matchedDense quality is available in this experiment, so degradation againstDense=N/A. No paper reproduction drift is claimed.
+Quality protocol:pose+recon_unposed;F1threshold0.05m,downsample/voxel0.0078125m,TSDFtrunc0.04m,1million mesh points;unchanged unposed alignment/fusion. All candidate pixels and checkpoint verified identical to localFastVGGT.
+SAF3R:DINO-feature cosine per-frameTop128,profileeth3d-train-fltr-calib_cmpmse.json;not officialTop4. Top128 perframe is16384ordinarykeys/query at128frames. See existing SAF3R artifact for rawprofile.
+FastVGGT:upstream6526e275,merging0,merge_ratio0.9,nativeFastAggregator,all original prediction heads;BF16aggregator features converted toFP32inside timedforward.
+Hyperparameters frozen on ETH3D before7Scenes;no7Scenes truth tuning.
+
+Strict six-metric gates:
+SAF3R_DINO_Top128: {'per_metric': {'auc03': False, 'auc30': False, 'acc': False, 'comp': False, 'cd': False, 'f1': False}, 'all_six_pass': False, 'difference_new_minus_control': {'auc03': -0.015437523434570721, 'auc30': -0.003996766029246479, 'acc': 0.014800892840418967, 'comp': 0.0037369392253990275, 'cd': 0.009268916032908997, 'f1': -0.0017289933406425817}}
+global_logshrink_previous_batch: {'per_metric': {'auc03': True, 'auc30': True, 'acc': False, 'comp': False, 'cd': False, 'f1': False}, 'all_six_pass': False, 'difference_new_minus_control': {'auc03': 0.00370852080989878, 'auc30': 0.001298861079864877, 'acc': 0.003000937828354977, 'comp': 0.0043853122325151345, 'cd': 0.0036931250304350627, 'f1': -0.006959603321881225}}
+fast_historical_20261106: {'per_metric': {'auc03': False, 'auc30': False, 'acc': False, 'comp': False, 'cd': False, 'f1': False}, 'all_six_pass': False, 'difference_new_minus_control': {'auc03': -0.0029527559055118335, 'auc30': -0.002320608361454868, 'acc': 0.010145759370429802, 'comp': 0.0066405093807314075, 'cd': 0.008393134375580619, 'f1': -0.014211169460677797}}
+FastVGGT_native_ratio090: {'per_metric': {'auc03': True, 'auc30': True, 'acc': False, 'comp': True, 'cd': False, 'f1': False}, 'all_six_pass': False, 'difference_new_minus_control': {'auc03': 0.014640748031496037, 'auc30': 0.007681852268466405, 'acc': 0.030572769989261603, 'comp': -0.00914993414766993, 'cd': 0.01071141792079583, 'f1': -0.01982798830095489}}

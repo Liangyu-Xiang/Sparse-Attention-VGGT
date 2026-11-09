@@ -1,0 +1,31 @@
+Frozen unified-beta candidate: workflow and limitations
+
+1. Inputs and framework
+Use original checkpoint and full camera/depth/point heads, unchanged precision. Query routing groups256, ordinary Keytarget256 balanced frame-local blocks. On7Scenes1036ordinary/frame this yields5blocks/frame of207-208keys. Exclude all special Keys from importance denominators. Existing special attention correction stays unchanged. Value clustering/source-local geometry and four Drop/Rep/History/Exact states unchanged. Layer budgets10% for0-5,18% for6-17,10% for18-23;cluster_fraction0.1;execution compensationgamma0.5 unchanged.
+
+2. Cheap current observations
+Within each256Query routing group, compute four means over contiguous64ordinary-Query subsets. These cover every ordinary Query and do not select new fineQK probes. For each head h and subset p, pool ordinary Keys within block b and compute mu[h,g,p,b]=meanQ dot meanK /sqrt(d). Softmax(mu+log(block_population)) within each head/subset, then valid-Query-count-weighted mean and head mean gives block mass C[g,b]. Base per-Key weight u[g,j]=C[g,b(j)]/n_b. No cross-layer head matching.
+
+3. History acquisition after the formal current sparse attention
+Only IDs actually present in executed sparse mask become history for next layer, including reps actually executed. No response is copied to unexecuted members. Formal AV already calculates exp(rawQK plus compensation bias minus tile maximum). Reuse these exponentials and undo the compensation bias; do not recompute fineQK. For each head/subset/selected Key, form A[j]=mean_Query exp(rawQK[j]-logZcoarse). Let B[b]=exp(mu[b]-logZcoarse), and m_b be the count of actually observed Keys in block b. Compute h_perhead_subset[j]=A[j]/(sum_selected A + sum_b (n_b-m_b)*B[b]). This is an approximate observed-plus-unknown partition, not Dense probability and not selected-only SparseSoftmax. Normalize within each head/subset first, then weight by valid Query counts and average heads. Cache only resulting head-mean h[j], actual IDs S, and block mass C. Discard history older than the immediately previous layer. The final layer need not export a cache.
+
+4. One formula in all24 layers
+beta[g,b]=(min(C_current,C_previous)/max(C_current,C_previous))**tau, tau=0.5.
+R[g,j]=h_previous[g,j]/u_previous[g,j] for j in actual previous support S.
+w_current[g,j]=u_current[g,j]*exp(alpha*beta[g,b(j)]*log(R[g,j])), alpha=0.5.
+For unobserved j, w=u_current. Layer0 has no history and uses u. Normalize w over all ordinary Keys before existing selector in the frozen final candidate. No per-block mass locking or residual centering: history may change block masses and the historical/unknown balance. This is global log-weight shrinkage; beta tends0 when block mass changes strongly. It does not guarantee detection of changes within a block.
+
+5. State selection and execution
+Feed the estimated Key weights into the existing per-cluster state losses and same-budget optimizer. Reuse the exact state-optimizer CUDA graph, refreshing all changing values each layer. Execute chosen mask via existing compensated attention. Compensation remains sqrt(population compensation * prior-residual compensation). A shared normalization factor can mathematically be omitted from selector weights, and fixed-QKV checks preserved IDs, but the timed omission offered no demonstrated gain; the final candidate keeps it.
+
+6. Engineering
+Use existing attention exponentials instead of a separate history exp; stable reference removes compensation without overflow. Fuse the observed-plus-unknown partition and head aggregation into two kernels; no temporary full per-head Key probability grid. attention_stages=2. Increase only DPT frame chunk8 to32, retaining all heads and FP32 prediction precision; fixed-token depth relativeL2=2.79e-7,point=6.45e-7. Chunk64 OOM rejected. All these operations count inside warmed full-forward time.
+
+7. Experiment selection
+110 complete ETH3D scene-method evaluations across10 candidate configurations; every one includes pose+recon_unposed and raw six-metric outputs. Rejected smaller clustering fractions, aggressive prior clipping, loss-power changes and gamma0.25 based on offline causal replay or native ETH results. Final fast_subgroup alpha0.5/tau0.5/gamma0.5 was frozen from ETH only before7Scenes. It did not pass all six ETH gates; selection_geomean only chose a validation candidate, never declared equivalence.7Scenes truth is never a tuning source.
+
+8. Limits
+Head-mean importance can be inherited, but mean exp(group logits) with an approximate partition is not the mean of exact per-Query Softmax. Unknown Keys keep a coarse baseline and cannot receive fine ordering. beta only observes block-mass change and cannot certify unchanged internal ranking. Small numerical differences in cache reductions can affect discrete state selection across later layers; fixed-AV bitwise checks do not imply full multi-layer mask or task-score identity. Report native task scores as measured.
+
+9. Reporting
+7Scenes full128frames in every one of7scenes;all six task metrics with equal-scene macro,per-scene rows;metres and unsquaredCD=(ACC+Comp)/2,F1threshold0.05m,voxel/downsample0.0078125m,TSDFtrunc0.04m.1cold+3warm synchronized fullforwards,per-scene median then macro. Runtime/peakmemory separate from quality. Existing unchanged controls reused. Dense-relative speedup=N/A absent explicitly authorized pairedDense timing;Dense definition1.00x. Historicalquick5.745s is not a current paired speed comparison. SAF3R DINOfeatureTop128perframe is not officialTop4;FastVGGTnative localmerging0/ratio0.9 is not asserted paper-equivalent.

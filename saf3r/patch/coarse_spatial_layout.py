@@ -9,3 +9,12 @@ def fixed_blocks(n,patches_per_frame,target,device):
  grid=(positions//patches_per_frame)*per_frame+(positions%patches_per_frame)*per_frame//patches_per_frame
  sizes=torch.bincount(grid).float()
  return grid,sizes
+
+
+def fixed_blocks_at_most(n,patches_per_frame,target,device):
+ """Balanced frame-local blocks whose actual size never exceeds target."""
+ if n%patches_per_frame or target<1:raise ValueError('Invalid fixed frame/block layout')
+ per_frame=max(1,(patches_per_frame+target-1)//target)
+ positions=torch.arange(n,device=device)
+ grid=(positions//patches_per_frame)*per_frame+(positions%patches_per_frame)*per_frame//patches_per_frame
+ return grid,torch.bincount(grid).float()
