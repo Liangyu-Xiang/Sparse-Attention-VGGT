@@ -78,11 +78,18 @@ def _bin_capacity(size, clusters, tokens):
     return triton.next_power_of_2(max(1,min(clusters,tokens//minimum)))
 
 
+def _prior_inputs(prior):
+    from .beta_unified_importance import CompactPrior
+    if isinstance(prior,CompactPrior):
+        return [prior.block_weight,prior.grid]+([] if prior.delta is None else [prior.delta])
+    return [prior]
+
+
 class Window:
     def __init__(self,prior,pi,old_ids,allowed,z,reps,labels,population,geometry,cap,iterations,drop_multiplier,bucket_bins=False,uniform=None,special_p=None):
         if geometry.get('shared_value_loss',False) and geometry.get('state_loss_variant','legacy')=='legacy' and uniform is None:raise ValueError('Missing shared Value uniform input')
         self.has_uniform=uniform is not None;self.has_special=special_p is not None
-        sources=[prior,pi,old_ids,allowed]+([uniform] if self.has_uniform else [])+([special_p] if self.has_special else [])
+        sources=_prior_inputs(prior)+[pi,old_ids,allowed]+([uniform] if self.has_uniform else [])+([special_p] if self.has_special else [])
         self.inputs=[torch.empty_like(t) for t in sources]
         for dest,src in zip(self.inputs,sources):dest.copy_(src)
         # Shared-Value selection consumes the already reduced norm/distance
@@ -98,10 +105,18 @@ class Window:
             self.geometry['drop_bins']=[(size,torch.empty((_bin_capacity(size,len(reps),len(labels)) if bucket_bins=='stable' else triton.next_power_of_2(max(1,len(ids)))),device=ids.device,dtype=ids.dtype)) for size,ids in geometry['drop_bins']]
             self.geometry['drop_bin_counts']=[torch.empty(1,device=z.device,dtype=torch.int32) for _ in geometry['drop_bins']]
             self.update_constants(z,reps,labels,population,geometry)
+        from .beta_unified_importance import CompactPrior
+        prior_count=len(_prior_inputs(prior))
+        if isinstance(prior,CompactPrior):
+            static_prior=CompactPrior(self.inputs[0],self.inputs[1],self.inputs[prior_count+1],
+                                      self.inputs[2] if prior_count==3 else None)
+        else:
+            static_prior=self.inputs[0]
+        optional=prior_count+3
         def run():
-            return eager(*self.inputs[:4],*self.constants,self.geometry,cap,iterations,drop_multiplier,
-                         uniform=self.inputs[4] if self.has_uniform else None,
-                         special_p=self.inputs[4+int(self.has_uniform)] if self.has_special else None)
+            return eager(static_prior,*self.inputs[prior_count:optional],*self.constants,self.geometry,cap,iterations,drop_multiplier,
+                         uniform=self.inputs[optional] if self.has_uniform else None,
+                         special_p=self.inputs[optional+int(self.has_uniform)] if self.has_special else None)
         run()  # Compile, initialize constants, allocate outside capture.
         self.graph=torch.cuda.CUDAGraph()
         with torch.cuda.graph(self.graph):
@@ -120,7 +135,7 @@ class Window:
             dst[:len(src)].copy_(src)
             if 'drop_bin_counts' in self.geometry:self.geometry['drop_bin_counts'][i].fill_(len(src))
     def __call__(self,prior,pi,old_ids,allowed,uniform=None,special_p=None):
-        sources=[prior,pi,old_ids,allowed]+([uniform] if uniform is not None else [])+([special_p] if special_p is not None else [])
+        sources=_prior_inputs(prior)+[pi,old_ids,allowed]+([uniform] if uniform is not None else [])+([special_p] if special_p is not None else [])
         if len(sources)!=len(self.inputs):raise ValueError('Mismatched shared Value graph inputs')
         for dest,src in zip(self.inputs,sources):dest.copy_(src)
         self.graph.replay()
@@ -140,7 +155,7 @@ def select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometr
         if bounded:
             signature_geometry=dict(geometry,drop_bins=[(size,_bin_capacity(size,len(reps),len(labels)),str(ids.dtype),str(ids.device)) for size,ids in geometry['drop_bins']])
         else:signature_geometry=geometry
-        key=_signature((prior,pi,old_ids,allowed,uniform,special_p,z,reps,labels,population,signature_geometry,
+        key=_signature((tuple(_prior_inputs(prior)),pi,old_ids,allowed,uniform,special_p,z,reps,labels,population,signature_geometry,
                         state.budget,state.config.dual_iterations,state.config.drop_multiplier))
         tag=(state._forward_serial,layer)
         graphs=state._reused_window_graphs
@@ -151,9 +166,9 @@ def select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometr
                 while graphs and (len(graphs)>=state.config.graph_cache_capacity or
                        sum(getattr(w,'cache_bytes',0) for w in graphs.values())>=state.config.graph_cache_max_mib*2**20):
                     graphs.popitem(last=False);state.graph_cache_evictions+=1
-            before=torch.cuda.memory_allocated(prior.device)
+            before=torch.cuda.memory_allocated(pi.device)
             graphs[key]=Window(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,state.budget,state.config.dual_iterations,state.config.drop_multiplier,'stable' if bounded else True,uniform=uniform,special_p=special_p)
-            graphs[key].cache_bytes=max(0,torch.cuda.memory_allocated(prior.device)-before)
+            graphs[key].cache_bytes=max(0,torch.cuda.memory_allocated(pi.device)-before)
             state.graph_cache_creations=getattr(state,'graph_cache_creations',0)+1
             graphs[key].loaded=tag
             if len(graphs)>getattr(state.config,'graph_cache_capacity',24):
@@ -170,7 +185,7 @@ def select(state,layer,prior,pi,old_ids,allowed,z,reps,labels,population,geometr
         return window(prior,pi,old_ids,allowed,uniform=uniform,special_p=special_p)
     if getattr(state,'_window_graph_layer',None)!=layer:
         state._window_graphs={};state._window_graph_layer=layer
-    key=_signature((prior,pi,old_ids,allowed,uniform,special_p,geometry,state.budget,state.config.dual_iterations,state.config.drop_multiplier))
+    key=_signature((tuple(_prior_inputs(prior)),pi,old_ids,allowed,uniform,special_p,geometry,state.budget,state.config.dual_iterations,state.config.drop_multiplier))
     if key not in state._window_graphs:
         state._window_graphs[key]=Window(prior,pi,old_ids,allowed,z,reps,labels,population,geometry,state.budget,state.config.dual_iterations,state.config.drop_multiplier,uniform=uniform,special_p=special_p)
     return state._window_graphs[key](prior,pi,old_ids,allowed,uniform=uniform,special_p=special_p)

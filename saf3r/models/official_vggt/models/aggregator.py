@@ -209,6 +209,8 @@ class Aggregator(nn.Module):
         if C_in != 3:
             raise ValueError(f"Expected 3 input channels, got {C_in}")
 
+        if getattr(self, "vram_efficient_bf16", False):
+            images = images.to(torch.bfloat16)
         # Normalize images and reshape for patch embed
         images = (images - self._resnet_mean) / self._resnet_std
 
@@ -219,6 +221,9 @@ class Aggregator(nn.Module):
         if isinstance(patch_tokens, dict):
             patch_tokens = patch_tokens["x_norm_patchtokens"]
 
+        if getattr(self, "vram_efficient_bf16", False):
+            patch_tokens = patch_tokens.to(torch.bfloat16)
+
         _, P, C = patch_tokens.shape
 
         # Expand camera and register tokens to match batch size and sequence length
@@ -227,6 +232,8 @@ class Aggregator(nn.Module):
 
         # Concatenate special tokens with patch tokens
         tokens = torch.cat([camera_token, register_token, patch_tokens], dim=1)
+        if getattr(self, "vram_efficient_bf16", False):
+            tokens = tokens.to(torch.bfloat16)
 
         pos = None
         if self.rope is not None:
@@ -268,6 +275,8 @@ class Aggregator(nn.Module):
                 for i in range(len(frame_intermediates)):
                     # concat frame and global intermediates, [B x S x P x 2C]
                     concat_inter = torch.cat([frame_intermediates[i], global_intermediates[i]], dim=-1)
+                    if getattr(self, "vram_efficient_bf16", False):
+                        concat_inter = concat_inter.to(torch.bfloat16)
                     output_list.append(concat_inter)
                 del concat_inter
             

@@ -117,10 +117,39 @@ def transfer_history(scores,patch_ids,coarse_p,budget,ratio,adaptive=False):
     return ids.sort(1).values.to(torch.int32)
 
 
-def prepare_qkv(original,x,pos):
+def prepare_qkv(original,x,pos,*,position_count=None):
     b,n,c=x.shape
     q,k,v=original.qkv(x).reshape(b,n,3,original.num_heads,original.head_dim).permute(2,0,3,1,4).unbind(0)
+    import os
+    if (os.environ.get("BETA_WELFORD_ROPE")=="1" and torch.__version__=="2.9.1+cu128"
+            and b==1 and q.is_cuda and q.dtype==torch.bfloat16 and q.shape[-1]==64
+            and original.rope is not None and torch.is_autocast_enabled("cuda")
+            and isinstance(original.q_norm,torch.nn.LayerNorm)
+            and isinstance(original.k_norm,torch.nn.LayerNorm)
+            and all(t is not None for t in (original.q_norm.weight,original.q_norm.bias,
+                                             original.k_norm.weight,original.k_norm.bias))):
+        from saf3r.triton.fused_qk_rope import apply,apply_norm
+        if os.environ.get("BETA_WELFORD_BACKEND")=="cuda":
+            from saf3r.triton.cuda_norm_rope import apply_cuda
+            out=apply_cuda(q[0],k[0],v[0],pos,original.rope,original.q_norm,original.k_norm,
+                           position_count=position_count)
+        else:
+            out=apply_norm(q[0],k[0],v[0],pos,original.rope,original.q_norm,original.k_norm,
+                           torch.float32,welford=1)
+        if os.environ.get("BETA_AUDIT_WELFORD_ROPE")=="1":
+            ref=apply(original.q_norm(q)[0],original.k_norm(k)[0],pos,original.rope,v=v[0])
+            for actual,expected in zip(out,ref):
+                torch.testing.assert_close(actual,expected,rtol=0,atol=0)
+            print("WELFORD_QKV_EXACT",n,flush=True)
+        return out
     q,k=original.q_norm(q),original.k_norm(k)
+    if (original.rope is not None and b==1 and q.is_cuda and q.shape[-1]==64
+            and os.environ.get('BETA_FUSED_ROPE')=='1'):
+        from saf3r.triton.fused_qk_rope import apply
+        if os.environ.get("BETA_FUSED_QKV_LAYOUT")=="1":
+            return apply(q[0],k[0],pos,original.rope,v=v[0])
+        q,k=apply(q[0],k[0],pos,original.rope)
+        return q,k,v[0].contiguous()
     if original.rope is not None:q,k=original.rope(q,pos),original.rope(k,pos)
     return tuple(t[0].contiguous() for t in (q,k,v))
 

@@ -15,4 +15,4 @@ def select(state,layer,prior,pi,old,allowed,z,reps,labels,population,geometry):
             return original(prior,pi,old,allowed,z,reps,labels,population,geometry,cap,iterations,drop_multiplier,uniform,special_p)
         graph.eager=eager;_INSTALLED=True
     geo=dict(geometry,shared_value_loss=True,unified_history_sqrt=True)
-    return graph.select(state,layer,prior,pi,old,allowed,z,reps,labels,population,geo,uniform=prior.new_zeros(len(prior),1))
+    return graph.select(state,layer,prior,pi,old,allowed,z,reps,labels,population,geo,uniform=pi.new_zeros(len(pi),1))

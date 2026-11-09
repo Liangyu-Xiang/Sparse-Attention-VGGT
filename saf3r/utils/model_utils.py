@@ -32,7 +32,16 @@ def build_model(model_cfg, device):
             )
 
         model.load_state_dict(torch.load(model_cfg.ckpt_path, map_location="cpu"))
-        model = model.to(device).eval()
+        if model_cfg.get("vram_efficient_bf16", False):
+            if model.aggregator.save_intermediates:
+                raise ValueError("FastVGGT BF16 inference requires four-layer retention")
+            model.point_head = None
+            model.track_head = None
+            model.vram_efficient_bf16 = True
+            model.aggregator.vram_efficient_bf16 = True
+            model = model.to(device=device, dtype=torch.bfloat16).eval()
+        else:
+            model = model.to(device).eval()
 
     elif model_cfg.name.lower() == "pi3":
         from ..models.official_pi3.models.pi3 import Pi3

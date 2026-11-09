@@ -51,3 +51,30 @@ def _weights(IDS,PRIOR,MASS,OUT,ASSIGNED,N:tl.constexpr,A:tl.constexpr,T:tl.cons
     w=tl.maximum(tl.div_rn(mass,tl.maximum(own,1.e-30)),1.)
     tl.store(OUT+g*A+col,tl.where(valid,w,0.),col<A)
     tl.store(ASSIGNED+g*T+tile,tl.sum(mass,0))
+
+@triton.jit
+def _flag_tiles(SEL, LABEL, REP, QUAL, FLAGS, COUNTS,
+                N:tl.constexpr, F:tl.constexpr, T:tl.constexpr, B:tl.constexpr):
+    group = tl.program_id(0)
+    tile = tl.program_id(1)
+    key = tile * B + tl.arange(0, B)
+    valid = key < N
+    cluster = tl.load(LABEL + key, valid, 0)
+    state = tl.load(SEL + group * F + cluster, valid, 0)
+    rep = tl.load(REP + cluster, valid & (state == 1), -1)
+    qualified = tl.load(QUAL + group * N + key, valid & (state == 5), False)
+    keep = (state == 10) | ((state == 1) & (key == rep)) | ((state == 5) & qualified)
+    tl.store(FLAGS + group * N + key, keep, valid)
+    tl.store(COUNTS + group * T + tile, tl.sum(keep.to(tl.int32), 0))
+
+
+@triton.jit
+def _emit_tiles(FLAGS, TILE_END, IDS, N:tl.constexpr, A:tl.constexpr,
+                T:tl.constexpr, B:tl.constexpr):
+    group = tl.program_id(0)
+    tile = tl.program_id(1)
+    key = tile * B + tl.arange(0, B)
+    keep = tl.load(FLAGS + group * N + key, key < N, False)
+    before = tl.load(TILE_END + group * T + tile - 1, tile > 0, 0)
+    slot = before + tl.cumsum(keep.to(tl.int32), 0) - 1
+    tl.store(IDS + group * A + slot, key, keep & (slot < A))

@@ -17,12 +17,19 @@ def query_ids(special_ids, per_frame):
     return special_ids.reshape(-1,5)[:,:per_frame].reshape(-1)
 
 
-def correct_output(q,k,v,output,special_ids,per_frame,scale,anchor_tokens=0):
+def compute_correction(q,k,v,special_ids,per_frame,scale,anchor_tokens=0):
     ids=query_ids(special_ids,per_frame)
     if anchor_tokens:
         ids=torch.cat((torch.arange(anchor_tokens,device=q.device),ids)).unique(sorted=True)
+    dense=None
     if ids.numel():
         dense=F.scaled_dot_product_attention(q[:,ids].unsqueeze(0),k.unsqueeze(0),
                                             v.unsqueeze(0),dropout_p=0.,is_causal=False,scale=scale)
+    return dense,ids
+
+
+def correct_output(q,k,v,output,special_ids,per_frame,scale,anchor_tokens=0):
+    dense,ids=compute_correction(q,k,v,special_ids,per_frame,scale,anchor_tokens)
+    if dense is not None:
         output[:,ids]=dense[0]
     return output,ids

@@ -15,16 +15,29 @@ def gate(prior,pi,population,old_ids,labels,reps,rep_removal=None):
     seen=seen>0
     return dict(qualified=qualified,eligible_count=amount,observed_rep=seen,remove_rep=seen,history_count=count)
 
-def pack(selected,hids,reps,labels,population,budget,context):
-    g,f=selected.shape;n=len(labels);flags=torch.empty((g,n),device=selected.device,dtype=torch.int32)
-    kernels._flags[(g,triton.cdiv(n,256))](selected,labels,reps,context['qualified'],flags,n,f,256,num_warps=4)
-    prefix=flags.cumsum(1,dtype=torch.int32);counts=prefix[:,-1];tiles=triton.cdiv(f,256)
+def pack(selected,hids,reps,labels,population,budget,context,*,tiled=False):
+    g,f=selected.shape;n=len(labels)
+    if tiled:
+        block = 1024
+        key_tiles = triton.cdiv(n, block)
+        flags = torch.empty((g,n),device=selected.device,dtype=torch.bool)
+        tile_counts = torch.empty((g,key_tiles),device=selected.device,dtype=torch.int32)
+        kernels._flag_tiles[(g,key_tiles)](selected,labels,reps,context['qualified'],flags,tile_counts,n,f,key_tiles,block,num_warps=4)
+        prefix = tile_counts.cumsum(1,dtype=torch.int32)
+    else:
+        flags = torch.empty((g,n),device=selected.device,dtype=torch.int32)
+        kernels._flags[(g,triton.cdiv(n,256))](selected,labels,reps,context['qualified'],flags,n,f,256,num_warps=4)
+        prefix = flags.cumsum(1,dtype=torch.int32)
+    counts=prefix[:,-1];tiles=triton.cdiv(f,256)
     partial=torch.empty((g,tiles),device=selected.device,dtype=torch.int32);invalid=torch.empty_like(partial)
     kernels._validate[(g,tiles)](selected,context['eligible_count'],population,context['remove_rep'],partial,invalid,f,tiles,256,num_warps=4)
     expected=partial.sum(1).float()
     context['pack_error']=(counts>budget)|(counts!=expected)|(invalid.sum(1)>0)
     ids=torch.full((g,budget),-1,device=selected.device,dtype=torch.int32)
-    _emit[(g,triton.cdiv(n,256))](flags,prefix,ids,n,budget,256,num_warps=4)
+    if tiled:
+        kernels._emit_tiles[(g,key_tiles)](flags,prefix,ids,n,budget,key_tiles,block,num_warps=4)
+    else:
+        _emit[(g,triton.cdiv(n,256))](flags,prefix,ids,n,budget,256,num_warps=4)
     return ids,ids>=0,dict(reuse_edges=(context['eligible_count']*(selected==5)).sum(1),representatives=(selected==1).sum(1),exact_edges=(population[None]*(selected==10)).sum(1),dropped_clusters=(selected==0).sum(1),counts=counts,native_cost_count_error=(counts-expected).abs())
 
 def transfer(selected,labels,reps,hids,prior,pi,packed,geometry,context):
