@@ -76,6 +76,12 @@ peak,1cold+3warm fullforwards. This is a historical snapshot,not the newly
 authorized paired comparison. The paired same-GPU Dense/quick/candidate timing
 campaign is recorded separately under outputs/paired_fullforward_7scenes128_20261109.
 It does not rerun pose/reconstruction; all new timing-only quality fields are N/A.
+Completed paired results: Dense12.328655s(1.00x),quick5.760001s(2.140x),
+candidate5.785011s(2.131x),equal-scene mean of warmed medians. Candidate is0.434%
+slower than quick in this batch; strict macro speed gate is not passed. Warm
+allocated peaks:14.360GiB,14.908GiB,19.723GiB,respectively. No precision or model
+parameters changed during this timing-only campaign. Existing SAF3R/FastVGGT
+timings remain separate batches and are not given paired speedups here.
 
 SAF3R comparison is DINO-feature Top128 PER FRAME,not officialTop4 or lazy
 correspondence-head TopK. FastVGGT comparison is local native upstream6526e275,

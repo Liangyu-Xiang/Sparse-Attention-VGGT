@@ -1,0 +1,46 @@
+Paired same-batch7Scenes128 full-forward timing,all7 scenes,RTX5090D.
+method | mean per-scene warmed median seconds | Dense-relative speedup | max warm allocatedGiB
+dense | 12.328655 | 1.000x | 14.360
+quick | 5.760001 | 2.140x | 14.908
+candidate | 5.785011 | 2.131x | 19.723
+
+Scope:1cold+3warm synchronized forward calls;fresh process per method;eachscene samephysicalGPU;method order rotates byscene. Includes per-forward initialization/reset,clustering,routing,history,reordering,all camera/depth/point prediction heads. Model/checkpoint/image loading and CPU quality excluded. Track head has no querypoints,as in prior quality runs.
+Same FP32 model/prediction heads andBF16backbone autocast,TF32disabled,CuDNNbenchmarkenabled for all methods. OriginalDense unpatched;quick frozen oldcode and originalheadchunk8;candidate frozen previously evaluatedmodel withheadchunk32. Per-method optimization difference is retained,not silently applied to controls.
+Dense-relative macro speedup=equal-scene mean(Dense warmed median)/equal-scene mean(method warmed median);Dense=1.00x. Individualscene ratios are in timing_per_scene.csv;mean-of-ratios reported separately.
+{'candidate_seconds': 5.785011422554297, 'quick_seconds': 5.760000874421427, 'candidate_over_quick_seconds_ratio': 1.0043421083916733, 'candidate_speed_gate_macro_pass': False, 'candidate_speed_gate_every_scene_pass': False, 'quality_gate': 'Unchanged; no quality measured in this timing batch. Previous candidate failed strict six-metric quality gates.', 'macro_speedup_definition': 'Ratio of equal-scene mean warmed full-forward medians; per-scene ratios also reported separately', 'no_parameter_changes': True}
+
+New timing-only six-metric table:
+method | AUC@3 | AUC@30 | ACC | Comp | CD | F1
+dense | N/A | N/A | N/A | N/A | N/A | N/A : explicitly timing only
+quick | N/A | N/A | N/A | N/A | N/A | N/A : explicitly timing only
+candidate | N/A | N/A | N/A | N/A | N/A | N/A : explicitly timing only
+
+Reused quality: AUC/F1 shown as percentages;ACC/Comp/CD metres;CD=(ACC+Comp)/2 unsquared:
+quick | 23.04% | 84.59% | 0.14487 | 0.12204 | 0.13346 | 48.29% : Reused complete prior quality; unchanged checkpoint/inputs/method
+candidate | 22.75% | 84.36% | 0.15502 | 0.12869 | 0.14185 | 46.87% : Reused complete prior quality; unchanged checkpoint/inputs/method
+dense | N/A | N/A | N/A | N/A | N/A | N/A : No complete matched six-metric Dense quality reused; this request authorizes timing only
+Quality protocol reference only,not executed:unposed reconstruction threshold0.05m,downsample/voxel0.0078125m,TSDFtrunc0.04m;SAF3RTopK/profileN/A for these methods. Prior fullqualitysourcefiles+hashes recorded separately. No quality improvement or Dense degradation can be inferred from timing alone.
+
+Per scene:
+{'method': 'dense', 'scene': 'chess', 'physical_GPU': '4', 'seconds': 12.265129704028368, 'speedup_vs_Dense': 1.0, 'warm_peak_GiB': 14.35971736907959, 'cold_peak_GiB': 28.00013303756714, 'warm_min_seconds': 12.135640842840075, 'warm_max_seconds': 12.308169150725007}
+{'method': 'quick', 'scene': 'chess', 'physical_GPU': '4', 'seconds': 5.762752301059663, 'speedup_vs_Dense': 2.1283458082647484, 'warm_peak_GiB': 14.843734741210938, 'cold_peak_GiB': 20.21599245071411, 'warm_min_seconds': 5.7553621660918, 'warm_max_seconds': 5.768442009575665}
+{'method': 'candidate', 'scene': 'chess', 'physical_GPU': '4', 'seconds': 5.768310296349227, 'speedup_vs_Dense': 2.126295062835123, 'warm_peak_GiB': 19.591926097869873, 'cold_peak_GiB': 22.72669553756714, 'warm_min_seconds': 5.766777149401605, 'warm_max_seconds': 5.779258295893669}
+{'method': 'dense', 'scene': 'fire', 'physical_GPU': '5', 'seconds': 12.432280992157757, 'speedup_vs_Dense': 1.0, 'warm_peak_GiB': 14.35971736907959, 'cold_peak_GiB': 28.00013303756714, 'warm_min_seconds': 12.394670502282679, 'warm_max_seconds': 12.459595534950495}
+{'method': 'quick', 'scene': 'fire', 'physical_GPU': '5', 'seconds': 5.731801320798695, 'speedup_vs_Dense': 2.1690006851851917, 'warm_peak_GiB': 14.786062717437744, 'cold_peak_GiB': 20.152631759643555, 'warm_min_seconds': 5.726015252061188, 'warm_max_seconds': 5.73726465459913}
+{'method': 'candidate', 'scene': 'fire', 'physical_GPU': '5', 'seconds': 5.817612023092806, 'speedup_vs_Dense': 2.137007580225057, 'warm_peak_GiB': 19.521629810333252, 'cold_peak_GiB': 22.605098247528076, 'warm_min_seconds': 5.814906041137874, 'warm_max_seconds': 5.901289734058082}
+{'method': 'dense', 'scene': 'heads', 'physical_GPU': '6', 'seconds': 12.262593465857208, 'speedup_vs_Dense': 1.0, 'warm_peak_GiB': 14.35971736907959, 'cold_peak_GiB': 28.00013303756714, 'warm_min_seconds': 12.170461308211088, 'warm_max_seconds': 12.323241132311523}
+{'method': 'quick', 'scene': 'heads', 'physical_GPU': '6', 'seconds': 5.743034058250487, 'speedup_vs_Dense': 2.135211691499665, 'warm_peak_GiB': 14.726861000061035, 'cold_peak_GiB': 28.378709316253662, 'warm_min_seconds': 5.73314509075135, 'warm_max_seconds': 5.74776481743902}
+{'method': 'candidate', 'scene': 'heads', 'physical_GPU': '6', 'seconds': 5.7390656638890505, 'speedup_vs_Dense': 2.136688127305294, 'warm_peak_GiB': 19.463882446289062, 'cold_peak_GiB': 22.605098247528076, 'warm_min_seconds': 5.7372567960992455, 'warm_max_seconds': 5.7416462283581495}
+{'method': 'dense', 'scene': 'office', 'physical_GPU': '6', 'seconds': 12.270049567334354, 'speedup_vs_Dense': 1.0, 'warm_peak_GiB': 14.35971736907959, 'cold_peak_GiB': 28.00013303756714, 'warm_min_seconds': 12.248274483717978, 'warm_max_seconds': 12.300963268615305}
+{'method': 'quick', 'scene': 'office', 'physical_GPU': '6', 'seconds': 5.759998350404203, 'speedup_vs_Dense': 2.130217548842408, 'warm_peak_GiB': 14.775652408599854, 'cold_peak_GiB': 28.37095594406128, 'warm_min_seconds': 5.752821291796863, 'warm_max_seconds': 5.793028683401644}
+{'method': 'candidate', 'scene': 'office', 'physical_GPU': '6', 'seconds': 5.762168247252703, 'speedup_vs_Dense': 2.1294153590854434, 'warm_peak_GiB': 19.522810459136963, 'cold_peak_GiB': 22.600636959075928, 'warm_min_seconds': 5.75864989683032, 'warm_max_seconds': 5.848060839809477}
+{'method': 'dense', 'scene': 'pumpkin', 'physical_GPU': '4', 'seconds': 12.252329148352146, 'speedup_vs_Dense': 1.0, 'warm_peak_GiB': 14.35971736907959, 'cold_peak_GiB': 28.00013303756714, 'warm_min_seconds': 12.238223984837532, 'warm_max_seconds': 12.31686204392463}
+{'method': 'quick', 'scene': 'pumpkin', 'physical_GPU': '4', 'seconds': 5.763187526725233, 'speedup_vs_Dense': 2.1259639898121074, 'warm_peak_GiB': 14.907716274261475, 'cold_peak_GiB': 20.214212894439697, 'warm_min_seconds': 5.762446910142899, 'warm_max_seconds': 5.771980820223689}
+{'method': 'candidate', 'scene': 'pumpkin', 'physical_GPU': '4', 'seconds': 5.827327634207904, 'speedup_vs_Dense': 2.1025639739951876, 'warm_peak_GiB': 19.723300457000732, 'cold_peak_GiB': 22.73085927963257, 'warm_min_seconds': 5.76964364759624, 'warm_max_seconds': 5.844867820851505}
+{'method': 'dense', 'scene': 'redkitchen', 'physical_GPU': '5', 'seconds': 12.498047718778253, 'speedup_vs_Dense': 1.0, 'warm_peak_GiB': 14.35971736907959, 'cold_peak_GiB': 28.00013303756714, 'warm_min_seconds': 12.408179412595928, 'warm_max_seconds': 12.584519726224244}
+{'method': 'quick', 'scene': 'redkitchen', 'physical_GPU': '5', 'seconds': 5.781164432875812, 'speedup_vs_Dense': 2.1618564674800576, 'warm_peak_GiB': 14.858636856079102, 'cold_peak_GiB': 20.22459650039673, 'warm_min_seconds': 5.778512990102172, 'warm_max_seconds': 5.78921717312187}
+{'method': 'candidate', 'scene': 'redkitchen', 'physical_GPU': '5', 'seconds': 5.826650055125356, 'speedup_vs_Dense': 2.144979980011751, 'warm_peak_GiB': 19.65619134902954, 'cold_peak_GiB': 22.73591947555542, 'warm_min_seconds': 5.820398979820311, 'warm_max_seconds': 5.903421866707504}
+{'method': 'dense', 'scene': 'stairs', 'physical_GPU': '6', 'seconds': 12.3201560433954, 'speedup_vs_Dense': 1.0, 'warm_peak_GiB': 14.35971736907959, 'cold_peak_GiB': 28.00013303756714, 'warm_min_seconds': 12.29623219743371, 'warm_max_seconds': 12.348185582086444}
+{'method': 'quick', 'scene': 'stairs', 'physical_GPU': '6', 'seconds': 5.778068130835891, 'speedup_vs_Dense': 2.1322275481049218, 'warm_peak_GiB': 14.794480800628662, 'cold_peak_GiB': 20.164873123168945, 'warm_min_seconds': 5.771299795247614, 'warm_max_seconds': 5.7898708414286375}
+{'method': 'candidate', 'scene': 'stairs', 'physical_GPU': '6', 'seconds': 5.753946037963033, 'speedup_vs_Dense': 2.1411664207676315, 'warm_peak_GiB': 19.595980644226074, 'cold_peak_GiB': 22.73448133468628, 'warm_min_seconds': 5.747998313978314, 'warm_max_seconds': 5.7560759307816625}
+Existing SAF3R/FastVGGT timings stay separate historical batches;no new paired speed claim for them. No paper comparison or H100 timing used.
